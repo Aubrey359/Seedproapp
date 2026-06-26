@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SeedPro — Kenya's #1 Farmer Marketplace</title>
   <meta name="description" content="Sell your farm produce directly to buyers across Kenya. Scan your plants to verify quality, track live market prices, and earn more — no middlemen." />
-  <meta property="og:title" content="SeedPro — Kenya's #1 Farmer Marketplace" />
-  <meta property="og:description" content="Connect with buyers, scan crops to verify quality, track prices across 12 counties." />
-  <meta property="og:type" content="website" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -28,12 +25,11 @@
       --white:       #ffffff;
       --border:      #d4e8d4;
       --radius:      16px;
-      --shadow:      0 4px 24px rgba(45,106,79,.12);
+      --shadow:      0 4px 24px rgba(45,106,79,.10);
       --shadow-lg:   0 8px 40px rgba(45,106,79,.18);
     }
 
     html { scroll-behavior: smooth; }
-
     body {
       font-family: 'Inter', sans-serif;
       background: var(--cream);
@@ -42,56 +38,100 @@
       overflow-x: hidden;
     }
 
-    /* ── LANDING PAGE ──────────────────────────── */
-    #landing { display: block; }
+    /* ── PAGE SYSTEM ─────────────────────────── */
+    .page { display: none; }
+    .page.active { display: block; }
 
-    /* NAV */
+    /* ── NAV ─────────────────────────────────── */
     nav {
-      position: sticky; top: 0; z-index: 100;
+      position: sticky; top: 0; z-index: 200;
       display: flex; align-items: center; justify-content: space-between;
       padding: 0 20px; height: 60px;
-      background: rgba(250,246,240,.92);
-      backdrop-filter: blur(12px);
+      background: rgba(250,246,240,.95);
+      backdrop-filter: blur(14px);
       border-bottom: 1px solid var(--border);
     }
     .nav-logo {
       display: flex; align-items: center; gap: 8px;
-      text-decoration: none;
+      text-decoration: none; cursor: pointer;
     }
     .nav-logo-icon {
-      width: 34px; height: 34px;
-      background: var(--green);
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px;
+      width: 34px; height: 34px; background: var(--green);
+      border-radius: 10px; display: flex; align-items: center;
+      justify-content: center; font-size: 18px;
     }
     .nav-logo-text { font-size: 20px; font-weight: 800; color: var(--green-dark); }
-    .nav-actions { display: flex; gap: 10px; }
-    .btn-ghost {
-      padding: 8px 16px; border-radius: 100px;
-      font-size: 13px; font-weight: 600;
-      color: var(--green); background: none;
-      border: 1.5px solid var(--border);
-      cursor: pointer; text-decoration: none;
-      transition: all .2s;
+
+    .nav-links {
+      display: flex; gap: 4px;
+      position: absolute; left: 50%; transform: translateX(-50%);
     }
-    .btn-ghost:hover { background: var(--green-pale); border-color: var(--green); }
+    .nav-link {
+      padding: 6px 14px; border-radius: 100px;
+      font-size: 13px; font-weight: 600; color: var(--text-muted);
+      background: none; border: none; cursor: pointer;
+      text-decoration: none; transition: all .2s;
+    }
+    .nav-link:hover { color: var(--green); background: var(--green-pale); }
+    .nav-link.active { color: var(--green); background: var(--green-pale); }
+
+    .nav-actions { display: flex; gap: 8px; align-items: center; }
+    .cart-btn {
+      position: relative; width: 38px; height: 38px;
+      background: var(--green-pale); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; border: none; font-size: 16px;
+    }
+    .cart-count {
+      position: absolute; top: -3px; right: -3px;
+      width: 16px; height: 16px; background: #e74c3c; border-radius: 50%;
+      color: white; font-size: 9px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .btn-ghost {
+      padding: 7px 14px; border-radius: 100px;
+      font-size: 13px; font-weight: 600; color: var(--green);
+      background: none; border: 1.5px solid var(--border);
+      cursor: pointer; text-decoration: none; transition: all .2s;
+    }
+    .btn-ghost:hover { background: var(--green-pale); }
     .btn-primary {
-      padding: 8px 18px; border-radius: 100px;
-      font-size: 13px; font-weight: 700;
-      color: var(--white); background: var(--green);
-      border: none; cursor: pointer; text-decoration: none;
-      transition: all .2s;
+      padding: 8px 16px; border-radius: 100px;
+      font-size: 13px; font-weight: 700; color: white;
+      background: var(--green); border: none;
+      cursor: pointer; text-decoration: none; transition: all .2s;
     }
     .btn-primary:hover { background: var(--green-dark); transform: translateY(-1px); }
+
+    /* ── SHARED COMPONENTS ───────────────────── */
+    .section-label {
+      font-size: 11px; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--green); margin-bottom: 6px;
+    }
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(22px, 6vw, 34px); font-weight: 800;
+      color: var(--green-dark); line-height: 1.25; margin-bottom: 10px;
+    }
+    .section-sub {
+      font-size: 14px; color: var(--text-muted);
+      line-height: 1.65; margin-bottom: 28px;
+    }
+    .verified-badge {
+      font-size: 10px; font-weight: 700; color: #16a34a;
+      background: #dcfce7; padding: 2px 8px; border-radius: 100px;
+      display: inline-flex; align-items: center; gap: 3px;
+    }
+
+    /* ═══════════════════════════════════════════
+       PAGE 1 — HOME
+    ═══════════════════════════════════════════ */
 
     /* HERO */
     .hero {
       position: relative;
       background: linear-gradient(145deg, var(--green-dark) 0%, var(--green) 60%, #3a8c68 100%);
-      padding: 60px 20px 70px;
-      overflow: hidden;
-      text-align: center;
+      padding: 60px 20px 70px; overflow: hidden; text-align: center;
     }
     .hero::before {
       content: '';
@@ -101,332 +141,506 @@
     }
     .hero-badge {
       display: inline-flex; align-items: center; gap: 6px;
-      background: rgba(255,255,255,.15);
-      border: 1px solid rgba(255,255,255,.25);
-      color: rgba(255,255,255,.9);
-      padding: 5px 14px; border-radius: 100px;
+      background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
+      color: rgba(255,255,255,.9); padding: 5px 14px; border-radius: 100px;
       font-size: 11px; font-weight: 700; letter-spacing: .08em;
       text-transform: uppercase; margin-bottom: 20px;
     }
     .hero h1 {
       font-family: 'Playfair Display', serif;
-      font-size: clamp(32px, 8vw, 52px);
-      font-weight: 800;
-      color: var(--white);
-      line-height: 1.15;
-      margin-bottom: 18px;
-      position: relative;
+      font-size: clamp(30px, 8vw, 50px); font-weight: 800;
+      color: white; line-height: 1.15; margin-bottom: 18px; position: relative;
     }
     .hero h1 span { color: #86efac; }
-    .hero p {
-      font-size: 16px; color: rgba(255,255,255,.8);
-      max-width: 340px; margin: 0 auto 32px;
-      line-height: 1.65;
+    .hero > p {
+      font-size: 15px; color: rgba(255,255,255,.8);
+      max-width: 340px; margin: 0 auto 32px; line-height: 1.65; position: relative;
     }
     .hero-ctas {
       display: flex; flex-direction: column; gap: 12px;
-      align-items: center;
+      align-items: center; position: relative;
     }
-    .btn-hero-primary {
+    .btn-hero {
       display: inline-flex; align-items: center; gap: 8px;
       padding: 14px 28px; border-radius: 100px;
-      background: var(--white); color: var(--green);
-      font-size: 15px; font-weight: 800;
-      text-decoration: none; border: none; cursor: pointer;
-      box-shadow: 0 4px 24px rgba(0,0,0,.2);
-      transition: all .2s;
+      font-size: 15px; font-weight: 800; text-decoration: none; cursor: pointer;
+      border: none; transition: all .2s;
     }
-    .btn-hero-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,.25); }
-    .btn-hero-secondary {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 13px 24px; border-radius: 100px;
-      background: transparent; color: rgba(255,255,255,.9);
-      font-size: 14px; font-weight: 600;
-      text-decoration: none;
-      border: 1.5px solid rgba(255,255,255,.35);
-      transition: all .2s;
-    }
-    .btn-hero-secondary:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.6); }
-
-    /* floating crop icons */
+    .btn-hero-white { background: white; color: var(--green); box-shadow: 0 4px 24px rgba(0,0,0,.2); }
+    .btn-hero-white:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,.25); }
+    .btn-hero-outline { background: transparent; color: rgba(255,255,255,.9); border: 1.5px solid rgba(255,255,255,.35); }
+    .btn-hero-outline:hover { background: rgba(255,255,255,.1); }
     .hero-floats { position: absolute; inset: 0; pointer-events: none; }
     .float-item {
-      position: absolute; font-size: 28px;
-      opacity: .2; animation: float 6s ease-in-out infinite;
+      position: absolute; font-size: 28px; opacity: .2;
+      animation: float 6s ease-in-out infinite;
     }
-    .float-item:nth-child(1) { top: 12%; left: 8%; animation-delay: 0s; }
-    .float-item:nth-child(2) { top: 20%; right: 10%; animation-delay: 1.5s; }
-    .float-item:nth-child(3) { bottom: 22%; left: 5%; animation-delay: 3s; }
-    .float-item:nth-child(4) { bottom: 15%; right: 8%; animation-delay: 0.8s; }
-    .float-item:nth-child(5) { top: 55%; left: 3%; animation-delay: 2.2s; }
+    .float-item:nth-child(1) { top:12%; left:8%;  animation-delay:0s; }
+    .float-item:nth-child(2) { top:20%; right:10%; animation-delay:1.5s; }
+    .float-item:nth-child(3) { bottom:22%; left:5%; animation-delay:3s; }
+    .float-item:nth-child(4) { bottom:15%; right:8%; animation-delay:.8s; }
+    .float-item:nth-child(5) { top:55%; left:3%; animation-delay:2.2s; }
     @keyframes float {
       0%,100% { transform: translateY(0) rotate(0deg); }
       50%      { transform: translateY(-12px) rotate(5deg); }
     }
-    .hero-scroll-hint {
-      position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
-      color: rgba(255,255,255,.4); font-size: 11px; letter-spacing: .05em;
-    }
 
-    /* STATS BAR */
+    /* STATS */
     .stats {
-      background: var(--white);
-      border-bottom: 1px solid var(--border);
-      padding: 16px 20px;
-      display: flex; justify-content: space-around;
+      background: white; border-bottom: 1px solid var(--border);
+      padding: 16px 20px; display: flex; justify-content: space-around;
     }
     .stat { text-align: center; }
-    .stat-value { font-size: 22px; font-weight: 800; color: var(--green-dark); line-height: 1; }
+    .stat-value { font-size: 20px; font-weight: 800; color: var(--green-dark); }
     .stat-label { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-top: 2px; }
 
-    /* SECTION */
-    section { padding: 48px 20px; }
-    .section-label {
-      font-size: 11px; font-weight: 700; letter-spacing: .1em;
-      text-transform: uppercase; color: var(--green); margin-bottom: 8px;
-    }
-    .section-title {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(24px, 6vw, 36px);
-      font-weight: 800; color: var(--green-dark);
-      line-height: 1.25; margin-bottom: 12px;
-    }
-    .section-sub {
-      font-size: 14px; color: var(--text-muted);
-      line-height: 1.65; margin-bottom: 32px;
-    }
-
-    /* FEATURE CARDS */
-    .features-grid { display: grid; gap: 16px; }
+    /* FEATURES */
+    .features-grid { display: grid; gap: 14px; padding: 40px 20px; }
     .feature-card {
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 24px 20px;
-      box-shadow: var(--shadow);
+      background: white; border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 22px 18px; box-shadow: var(--shadow);
       transition: transform .2s, box-shadow .2s;
     }
     .feature-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
     .feature-icon {
-      width: 52px; height: 52px;
-      background: var(--green-pale);
-      border-radius: 14px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 24px; margin-bottom: 16px;
+      width: 50px; height: 50px; background: var(--green-pale);
+      border-radius: 13px; display: flex; align-items: center;
+      justify-content: center; font-size: 22px; margin-bottom: 14px;
     }
-    .feature-card h3 { font-size: 17px; font-weight: 700; color: var(--green-dark); margin-bottom: 8px; }
+    .feature-card h3 { font-size: 16px; font-weight: 700; color: var(--green-dark); margin-bottom: 7px; }
     .feature-card p  { font-size: 13px; color: var(--text-muted); line-height: 1.65; }
     .feature-tag {
-      display: inline-block; margin-top: 12px;
-      padding: 4px 10px; border-radius: 100px;
-      background: var(--green-pale); color: var(--green);
-      font-size: 11px; font-weight: 700;
+      display: inline-block; margin-top: 10px; padding: 3px 10px;
+      border-radius: 100px; background: var(--green-pale);
+      color: var(--green); font-size: 11px; font-weight: 700;
     }
 
     /* SCAN SPOTLIGHT */
     .scan-section {
-      background: linear-gradient(135deg, var(--green-dark) 0%, var(--green) 100%);
-      border-radius: 20px; margin: 0 20px 48px;
-      padding: 32px 24px; position: relative; overflow: hidden;
+      background: linear-gradient(135deg, var(--green-dark), var(--green));
+      border-radius: 20px; margin: 0 20px 40px;
+      padding: 30px 22px; position: relative; overflow: hidden;
     }
-    .scan-section::before {
-      content: '🌿';
-      position: absolute; right: -10px; top: -10px;
-      font-size: 100px; opacity: .08;
-    }
-    .scan-badge {
-      display: inline-flex; align-items: center; gap: 6px;
+    .scan-section::before { content:'🌿'; position:absolute; right:-10px; top:-10px; font-size:90px; opacity:.08; }
+    .scan-badge-pill {
+      display: inline-flex; align-items: center; gap: 5px;
       background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
       color: rgba(255,255,255,.9); padding: 4px 12px; border-radius: 100px;
-      font-size: 11px; font-weight: 700; letter-spacing: .08em;
-      text-transform: uppercase; margin-bottom: 16px;
+      font-size: 11px; font-weight: 700; letter-spacing:.08em; text-transform:uppercase;
+      margin-bottom: 14px;
     }
     .scan-section h2 {
       font-family: 'Playfair Display', serif;
-      font-size: 26px; font-weight: 800;
-      color: var(--white); margin-bottom: 12px; line-height: 1.25;
+      font-size: 24px; font-weight: 800; color: white; margin-bottom: 10px;
     }
-    .scan-section p { font-size: 14px; color: rgba(255,255,255,.75); line-height: 1.65; margin-bottom: 24px; }
-    .scan-steps { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
-    .scan-step {
-      display: flex; align-items: center; gap: 12px;
-    }
+    .scan-section > p { font-size: 13px; color: rgba(255,255,255,.75); line-height: 1.65; margin-bottom: 20px; }
+    .scan-steps { display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px; }
+    .scan-step { display: flex; align-items: center; gap: 12px; }
     .scan-step-icon {
-      width: 36px; height: 36px; flex-shrink: 0;
-      background: rgba(255,255,255,.15);
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 16px;
+      width: 34px; height: 34px; background: rgba(255,255,255,.15);
+      border-radius: 9px; display: flex; align-items: center;
+      justify-content: center; font-size: 15px; flex-shrink: 0;
     }
-    .scan-step span { font-size: 13px; color: rgba(255,255,255,.85); font-weight: 500; }
+    .scan-step span { font-size: 13px; color: rgba(255,255,255,.85); }
     .btn-scan {
       display: inline-flex; align-items: center; gap: 8px;
-      background: var(--white); color: var(--green);
-      padding: 12px 22px; border-radius: 100px;
-      font-size: 14px; font-weight: 800;
-      text-decoration: none; transition: all .2s;
+      background: white; color: var(--green);
+      padding: 11px 20px; border-radius: 100px;
+      font-size: 13px; font-weight: 800; text-decoration: none; cursor: pointer;
+      border: none; transition: all .2s;
     }
     .btn-scan:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.2); }
 
-    /* PRICES */
-    .prices-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
-    .price-card {
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: 14px; padding: 14px 12px;
-      text-align: center;
-      box-shadow: var(--shadow);
-    }
-    .price-emoji { font-size: 24px; margin-bottom: 6px; }
-    .price-crop { font-size: 12px; font-weight: 600; color: var(--green-dark); }
-    .price-amount { font-size: 14px; font-weight: 800; color: var(--green); margin: 2px 0; }
-    .price-trend { font-size: 11px; font-weight: 600; }
-    .up   { color: #16a34a; }
-    .down { color: #dc2626; }
-
-    /* LISTINGS */
-    .listings-list { display: flex; flex-direction: column; gap: 14px; }
-    .listing-card {
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 14px;
-      display: flex; gap: 14px;
-      box-shadow: var(--shadow);
-      text-decoration: none; color: inherit;
-      transition: transform .2s;
-    }
-    .listing-card:hover { transform: translateY(-2px); }
-    .listing-img {
-      width: 80px; height: 80px; flex-shrink: 0;
-      border-radius: 12px; object-fit: cover;
-      background: var(--green-pale);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 32px; position: relative;
-    }
-    .verified-dot {
-      position: absolute; top: -4px; right: -4px;
-      width: 18px; height: 18px; border-radius: 50%;
-      background: #16a34a; color: white;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 10px; box-shadow: 0 2px 6px rgba(0,0,0,.2);
-    }
-    .listing-info { flex: 1; min-width: 0; }
-    .listing-top { display: flex; justify-content: space-between; align-items: flex-start; }
-    .listing-name { font-size: 15px; font-weight: 700; color: var(--green-dark); }
-    .listing-price { font-size: 15px; font-weight: 800; color: var(--green); }
-    .listing-price span { font-size: 11px; font-weight: 400; color: var(--text-muted); }
-    .listing-loc { font-size: 12px; color: var(--text-muted); margin: 4px 0; display: flex; align-items: center; gap: 4px; }
-    .listing-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
-    .listing-farmer { font-size: 11px; color: var(--text-muted); }
-    .listing-badge {
-      font-size: 10px; font-weight: 700; color: #16a34a;
-      background: #dcfce7; padding: 2px 8px; border-radius: 100px;
-    }
-    .listing-qty {
-      font-size: 10px; color: var(--green); font-weight: 700;
-      background: var(--green-pale); padding: 2px 8px; border-radius: 100px;
-    }
-
-    /* HOW IT WORKS */
-    .steps { display: flex; flex-direction: column; gap: 20px; }
+    /* STEPS */
+    .steps { display: flex; flex-direction: column; gap: 14px; padding: 0 20px 40px; }
     .step {
-      display: flex; gap: 16px;
-      background: var(--white); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 20px;
-      box-shadow: var(--shadow);
+      display: flex; gap: 16px; background: white;
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 18px; box-shadow: var(--shadow);
     }
     .step-num {
-      width: 44px; height: 44px; flex-shrink: 0;
-      background: var(--green);
-      border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px;
+      width: 42px; height: 42px; flex-shrink: 0;
+      background: var(--green); border-radius: 11px;
+      display: flex; align-items: center; justify-content: center; font-size: 17px;
     }
     .step-content p:first-child {
-      font-size: 10px; font-weight: 700; letter-spacing: .1em;
-      text-transform: uppercase; color: var(--green); margin-bottom: 4px;
+      font-size: 10px; font-weight: 700; letter-spacing:.1em;
+      text-transform: uppercase; color: var(--green); margin-bottom: 3px;
     }
-    .step-content h3 { font-size: 15px; font-weight: 700; color: var(--green-dark); margin-bottom: 4px; }
-    .step-content p:last-child { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+    .step-content h3 { font-size: 14px; font-weight: 700; color: var(--green-dark); margin-bottom: 3px; }
+    .step-content p:last-child { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
 
     /* TESTIMONIALS */
-    .testimonials { display: flex; flex-direction: column; gap: 16px; }
+    .testimonials { display: flex; flex-direction: column; gap: 14px; padding: 0 20px 48px; }
     .testimonial {
-      background: var(--white); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 20px;
-      box-shadow: var(--shadow);
+      background: white; border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow);
     }
-    .testimonial-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-    .farmer-info { display: flex; align-items: center; gap: 12px; }
+    .testimonial-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .farmer-info { display: flex; align-items: center; gap: 10px; }
     .farmer-avatar {
-      width: 44px; height: 44px; border-radius: 50%;
-      background: var(--green-pale);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 22px;
+      width: 42px; height: 42px; border-radius: 50%;
+      background: var(--green-pale); display: flex; align-items: center;
+      justify-content: center; font-size: 20px;
     }
-    .farmer-name { font-size: 14px; font-weight: 700; color: var(--green-dark); }
+    .farmer-name { font-size: 13px; font-weight: 700; color: var(--green-dark); }
     .farmer-role { font-size: 11px; color: var(--text-muted); }
-    .stars { color: var(--gold); font-size: 13px; letter-spacing: 1px; }
+    .stars { color: var(--gold); font-size: 12px; }
     .testimonial blockquote {
-      font-size: 14px; color: #4a6649; line-height: 1.7;
-      font-style: italic; border-left: 3px solid var(--green-pale); padding-left: 12px;
+      font-size: 13px; color: #4a6649; line-height: 1.7;
+      font-style: italic; border-left: 3px solid var(--green-pale); padding-left: 11px;
     }
 
-    /* CTA SECTION */
-    .cta-section {
-      background: linear-gradient(135deg, var(--green-dark) 0%, var(--green) 100%);
-      padding: 52px 24px; text-align: center; position: relative; overflow: hidden;
+    /* HOME CTA */
+    .home-cta {
+      background: linear-gradient(135deg, var(--green-dark), var(--green));
+      padding: 48px 24px; text-align: center;
     }
-    .cta-section::before {
-      content: '';
-      position: absolute; inset: 0;
-      background: radial-gradient(ellipse at 50% 0%, rgba(82,183,136,.3) 0%, transparent 60%);
+    .home-cta h2 {
+      font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 800;
+      color: white; margin-bottom: 10px;
     }
-    .cta-section h2 {
-      font-family: 'Playfair Display', serif;
-      font-size: 30px; font-weight: 800;
-      color: var(--white); margin-bottom: 12px;
-      position: relative;
+    .home-cta p { font-size: 14px; color: rgba(255,255,255,.75); margin-bottom: 24px; line-height: 1.6; }
+    .cta-note { font-size: 11px; color: rgba(255,255,255,.45); margin-top: 10px; }
+
+    /* ═══════════════════════════════════════════
+       PAGE 2 — SHOP (E-COMMERCE)
+    ═══════════════════════════════════════════ */
+
+    .shop-hero {
+      background: linear-gradient(135deg, #1a3c2e 0%, #2D6A4F 100%);
+      padding: 36px 20px 28px; position: relative; overflow: hidden;
     }
-    .cta-section p {
-      font-size: 15px; color: rgba(255,255,255,.75);
-      margin-bottom: 28px; line-height: 1.65;
-      position: relative;
+    .shop-hero::after { content:'🛒'; position:absolute; right:16px; top:50%; transform:translateY(-50%); font-size:60px; opacity:.12; }
+    .shop-hero h1 {
+      font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 800;
+      color: white; margin-bottom: 6px;
     }
-    .cta-btns { display: flex; flex-direction: column; gap: 12px; align-items: center; position: relative; }
-    .btn-cta-white {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: var(--white); color: var(--green);
-      padding: 14px 28px; border-radius: 100px;
-      font-size: 15px; font-weight: 800;
-      text-decoration: none; cursor: pointer; border: none;
-      box-shadow: 0 4px 24px rgba(0,0,0,.2);
+    .shop-hero p { font-size: 13px; color: rgba(255,255,255,.7); margin-bottom: 16px; }
+    .shop-search {
+      display: flex; gap: 8px;
+    }
+    .shop-search input {
+      flex: 1; height: 42px; padding: 0 14px; border-radius: 100px;
+      border: none; font-size: 13px; background: white;
+      outline: none; font-family: 'Inter', sans-serif;
+    }
+    .shop-search button {
+      height: 42px; padding: 0 18px; border-radius: 100px;
+      background: var(--gold); color: var(--green-dark);
+      font-weight: 700; font-size: 13px; border: none; cursor: pointer;
+    }
+
+    /* CATEGORIES */
+    .cat-scroll {
+      display: flex; gap: 8px; overflow-x: auto; padding: 16px 20px 4px;
+      scrollbar-width: none;
+    }
+    .cat-scroll::-webkit-scrollbar { display: none; }
+    .cat-pill {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      flex-shrink: 0; cursor: pointer;
+    }
+    .cat-icon {
+      width: 54px; height: 54px; border-radius: 14px;
+      background: white; border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; transition: all .2s;
+    }
+    .cat-pill.active .cat-icon { border-color: var(--green); background: var(--green-pale); }
+    .cat-pill span { font-size: 10px; font-weight: 600; color: var(--text-muted); }
+    .cat-pill.active span { color: var(--green); }
+
+    /* PRODUCT GRID */
+    .shop-toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 20px; border-bottom: 1px solid var(--border);
+    }
+    .shop-toolbar span { font-size: 12px; color: var(--text-muted); }
+    .sort-select {
+      font-size: 12px; font-weight: 600; color: var(--green);
+      background: none; border: none; cursor: pointer;
+      font-family: 'Inter', sans-serif;
+    }
+    .products-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 14px; padding: 16px 20px;
+    }
+    .product-card {
+      background: white; border: 1px solid var(--border);
+      border-radius: 16px; overflow: hidden; box-shadow: var(--shadow);
+      cursor: pointer; transition: transform .2s;
+    }
+    .product-card:hover { transform: translateY(-3px); }
+    .product-img {
+      height: 110px; background: var(--green-pale);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 48px; position: relative;
+    }
+    .product-verified {
+      position: absolute; top: 8px; right: 8px;
+      background: #16a34a; color: white; border-radius: 50%;
+      width: 20px; height: 20px; display: flex; align-items: center;
+      justify-content: center; font-size: 10px; box-shadow: 0 2px 6px rgba(0,0,0,.2);
+    }
+    .product-badge {
+      position: absolute; top: 8px; left: 8px;
+      background: #e74c3c; color: white;
+      font-size: 9px; font-weight: 700;
+      padding: 2px 6px; border-radius: 100px;
+    }
+    .product-body { padding: 12px 12px 14px; }
+    .product-name { font-size: 14px; font-weight: 700; color: var(--green-dark); margin-bottom: 2px; }
+    .product-farmer { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
+    .product-footer { display: flex; align-items: center; justify-content: space-between; }
+    .product-price { font-size: 15px; font-weight: 800; color: var(--green); }
+    .product-price span { font-size: 10px; font-weight: 400; color: var(--text-muted); }
+    .product-rating { font-size: 11px; color: var(--gold); }
+    .add-btn {
+      width: 100%; margin-top: 10px; height: 34px;
+      background: var(--green); color: white; border: none;
+      border-radius: 100px; font-size: 12px; font-weight: 700;
+      cursor: pointer; transition: all .2s; font-family: 'Inter', sans-serif;
+    }
+    .add-btn:hover { background: var(--green-dark); }
+    .add-btn.added { background: #16a34a; }
+
+    /* DEALS BANNER */
+    .deals-banner {
+      margin: 8px 20px 4px; border-radius: 16px; overflow: hidden;
+      background: linear-gradient(90deg, #D4A373, #e9b98a);
+      padding: 16px 18px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .deals-banner div h3 { font-size: 15px; font-weight: 800; color: var(--green-dark); }
+    .deals-banner div p  { font-size: 12px; color: var(--brown); margin-top: 2px; }
+    .deals-banner span   { font-size: 36px; }
+    .countdown {
+      display: flex; gap: 6px; margin-top: 8px;
+    }
+    .countdown-box {
+      background: var(--green-dark); color: white;
+      padding: 4px 8px; border-radius: 6px; text-align: center;
+    }
+    .countdown-box .num { font-size: 16px; font-weight: 800; line-height: 1; }
+    .countdown-box .lbl { font-size: 8px; opacity: .7; }
+
+    /* CART DRAWER */
+    .cart-overlay {
+      display: none; position: fixed; inset: 0; z-index: 300;
+      background: rgba(0,0,0,.45);
+    }
+    .cart-overlay.open { display: block; }
+    .cart-drawer {
+      position: fixed; right: 0; top: 0; bottom: 0; z-index: 301;
+      width: min(340px, 100vw);
+      background: white; box-shadow: -4px 0 40px rgba(0,0,0,.2);
+      transform: translateX(100%); transition: transform .3s ease;
+      display: flex; flex-direction: column;
+    }
+    .cart-drawer.open { transform: translateX(0); }
+    .cart-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 20px; border-bottom: 1px solid var(--border);
+    }
+    .cart-header h3 { font-size: 16px; font-weight: 700; color: var(--green-dark); }
+    .cart-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted); }
+    .cart-items { flex: 1; overflow-y: auto; padding: 16px 20px; }
+    .cart-item {
+      display: flex; gap: 12px; padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .cart-item-img {
+      width: 54px; height: 54px; border-radius: 10px;
+      background: var(--green-pale); display: flex; align-items: center;
+      justify-content: center; font-size: 24px; flex-shrink: 0;
+    }
+    .cart-item-info { flex: 1; }
+    .cart-item-name { font-size: 13px; font-weight: 700; color: var(--green-dark); }
+    .cart-item-price { font-size: 12px; color: var(--green); font-weight: 700; margin: 2px 0; }
+    .qty-row { display: flex; align-items: center; gap: 8px; }
+    .qty-btn {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: var(--green-pale); border: none; cursor: pointer;
+      font-size: 14px; font-weight: 700; color: var(--green);
+    }
+    .qty-num { font-size: 13px; font-weight: 700; min-width: 20px; text-align: center; }
+    .cart-remove { color: #e74c3c; background: none; border: none; cursor: pointer; font-size: 12px; }
+    .cart-empty {
+      text-align: center; padding: 40px 20px;
+      font-size: 14px; color: var(--text-muted);
+    }
+    .cart-empty span { display: block; font-size: 40px; margin-bottom: 12px; }
+    .cart-footer { padding: 16px 20px; border-top: 1px solid var(--border); }
+    .cart-total {
+      display: flex; justify-content: space-between; margin-bottom: 14px;
+    }
+    .cart-total span:first-child { font-size: 14px; color: var(--text-muted); }
+    .cart-total span:last-child { font-size: 16px; font-weight: 800; color: var(--green-dark); }
+    .checkout-btn {
+      width: 100%; height: 46px; background: var(--green); color: white;
+      border: none; border-radius: 100px; font-size: 15px; font-weight: 800;
+      cursor: pointer; font-family: 'Inter', sans-serif; transition: all .2s;
+    }
+    .checkout-btn:hover { background: var(--green-dark); }
+
+    /* ═══════════════════════════════════════════
+       PAGE 3 — BLOG
+    ═══════════════════════════════════════════ */
+
+    .blog-hero {
+      background: linear-gradient(135deg, #1a3c2e 0%, #2D6A4F 100%);
+      padding: 40px 20px 32px; text-align: center;
+    }
+    .blog-hero h1 {
+      font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 800;
+      color: white; margin-bottom: 8px;
+    }
+    .blog-hero p { font-size: 13px; color: rgba(255,255,255,.7); margin-bottom: 20px; }
+    .blog-search {
+      display: flex; max-width: 400px; margin: 0 auto;
+    }
+    .blog-search input {
+      flex: 1; height: 42px; padding: 0 16px;
+      border-radius: 100px 0 0 100px; border: none;
+      font-size: 13px; outline: none; font-family: 'Inter', sans-serif;
+    }
+    .blog-search button {
+      height: 42px; padding: 0 18px;
+      border-radius: 0 100px 100px 0; background: var(--gold);
+      color: var(--green-dark); font-weight: 700; font-size: 13px;
+      border: none; cursor: pointer;
+    }
+
+    /* BLOG CATEGORIES */
+    .blog-cats {
+      display: flex; gap: 8px; overflow-x: auto; padding: 16px 20px 8px;
+      scrollbar-width: none;
+    }
+    .blog-cats::-webkit-scrollbar { display: none; }
+    .blog-cat {
+      flex-shrink: 0; padding: 6px 16px; border-radius: 100px;
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      background: white; border: 1.5px solid var(--border); color: var(--text-muted);
       transition: all .2s;
     }
-    .btn-cta-white:hover { transform: translateY(-2px); }
-    .cta-note { font-size: 12px; color: rgba(255,255,255,.5); }
+    .blog-cat.active { background: var(--green); border-color: var(--green); color: white; }
 
-    /* FOOTER */
+    /* FEATURED ARTICLE */
+    .featured-article {
+      margin: 0 20px 20px;
+      background: white; border: 1px solid var(--border);
+      border-radius: 20px; overflow: hidden; box-shadow: var(--shadow);
+      cursor: pointer; transition: transform .2s;
+    }
+    .featured-article:hover { transform: translateY(-3px); }
+    .featured-img {
+      height: 180px; background: linear-gradient(135deg, #1a4731, #2D6A4F);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 70px; position: relative;
+    }
+    .featured-label {
+      position: absolute; top: 14px; left: 14px;
+      background: var(--gold); color: var(--green-dark);
+      padding: 4px 12px; border-radius: 100px;
+      font-size: 10px; font-weight: 800; text-transform: uppercase;
+    }
+    .featured-body { padding: 18px; }
+    .article-meta { display: flex; gap: 12px; margin-bottom: 8px; }
+    .article-cat {
+      font-size: 10px; font-weight: 700; color: var(--green);
+      text-transform: uppercase; letter-spacing: .05em;
+    }
+    .article-date { font-size: 10px; color: var(--text-muted); }
+    .featured-body h2 {
+      font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 800;
+      color: var(--green-dark); margin-bottom: 8px; line-height: 1.3;
+    }
+    .featured-body p { font-size: 13px; color: var(--text-muted); line-height: 1.65; margin-bottom: 14px; }
+    .read-more {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 13px; font-weight: 700; color: var(--green);
+      text-decoration: none; cursor: pointer;
+    }
+
+    /* BLOG GRID */
+    .blog-grid {
+      display: flex; flex-direction: column; gap: 14px; padding: 0 20px 20px;
+    }
+    .blog-card {
+      background: white; border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden;
+      box-shadow: var(--shadow); cursor: pointer;
+      display: flex; gap: 0; transition: transform .2s;
+    }
+    .blog-card:hover { transform: translateY(-2px); }
+    .blog-card-img {
+      width: 90px; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--green-pale), #b7e4c7);
+      display: flex; align-items: center; justify-content: center; font-size: 36px;
+    }
+    .blog-card-body { padding: 14px; flex: 1; }
+    .blog-card-body .article-cat { margin-bottom: 4px; display: block; }
+    .blog-card-body h3 {
+      font-size: 14px; font-weight: 700; color: var(--green-dark);
+      margin-bottom: 5px; line-height: 1.35;
+    }
+    .blog-card-body p { font-size: 12px; color: var(--text-muted); line-height: 1.55; margin-bottom: 8px; }
+    .blog-card-footer { display: flex; align-items: center; justify-content: space-between; }
+    .blog-card-footer span { font-size: 10px; color: var(--text-muted); }
+    .blog-card-footer .read-time {
+      background: var(--green-pale); color: var(--green);
+      padding: 2px 8px; border-radius: 100px; font-weight: 700;
+    }
+
+    /* NEWSLETTER */
+    .newsletter {
+      background: linear-gradient(135deg, var(--green-dark), var(--green));
+      margin: 8px 20px 40px; border-radius: 20px; padding: 28px 20px; text-align: center;
+    }
+    .newsletter h3 {
+      font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 800;
+      color: white; margin-bottom: 8px;
+    }
+    .newsletter p { font-size: 13px; color: rgba(255,255,255,.75); margin-bottom: 18px; }
+    .newsletter-form { display: flex; flex-direction: column; gap: 10px; }
+    .newsletter-form input {
+      height: 44px; padding: 0 16px; border-radius: 100px;
+      border: none; font-size: 13px; text-align: center;
+      font-family: 'Inter', sans-serif; outline: none;
+    }
+    .newsletter-form button {
+      height: 44px; border-radius: 100px; background: var(--gold);
+      color: var(--green-dark); font-weight: 800; font-size: 14px;
+      border: none; cursor: pointer;
+    }
+
+    /* ── FOOTER ──────────────────────────────── */
     footer {
-      background: var(--green-dark); padding: 32px 20px 40px;
+      background: var(--green-dark); padding: 30px 20px 40px;
     }
-    .footer-logo { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .footer-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+    .footer-logo { display: flex; align-items: center; gap: 8px; }
     .footer-logo-icon {
-      width: 32px; height: 32px; background: rgba(255,255,255,.1);
-      border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px;
+      width: 30px; height: 30px; background: rgba(255,255,255,.1);
+      border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px;
     }
-    .footer-logo-text { font-size: 18px; font-weight: 800; color: var(--white); }
-    .footer-tagline { font-size: 12px; color: rgba(255,255,255,.4); margin-bottom: 24px; }
-    .footer-links { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; }
-    .footer-links a { font-size: 12px; color: rgba(255,255,255,.5); text-decoration: none; }
-    .footer-links a:hover { color: var(--white); }
+    .footer-logo-text { font-size: 17px; font-weight: 800; color: white; }
+    .footer-tagline { font-size: 11px; color: rgba(255,255,255,.4); margin-top: 4px; }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 12px; }
+    .footer-links a { font-size: 12px; color: rgba(255,255,255,.5); text-decoration: none; cursor: pointer; }
+    .footer-links a:hover { color: white; }
+    .footer-divider { border: none; border-top: 1px solid rgba(255,255,255,.1); margin: 16px 0; }
+    .footer-bottom { display: flex; justify-content: space-between; align-items: center; flex-wrap: gap; }
     .footer-copy { font-size: 11px; color: rgba(255,255,255,.3); }
+    .footer-socials { display: flex; gap: 10px; }
+    .social-icon {
+      width: 30px; height: 30px; background: rgba(255,255,255,.1);
+      border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; font-size: 14px; cursor: pointer;
+      text-decoration: none;
+    }
 
-    /* ── REACT APP ─────────────────────────────── */
-    #root { display: none; }
-
-    /* ── ENTER APP OVERLAY ─────────────────────── */
+    /* ── APP LOADER ──────────────────────────── */
     @keyframes spin { to { transform: rotate(360deg); } }
     .app-loader {
       display: none; position: fixed; inset: 0; z-index: 9999;
@@ -436,29 +650,54 @@
     .app-loader.active { display: flex; }
     .spinner {
       width: 40px; height: 40px; border-radius: 50%;
-      border: 3px solid var(--green-pale);
-      border-top-color: var(--green);
+      border: 3px solid var(--green-pale); border-top-color: var(--green);
       animation: spin .8s linear infinite;
     }
     .app-loader p { font-size: 14px; color: var(--text-muted); font-weight: 500; }
+    #root { display: none; }
+
+    /* ── TOAST ───────────────────────────────── */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+      background: var(--green-dark); color: white;
+      padding: 12px 20px; border-radius: 100px;
+      font-size: 13px; font-weight: 600;
+      box-shadow: 0 8px 32px rgba(0,0,0,.2);
+      z-index: 9998; transition: transform .3s ease;
+      white-space: nowrap;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
   </style>
 </head>
 <body>
 
-<!-- ────────────────── LANDING PAGE ────────────────── -->
-<div id="landing">
+<!-- ── STICKY NAV ─────────────────────────────────── -->
+<nav>
+  <div class="nav-logo" onclick="showPage('home')">
+    <div class="nav-logo-icon">🌱</div>
+    <span class="nav-logo-text">SeedPro</span>
+  </div>
 
-  <!-- NAV -->
-  <nav>
-    <a href="#" class="nav-logo">
-      <div class="nav-logo-icon">🌱</div>
-      <span class="nav-logo-text">SeedPro</span>
-    </a>
-    <div class="nav-actions">
-      <a href="#" class="btn-ghost" onclick="enterApp(event)">Sign In</a>
-      <a href="#" class="btn-primary" onclick="enterApp(event)">Get Started</a>
-    </div>
-  </nav>
+  <div class="nav-links">
+    <button class="nav-link active" id="nav-home" onclick="showPage('home')">Home</button>
+    <button class="nav-link" id="nav-shop" onclick="showPage('shop')">Shop</button>
+    <button class="nav-link" id="nav-blog" onclick="showPage('blog')">Blog</button>
+  </div>
+
+  <div class="nav-actions">
+    <button class="cart-btn" onclick="toggleCart()" title="Cart">
+      🛒
+      <span class="cart-count" id="cartCount">0</span>
+    </button>
+    <button class="btn-ghost" onclick="enterApp()">Sign In</button>
+    <button class="btn-primary" onclick="enterApp()">Get Started</button>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════
+     PAGE: HOME
+═══════════════════════════════════════════════════ -->
+<div id="page-home" class="page active">
 
   <!-- HERO -->
   <div class="hero">
@@ -473,337 +712,689 @@
     <h1>Sell Your Harvest<br/><span>Directly to Buyers</span></h1>
     <p>No middlemen. Better prices. Scan your crops to prove quality and connect with thousands of buyers across Kenya.</p>
     <div class="hero-ctas">
-      <a href="#" class="btn-hero-primary" onclick="enterApp(event)">
-        🌱 &nbsp;Start Selling Free
-      </a>
-      <a href="#features" class="btn-hero-secondary">
-        See how it works ↓
-      </a>
+      <button class="btn-hero btn-hero-white" onclick="enterApp()">🌱 &nbsp;Start Selling Free</button>
+      <button class="btn-hero btn-hero-outline" onclick="showPage('shop')">Browse the Shop →</button>
     </div>
-    <div class="hero-scroll-hint">scroll to explore</div>
   </div>
 
   <!-- STATS -->
   <div class="stats">
-    <div class="stat">
-      <div class="stat-value">2,400+</div>
-      <div class="stat-label">Farmers</div>
-    </div>
-    <div class="stat">
-      <div class="stat-value">8,100+</div>
-      <div class="stat-label">Listings</div>
-    </div>
-    <div class="stat">
-      <div class="stat-value">12</div>
-      <div class="stat-label">Counties</div>
-    </div>
-    <div class="stat">
-      <div class="stat-value">KSh 50M+</div>
-      <div class="stat-label">Traded</div>
-    </div>
+    <div class="stat"><div class="stat-value">2,400+</div><div class="stat-label">Farmers</div></div>
+    <div class="stat"><div class="stat-value">8,100+</div><div class="stat-label">Listings</div></div>
+    <div class="stat"><div class="stat-value">12</div><div class="stat-label">Counties</div></div>
+    <div class="stat"><div class="stat-value">KSh 50M+</div><div class="stat-label">Traded</div></div>
   </div>
 
   <!-- FEATURES -->
-  <section id="features">
+  <div style="padding:40px 20px 24px">
     <p class="section-label">Why Farmers Choose SeedPro</p>
     <h2 class="section-title">Everything You Need to Sell More</h2>
-    <p class="section-sub">From scanning your plants to tracking live market prices — we handle it all so you can focus on farming.</p>
-    <div class="features-grid">
-      <div class="feature-card">
-        <div class="feature-icon">📸</div>
-        <h3>Scan & Verify Your Crop</h3>
-        <p>Use your phone camera to scan any plant. Our AI identifies the crop and adds a trusted <strong>Verified Badge</strong> to your listing — buyers trust you instantly.</p>
-        <span class="feature-tag">AI-Powered</span>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🛒</div>
-        <h3>Post & Sell in 60 Seconds</h3>
-        <p>Create a listing with your crop, quantity, location and price. Buyers across Kenya find you directly — no broker fees, no delays.</p>
-        <span class="feature-tag">Zero Commission</span>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">📈</div>
-        <h3>Live Market Prices</h3>
-        <p>Track real-time wholesale and retail prices across 12 Kenyan counties. Know exactly when to sell for maximum profit.</p>
-        <span class="feature-tag">Real-Time Data</span>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🤖</div>
-        <h3>Expert Crop Advisory</h3>
-        <p>Get personalised planting calendars, spray schedules and disease diagnosis from our AI farming assistant — available 24/7.</p>
-        <span class="feature-tag">Always Available</span>
-      </div>
+    <p class="section-sub">From scanning your plants to tracking live market prices — we handle it all.</p>
+  </div>
+  <div class="features-grid" style="padding-top:0">
+    <div class="feature-card">
+      <div class="feature-icon">📸</div>
+      <h3>Scan &amp; Verify Your Crop</h3>
+      <p>AI identifies your crop from a photo and adds a trusted <strong>Verified Badge</strong> — buyers order 3× more from verified listings.</p>
+      <span class="feature-tag">AI-Powered</span>
     </div>
-  </section>
+    <div class="feature-card">
+      <div class="feature-icon">🛒</div>
+      <h3>Post &amp; Sell in 60 Seconds</h3>
+      <p>Create a listing with crop, quantity, location and price. Buyers across Kenya find you directly — zero commission.</p>
+      <span class="feature-tag">Zero Commission</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📈</div>
+      <h3>Live Market Prices</h3>
+      <p>Track real-time prices across 12 Kenyan counties. Know exactly when to sell for maximum profit.</p>
+      <span class="feature-tag">Real-Time Data</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🤖</div>
+      <h3>Expert Crop Advisory</h3>
+      <p>Personalised planting calendars, spray schedules and AI disease diagnosis — available 24/7.</p>
+      <span class="feature-tag">Always Available</span>
+    </div>
+  </div>
 
   <!-- SCAN SPOTLIGHT -->
   <div class="scan-section">
-    <div class="scan-badge">📷 &nbsp;New Feature</div>
+    <div class="scan-badge-pill">📷 &nbsp;New Feature</div>
     <h2>Plant Scan Verification</h2>
     <p>Buyers are 3× more likely to order from a verified listing. One photo is all it takes.</p>
     <div class="scan-steps">
-      <div class="scan-step">
-        <div class="scan-step-icon">📱</div>
-        <span>Open your camera and point at the crop</span>
-      </div>
-      <div class="scan-step">
-        <div class="scan-step-icon">🔍</div>
-        <span>AI scans and identifies the plant species</span>
-      </div>
-      <div class="scan-step">
-        <div class="scan-step-icon">✅</div>
-        <span>Your listing gets a green Verified badge</span>
-      </div>
+      <div class="scan-step"><div class="scan-step-icon">📱</div><span>Open your camera and point at the crop</span></div>
+      <div class="scan-step"><div class="scan-step-icon">🔍</div><span>AI scans and identifies the plant species</span></div>
+      <div class="scan-step"><div class="scan-step-icon">✅</div><span>Your listing gets a green Verified badge</span></div>
     </div>
-    <a href="#" class="btn-scan" onclick="enterApp(event)">
-      📸 &nbsp;Try Plant Scan
-    </a>
+    <button class="btn-scan" onclick="enterApp()">📸 &nbsp;Try Plant Scan</button>
   </div>
-
-  <!-- LIVE PRICES -->
-  <section>
-    <p class="section-label">Market Intelligence</p>
-    <h2 class="section-title">Today's Prices</h2>
-    <p class="section-sub">Updated daily across all major Kenyan markets.</p>
-    <div class="prices-grid">
-      <div class="price-card">
-        <div class="price-emoji">🍅</div>
-        <div class="price-crop">Tomato</div>
-        <div class="price-amount">KSh 95</div>
-        <div class="price-trend up">▲ 12%</div>
-      </div>
-      <div class="price-card">
-        <div class="price-emoji">🌽</div>
-        <div class="price-crop">Maize</div>
-        <div class="price-amount">KSh 42</div>
-        <div class="price-trend down">▼ 3%</div>
-      </div>
-      <div class="price-card">
-        <div class="price-emoji">☕</div>
-        <div class="price-crop">Coffee</div>
-        <div class="price-amount">KSh 320</div>
-        <div class="price-trend up">▲ 8%</div>
-      </div>
-      <div class="price-card">
-        <div class="price-emoji">🥔</div>
-        <div class="price-crop">Potato</div>
-        <div class="price-amount">KSh 58</div>
-        <div class="price-trend up">▲ 5%</div>
-      </div>
-      <div class="price-card">
-        <div class="price-emoji">🧅</div>
-        <div class="price-crop">Onion</div>
-        <div class="price-amount">KSh 110</div>
-        <div class="price-trend up">▲ 15%</div>
-      </div>
-      <div class="price-card">
-        <div class="price-emoji">🥑</div>
-        <div class="price-crop">Avocado</div>
-        <div class="price-amount">KSh 85</div>
-        <div class="price-trend up">▲ 6%</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- FRESH LISTINGS -->
-  <section style="padding-top:0">
-    <p class="section-label">Live Marketplace</p>
-    <h2 class="section-title">Fresh Listings Near You</h2>
-    <p class="section-sub">Verified farmers ready to sell today.</p>
-    <div class="listings-list">
-      <a href="#" class="listing-card" onclick="enterApp(event)">
-        <div class="listing-img">🍅<div class="verified-dot">✓</div></div>
-        <div class="listing-info">
-          <div class="listing-top">
-            <span class="listing-name">Tomato</span>
-            <span class="listing-price">KSh 95<span>/kg</span></span>
-          </div>
-          <div class="listing-loc">📍 Nakuru County</div>
-          <div class="listing-meta">
-            <span class="listing-farmer">James Mwangi · ⭐ 4.9</span>
-            <span class="listing-badge">✓ Scan Verified</span>
-          </div>
-          <div style="margin-top:6px"><span class="listing-qty">500 kg available</span></div>
-        </div>
-      </a>
-      <a href="#" class="listing-card" onclick="enterApp(event)">
-        <div class="listing-img">🌽<div class="verified-dot">✓</div></div>
-        <div class="listing-info">
-          <div class="listing-top">
-            <span class="listing-name">Maize</span>
-            <span class="listing-price">KSh 42<span>/kg</span></span>
-          </div>
-          <div class="listing-loc">📍 Kisumu County</div>
-          <div class="listing-meta">
-            <span class="listing-farmer">Grace Achieng · ⭐ 4.7</span>
-            <span class="listing-badge">✓ Scan Verified</span>
-          </div>
-          <div style="margin-top:6px"><span class="listing-qty">2,000 kg available</span></div>
-        </div>
-      </a>
-      <a href="#" class="listing-card" onclick="enterApp(event)">
-        <div class="listing-img">☕<div class="verified-dot">✓</div></div>
-        <div class="listing-info">
-          <div class="listing-top">
-            <span class="listing-name">Coffee</span>
-            <span class="listing-price">KSh 320<span>/kg</span></span>
-          </div>
-          <div class="listing-loc">📍 Thika County</div>
-          <div class="listing-meta">
-            <span class="listing-farmer">Mary Wanjiku · ⭐ 5.0</span>
-            <span class="listing-badge">✓ Scan Verified</span>
-          </div>
-          <div style="margin-top:6px"><span class="listing-qty">200 kg available</span></div>
-        </div>
-      </a>
-    </div>
-    <div style="text-align:center; margin-top:24px">
-      <a href="#" class="btn-primary" style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;font-size:14px" onclick="enterApp(event)">
-        View All Listings &nbsp;→
-      </a>
-    </div>
-  </section>
 
   <!-- HOW IT WORKS -->
-  <section style="background:var(--white)">
+  <div style="padding:36px 20px 16px">
     <p class="section-label">Simple Process</p>
-    <h2 class="section-title">Sell Your Harvest in 3 Steps</h2>
-    <p class="section-sub">From farm to buyer in minutes — no tech experience needed.</p>
-    <div class="steps">
-      <div class="step">
-        <div class="step-num">📸</div>
-        <div class="step-content">
-          <p>Step 1</p>
-          <h3>Scan Your Crop</h3>
-          <p>Take a photo of your plant or harvest. Our AI verifies it's real and healthy, then adds a trusted badge to your listing.</p>
-        </div>
-      </div>
-      <div class="step">
-        <div class="step-num">📋</div>
-        <div class="step-content">
-          <p>Step 2</p>
-          <h3>Post Your Listing</h3>
-          <p>Add your crop type, quantity, location and asking price. Takes under 60 seconds. Your listing goes live instantly.</p>
-        </div>
-      </div>
-      <div class="step">
-        <div class="step-num">💰</div>
-        <div class="step-content">
-          <p>Step 3</p>
-          <h3>Get Paid Directly</h3>
-          <p>Buyers contact you directly. Agree on terms and arrange pickup or delivery. You keep 100% of the sale price.</p>
-        </div>
+    <h2 class="section-title">Sell in 3 Steps</h2>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">📸</div>
+      <div class="step-content">
+        <p>Step 1</p><h3>Scan Your Crop</h3>
+        <p>Take a photo of your plant. AI verifies it's real and adds a trusted badge to your listing.</p>
       </div>
     </div>
-  </section>
-
-  <!-- TESTIMONIALS -->
-  <section>
-    <p class="section-label">Farmer Stories</p>
-    <h2 class="section-title">What Our Farmers Say</h2>
-    <p class="section-sub">Real farmers, real results — across Kenya.</p>
-    <div class="testimonials">
-      <div class="testimonial">
-        <div class="testimonial-header">
-          <div class="farmer-info">
-            <div class="farmer-avatar">👩🏾‍🌾</div>
-            <div>
-              <div class="farmer-name">Grace Achieng</div>
-              <div class="farmer-role">Maize Farmer, Kisumu</div>
-            </div>
-          </div>
-          <div class="stars">★★★★★</div>
-        </div>
-        <blockquote>"I sold 3 tonnes in one week after posting my verified listing. Buyers trust the scan badge — it makes all the difference. My income doubled this season."</blockquote>
-      </div>
-      <div class="testimonial">
-        <div class="testimonial-header">
-          <div class="farmer-info">
-            <div class="farmer-avatar">👨🏿‍🌾</div>
-            <div>
-              <div class="farmer-name">James Mwangi</div>
-              <div class="farmer-role">Tomato Farmer, Nakuru</div>
-            </div>
-          </div>
-          <div class="stars">★★★★★</div>
-        </div>
-        <blockquote>"Before SeedPro I drove 2 hours to find buyers at the market. Now buyers come to me through the app. I've tripled my income in just 3 months."</blockquote>
-      </div>
-      <div class="testimonial">
-        <div class="testimonial-header">
-          <div class="farmer-info">
-            <div class="farmer-avatar">👩🏽‍🌾</div>
-            <div>
-              <div class="farmer-name">Mary Wanjiku</div>
-              <div class="farmer-role">Coffee Farmer, Thika</div>
-            </div>
-          </div>
-          <div class="stars">★★★★★</div>
-        </div>
-        <blockquote>"The price tracker told me exactly when to hold and when to sell. I got 22% more than my neighbours this season. SeedPro is like having a business partner."</blockquote>
+    <div class="step">
+      <div class="step-num">📋</div>
+      <div class="step-content">
+        <p>Step 2</p><h3>Post Your Listing</h3>
+        <p>Add crop type, quantity, location and price. Goes live instantly in under 60 seconds.</p>
       </div>
     </div>
-  </section>
-
-  <!-- CTA -->
-  <div class="cta-section">
-    <h2>Start Earning More Today</h2>
-    <p>Join 2,400 Kenyan farmers who sell directly to buyers and keep 100% of their harvest value.</p>
-    <div class="cta-btns">
-      <a href="#" class="btn-cta-white" onclick="enterApp(event)">
-        🌱 &nbsp;Join Free — It's Simple
-      </a>
-      <p class="cta-note">No registration fee · No commission · Works on any phone</p>
+    <div class="step">
+      <div class="step-num">💰</div>
+      <div class="step-content">
+        <p>Step 3</p><h3>Get Paid Directly</h3>
+        <p>Buyers contact you directly. You keep 100% of the sale — no broker, no commission.</p>
+      </div>
     </div>
   </div>
 
-  <!-- FOOTER -->
-  <footer>
-    <div class="footer-logo">
-      <div class="footer-logo-icon">🌱</div>
-      <span class="footer-logo-text">SeedPro</span>
+  <!-- TESTIMONIALS -->
+  <div style="padding:36px 20px 16px">
+    <p class="section-label">Farmer Stories</p>
+    <h2 class="section-title">What Our Farmers Say</h2>
+  </div>
+  <div class="testimonials">
+    <div class="testimonial">
+      <div class="testimonial-header">
+        <div class="farmer-info">
+          <div class="farmer-avatar">👩🏾‍🌾</div>
+          <div><div class="farmer-name">Grace Achieng</div><div class="farmer-role">Maize Farmer, Kisumu</div></div>
+        </div>
+        <div class="stars">★★★★★</div>
+      </div>
+      <blockquote>"I sold 3 tonnes in one week after posting my verified listing. My income doubled this season."</blockquote>
     </div>
-    <p class="footer-tagline">Kenya's Farmer Marketplace · Empowering Agribusiness</p>
-    <div class="footer-links">
-      <a href="#" onclick="enterApp(event)">Marketplace</a>
-      <a href="#" onclick="enterApp(event)">Plant Scan</a>
-      <a href="#" onclick="enterApp(event)">Prices</a>
-      <a href="#" onclick="enterApp(event)">Advisory</a>
-      <a href="#">About</a>
-      <a href="#">Contact</a>
+    <div class="testimonial">
+      <div class="testimonial-header">
+        <div class="farmer-info">
+          <div class="farmer-avatar">👨🏿‍🌾</div>
+          <div><div class="farmer-name">James Mwangi</div><div class="farmer-role">Tomato Farmer, Nakuru</div></div>
+        </div>
+        <div class="stars">★★★★★</div>
+      </div>
+      <blockquote>"Before SeedPro I drove 2 hours to find buyers. Now buyers come to me. I've tripled my income in 3 months."</blockquote>
     </div>
-    <p class="footer-copy">© 2026 SeedPro Kenya. Built for Kenyan Farmers.</p>
-  </footer>
+    <div class="testimonial">
+      <div class="testimonial-header">
+        <div class="farmer-info">
+          <div class="farmer-avatar">👩🏽‍🌾</div>
+          <div><div class="farmer-name">Mary Wanjiku</div><div class="farmer-role">Coffee Farmer, Thika</div></div>
+        </div>
+        <div class="stars">★★★★★</div>
+      </div>
+      <blockquote>"The price tracker told me when to hold and when to sell. I got 22% more than my neighbours this season."</blockquote>
+    </div>
+  </div>
 
-</div><!-- /landing -->
+  <!-- HOME CTA -->
+  <div class="home-cta">
+    <h2>Start Earning More Today</h2>
+    <p>Join 2,400 Kenyan farmers selling directly to buyers — no middlemen, no commission.</p>
+    <button class="btn-hero btn-hero-white" onclick="enterApp()">🌱 &nbsp;Join Free — It's Simple</button>
+    <p class="cta-note">No registration fee · No commission · Works on any phone</p>
+  </div>
+
+  <footer>
+    <div class="footer-top">
+      <div>
+        <div class="footer-logo">
+          <div class="footer-logo-icon">🌱</div>
+          <span class="footer-logo-text">SeedPro</span>
+        </div>
+        <div class="footer-tagline">Kenya's Farmer Marketplace</div>
+      </div>
+      <div class="footer-socials">
+        <a class="social-icon" title="WhatsApp">💬</a>
+        <a class="social-icon" title="Facebook">📘</a>
+        <a class="social-icon" title="Twitter">🐦</a>
+      </div>
+    </div>
+    <div class="footer-links">
+      <a onclick="showPage('home')">Home</a>
+      <a onclick="showPage('shop')">Shop</a>
+      <a onclick="showPage('blog')">Blog</a>
+      <a onclick="enterApp()">Marketplace</a>
+      <a onclick="enterApp()">Plant Scan</a>
+      <a onclick="enterApp()">Prices</a>
+    </div>
+    <hr class="footer-divider"/>
+    <div class="footer-copy">© 2026 SeedPro Kenya · Empowering Farmers</div>
+  </footer>
+</div><!-- /home -->
+
+<!-- ═══════════════════════════════════════════════════
+     PAGE: SHOP (E-COMMERCE)
+═══════════════════════════════════════════════════ -->
+<div id="page-shop" class="page">
+
+  <!-- SHOP HERO -->
+  <div class="shop-hero">
+    <h1>Fresh Farm Shop</h1>
+    <p>Order verified produce directly from Kenyan farmers</p>
+    <div class="shop-search">
+      <input type="text" placeholder="Search tomatoes, maize, coffee…" id="shopSearch" oninput="filterProducts()"/>
+      <button onclick="filterProducts()">Search</button>
+    </div>
+  </div>
+
+  <!-- DEALS BANNER -->
+  <div class="deals-banner">
+    <div>
+      <h3>🔥 Flash Harvest Deal</h3>
+      <p>Up to 30% off verified produce</p>
+      <div class="countdown">
+        <div class="countdown-box"><div class="num" id="hrs">04</div><div class="lbl">HRS</div></div>
+        <div class="countdown-box"><div class="num" id="min">27</div><div class="lbl">MIN</div></div>
+        <div class="countdown-box"><div class="num" id="sec">00</div><div class="lbl">SEC</div></div>
+      </div>
+    </div>
+    <span>🌽</span>
+  </div>
+
+  <!-- CATEGORIES -->
+  <div class="cat-scroll" id="catScroll">
+    <div class="cat-pill active" onclick="filterCat('all',this)">
+      <div class="cat-icon">🌿</div><span>All</span>
+    </div>
+    <div class="cat-pill" onclick="filterCat('vegetables',this)">
+      <div class="cat-icon">🍅</div><span>Veggies</span>
+    </div>
+    <div class="cat-pill" onclick="filterCat('grains',this)">
+      <div class="cat-icon">🌽</div><span>Grains</span>
+    </div>
+    <div class="cat-pill" onclick="filterCat('cash',this)">
+      <div class="cat-icon">☕</div><span>Cash Crops</span>
+    </div>
+    <div class="cat-pill" onclick="filterCat('fruits',this)">
+      <div class="cat-icon">🥑</div><span>Fruits</span>
+    </div>
+    <div class="cat-pill" onclick="filterCat('legumes',this)">
+      <div class="cat-icon">🫘</div><span>Legumes</span>
+    </div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="shop-toolbar">
+    <span id="productCount">12 products found</span>
+    <select class="sort-select" onchange="sortProducts(this.value)">
+      <option value="default">Sort: Featured</option>
+      <option value="price-asc">Price: Low to High</option>
+      <option value="price-desc">Price: High to Low</option>
+      <option value="rating">Top Rated</option>
+    </select>
+  </div>
+
+  <!-- PRODUCTS -->
+  <div class="products-grid" id="productsGrid"></div>
+
+  <div style="text-align:center;padding:8px 20px 32px">
+    <button class="btn-primary" style="padding:12px 28px;font-size:14px" onclick="enterApp()">
+      View All Listings in App →
+    </button>
+  </div>
+
+  <footer>
+    <div class="footer-top">
+      <div>
+        <div class="footer-logo">
+          <div class="footer-logo-icon">🌱</div>
+          <span class="footer-logo-text">SeedPro</span>
+        </div>
+        <div class="footer-tagline">Kenya's Farmer Marketplace</div>
+      </div>
+    </div>
+    <div class="footer-links">
+      <a onclick="showPage('home')">Home</a>
+      <a onclick="showPage('shop')">Shop</a>
+      <a onclick="showPage('blog')">Blog</a>
+      <a onclick="enterApp()">Full App</a>
+    </div>
+    <hr class="footer-divider"/>
+    <div class="footer-copy">© 2026 SeedPro Kenya</div>
+  </footer>
+</div><!-- /shop -->
+
+<!-- ═══════════════════════════════════════════════════
+     PAGE: BLOG
+═══════════════════════════════════════════════════ -->
+<div id="page-blog" class="page">
+
+  <!-- BLOG HERO -->
+  <div class="blog-hero">
+    <h1>SeedPro Farming Blog</h1>
+    <p>Expert tips, market insights and success stories from Kenyan farmers</p>
+    <div class="blog-search">
+      <input type="text" placeholder="Search articles…" />
+      <button>Search</button>
+    </div>
+  </div>
+
+  <!-- CATEGORIES -->
+  <div class="blog-cats">
+    <button class="blog-cat active" onclick="activateBlogCat(this)">All Articles</button>
+    <button class="blog-cat" onclick="activateBlogCat(this)">Market Prices</button>
+    <button class="blog-cat" onclick="activateBlogCat(this)">Crop Tips</button>
+    <button class="blog-cat" onclick="activateBlogCat(this)">Disease &amp; Pests</button>
+    <button class="blog-cat" onclick="activateBlogCat(this)">Success Stories</button>
+    <button class="blog-cat" onclick="activateBlogCat(this)">Weather &amp; Seasons</button>
+  </div>
+
+  <!-- FEATURED ARTICLE -->
+  <div class="featured-article" onclick="openArticle('tomato-prices')">
+    <div class="featured-img">
+      🍅
+      <div class="featured-label">⭐ Featured</div>
+    </div>
+    <div class="featured-body">
+      <div class="article-meta">
+        <span class="article-cat">Market Prices</span>
+        <span class="article-date">June 24, 2026</span>
+      </div>
+      <h2>Tomato Prices Hit a 3-Year High — Here's Why and How to Cash In</h2>
+      <p>Nairobi wholesale prices jumped 34% in June due to dry spells in Kirinyaga. We break down what's driving the surge and the best time to sell your harvest for maximum returns.</p>
+      <span class="read-more">Read Full Article →</span>
+    </div>
+  </div>
+
+  <!-- BLOG GRID -->
+  <div style="padding:0 20px 12px">
+    <p class="section-label">Latest Articles</p>
+  </div>
+  <div class="blog-grid">
+
+    <div class="blog-card" onclick="openArticle('scan-verified')">
+      <div class="blog-card-img">📸</div>
+      <div class="blog-card-body">
+        <span class="article-cat">Tip</span>
+        <h3>How the Plant Scan Verified Badge Doubled One Farmer's Sales</h3>
+        <p>James Mwangi from Nakuru shares how getting his tomato listing verified tripled his buyer enquiries in one week.</p>
+        <div class="blog-card-footer">
+          <span>June 20, 2026</span>
+          <span class="read-time">4 min</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="blog-card" onclick="openArticle('maize-season')">
+      <div class="blog-card-img">🌽</div>
+      <div class="blog-card-body">
+        <span class="article-cat">Crop Tips</span>
+        <h3>The Long Rains Maize Planting Calendar for Western Kenya 2026</h3>
+        <p>Optimal planting dates, variety selection and fertiliser timing for Kisumu, Kakamega and Bungoma counties.</p>
+        <div class="blog-card-footer">
+          <span>June 18, 2026</span>
+          <span class="read-time">6 min</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="blog-card" onclick="openArticle('avocado-export')">
+      <div class="blog-card-img">🥑</div>
+      <div class="blog-card-body">
+        <span class="article-cat">Market</span>
+        <h3>Avocado Export Prices: How Kenyan Farmers Can Access European Markets</h3>
+        <p>A step-by-step guide to GlobalGAP certification, export logistics and pricing your Hass avocados for EU buyers.</p>
+        <div class="blog-card-footer">
+          <span>June 15, 2026</span>
+          <span class="read-time">8 min</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="blog-card" onclick="openArticle('late-blight')">
+      <div class="blog-card-img">🥔</div>
+      <div class="blog-card-body">
+        <span class="article-cat">Disease &amp; Pests</span>
+        <h3>Identifying and Controlling Late Blight on Potatoes in the Kenya Highlands</h3>
+        <p>With wetter seasons ahead, potato blight is surging in Nyandarua and Meru. Here's how to spot it early and save your crop.</p>
+        <div class="blog-card-footer">
+          <span>June 12, 2026</span>
+          <span class="read-time">5 min</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="blog-card" onclick="openArticle('coffee-story')">
+      <div class="blog-card-img">☕</div>
+      <div class="blog-card-body">
+        <span class="article-cat">Success Story</span>
+        <h3>From 2 Acres to 20: How Mary Wanjiku Built a Coffee Empire Using SeedPro</h3>
+        <p>Mary started with 200 kg of AA coffee and a phone. Two years later she supplies three Nairobi roasters directly — no middlemen.</p>
+        <div class="blog-card-footer">
+          <span>June 10, 2026</span>
+          <span class="read-time">7 min</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="blog-card" onclick="openArticle('irrigation')">
+      <div class="blog-card-img">💧</div>
+      <div class="blog-card-body">
+        <span class="article-cat">Crop Tips</span>
+        <h3>Low-Cost Drip Irrigation: A Practical Guide for Small-Scale Kenyan Farmers</h3>
+        <p>How to set up a drip system for under KSh 15,000 using locally available materials — and cut your water bill by 60%.</p>
+        <div class="blog-card-footer">
+          <span>June 8, 2026</span>
+          <span class="read-time">6 min</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="blog-card" onclick="openArticle('weather-alert')">
+      <div class="blog-card-img">🌦️</div>
+      <div class="blog-card-body">
+        <span class="article-cat">Weather &amp; Seasons</span>
+        <h3>El Niño 2026 Advisory: What Kenyan Farmers Must Do Now to Protect Their Crops</h3>
+        <p>The Kenya Met Department warns of above-normal rainfall in July. Here's your county-by-county action plan.</p>
+        <div class="blog-card-footer">
+          <span>June 5, 2026</span>
+          <span class="read-time">5 min</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="blog-card" onclick="openArticle('onion-market')">
+      <div class="blog-card-img">🧅</div>
+      <div class="blog-card-body">
+        <span class="article-cat">Market Prices</span>
+        <h3>Onion Prices Up 15% — Naivasha Farmers Who Listed Early Are Winning Big</h3>
+        <p>Demand from Tanzania is pushing Kenyan onion prices to season highs. We show you how to price and time your listing.</p>
+        <div class="blog-card-footer">
+          <span>June 3, 2026</span>
+          <span class="read-time">3 min</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- NEWSLETTER -->
+  <div class="newsletter">
+    <h3>Get Weekly Market Alerts</h3>
+    <p>Price updates, crop advisories and farming tips delivered to your phone every Monday morning.</p>
+    <div class="newsletter-form">
+      <input type="tel" placeholder="Enter your phone number" />
+      <button onclick="subscribeNewsletter()">Subscribe Free →</button>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-top">
+      <div>
+        <div class="footer-logo">
+          <div class="footer-logo-icon">🌱</div>
+          <span class="footer-logo-text">SeedPro</span>
+        </div>
+        <div class="footer-tagline">Kenya's Farmer Marketplace</div>
+      </div>
+      <div class="footer-socials">
+        <a class="social-icon">💬</a>
+        <a class="social-icon">📘</a>
+        <a class="social-icon">🐦</a>
+      </div>
+    </div>
+    <div class="footer-links">
+      <a onclick="showPage('home')">Home</a>
+      <a onclick="showPage('shop')">Shop</a>
+      <a onclick="showPage('blog')">Blog</a>
+      <a onclick="enterApp()">Full App</a>
+    </div>
+    <hr class="footer-divider"/>
+    <div class="footer-copy">© 2026 SeedPro Kenya · Empowering Farmers</div>
+  </footer>
+</div><!-- /blog -->
+
+<!-- CART DRAWER -->
+<div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+<div class="cart-drawer" id="cartDrawer">
+  <div class="cart-header">
+    <h3>🛒 Your Cart</h3>
+    <button class="cart-close" onclick="toggleCart()">✕</button>
+  </div>
+  <div class="cart-items" id="cartItems">
+    <div class="cart-empty"><span>🌿</span>Your cart is empty<br/><small style="margin-top:6px;display:block;color:#aaa">Add some fresh produce to get started</small></div>
+  </div>
+  <div class="cart-footer">
+    <div class="cart-total">
+      <span>Total</span>
+      <span id="cartTotal">KSh 0</span>
+    </div>
+    <button class="checkout-btn" onclick="checkout()">Proceed to Checkout →</button>
+  </div>
+</div>
 
 <!-- APP LOADER -->
 <div class="app-loader" id="appLoader">
   <div class="spinner"></div>
-  <p>Loading SeedPro…</p>
+  <p>Loading SeedPro App…</p>
 </div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
 <!-- REACT APP -->
 <div id="root"></div>
 
 <script>
-  function enterApp(e) {
-    e && e.preventDefault();
-    document.getElementById('appLoader').classList.add('active');
-    // Show react app, hide landing
-    setTimeout(function() {
-      document.getElementById('landing').style.display = 'none';
-      document.getElementById('root').style.display = 'block';
-      document.getElementById('appLoader').classList.remove('active');
-    }, 600);
-  }
+/* ─── PAGE NAV ─────────────────────────── */
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.getElementById('nav-' + id).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (id === 'shop') renderProducts();
+}
 
-  // If React has already mounted and is ready, wire it up
-  window.__reactReady = function() {
-    // React is ready — enterApp calls will work instantly
-  };
+/* ─── ENTER APP ────────────────────────── */
+function enterApp() {
+  document.getElementById('appLoader').classList.add('active');
+  setTimeout(function() {
+    document.getElementById('landing') && (document.getElementById('landing').style.display = 'none');
+    document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+    document.getElementById('root').style.display = 'block';
+    document.getElementById('appLoader').classList.remove('active');
+  }, 600);
+}
+
+/* ─── TOAST ────────────────────────────── */
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 2500);
+}
+
+/* ─── COUNTDOWN ────────────────────────── */
+(function() {
+  var end = Date.now() + 4 * 3600000 + 27 * 60000;
+  function tick() {
+    var diff = Math.max(0, end - Date.now());
+    var h = Math.floor(diff / 3600000);
+    var m = Math.floor((diff % 3600000) / 60000);
+    var s = Math.floor((diff % 60000) / 1000);
+    var hEl = document.getElementById('hrs');
+    var mEl = document.getElementById('min');
+    var sEl = document.getElementById('sec');
+    if (hEl) hEl.textContent = String(h).padStart(2,'0');
+    if (mEl) mEl.textContent = String(m).padStart(2,'0');
+    if (sEl) sEl.textContent = String(s).padStart(2,'0');
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
+
+/* ─── PRODUCTS DATA ────────────────────── */
+var PRODUCTS = [
+  { id:1,  name:'Tomato',        emoji:'🍅', cat:'vegetables', price:95,  unit:'kg',  farmer:'James M.',   county:'Nakuru',  rating:4.9, qty:500,  verified:true,  badge:'HOT' },
+  { id:2,  name:'Maize',         emoji:'🌽', cat:'grains',     price:42,  unit:'kg',  farmer:'Grace A.',   county:'Kisumu',  rating:4.7, qty:2000, verified:true,  badge:null  },
+  { id:3,  name:'Coffee AA',     emoji:'☕', cat:'cash',       price:320, unit:'kg',  farmer:'Mary W.',    county:'Thika',   rating:5.0, qty:200,  verified:true,  badge:'PREMIUM' },
+  { id:4,  name:'Avocado Hass',  emoji:'🥑', cat:'fruits',     price:85,  unit:'kg',  farmer:'Peter N.',   county:'Muranga', rating:4.8, qty:300,  verified:true,  badge:null  },
+  { id:5,  name:'Onion',         emoji:'🧅', cat:'vegetables', price:110, unit:'kg',  farmer:'Aisha O.',   county:'Naivasha',rating:4.6, qty:800,  verified:false, badge:'HOT' },
+  { id:6,  name:'Beans',         emoji:'🫘', cat:'legumes',    price:135, unit:'kg',  farmer:'Simon K.',   county:'Meru',    rating:4.5, qty:400,  verified:true,  badge:null  },
+  { id:7,  name:'Cabbage',       emoji:'🥬', cat:'vegetables', price:35,  unit:'kg',  farmer:'Faith M.',   county:'Kiambu',  rating:4.4, qty:600,  verified:false, badge:null  },
+  { id:8,  name:'Sweet Potato',  emoji:'🍠', cat:'vegetables', price:55,  unit:'kg',  farmer:'David O.',   county:'Kakamega',rating:4.7, qty:1000, verified:true,  badge:null  },
+  { id:9,  name:'Banana',        emoji:'🍌', cat:'fruits',     price:48,  unit:'bunch',farmer:'Ruth A.',   county:'Kisii',   rating:4.8, qty:500,  verified:true,  badge:null  },
+  { id:10, name:'Rice Pishori',  emoji:'🍚', cat:'grains',     price:185, unit:'kg',  farmer:'Hassan M.',  county:'Mwea',    rating:4.9, qty:300,  verified:true,  badge:'PREMIUM' },
+  { id:11, name:'Tea KTDA',      emoji:'🍵', cat:'cash',       price:280, unit:'kg',  farmer:'CTC Factory',county:'Kericho', rating:4.6, qty:500,  verified:true,  badge:null  },
+  { id:12, name:'French Beans',  emoji:'🫛', cat:'vegetables', price:145, unit:'kg',  farmer:'Esther K.',  county:'Meru',    rating:4.8, qty:200,  verified:true,  badge:'EXPORT' },
+];
+
+var cart = [];
+var activeCat = 'all';
+var searchQ = '';
+
+function renderProducts() {
+  var filtered = PRODUCTS.filter(function(p) {
+    var catMatch = activeCat === 'all' || p.cat === activeCat;
+    var qMatch = !searchQ || p.name.toLowerCase().includes(searchQ.toLowerCase()) || p.county.toLowerCase().includes(searchQ.toLowerCase());
+    return catMatch && qMatch;
+  });
+  document.getElementById('productCount').textContent = filtered.length + ' products found';
+  var html = filtered.map(function(p) {
+    var inCart = cart.find(function(c) { return c.id === p.id; });
+    return '<div class="product-card" onclick="handleProductClick(' + p.id + ')">' +
+      '<div class="product-img">' + p.emoji +
+        (p.verified ? '<div class="product-verified">✓</div>' : '') +
+        (p.badge ? '<div class="product-badge">' + p.badge + '</div>' : '') +
+      '</div>' +
+      '<div class="product-body">' +
+        '<div class="product-name">' + p.name + '</div>' +
+        '<div class="product-farmer">📍 ' + p.county + ' · ' + p.farmer + '</div>' +
+        '<div class="product-footer">' +
+          '<div class="product-price">KSh ' + p.price + '<span>/' + p.unit + '</span></div>' +
+          '<div class="product-rating">★ ' + p.rating + '</div>' +
+        '</div>' +
+        '<button class="add-btn' + (inCart ? ' added' : '') + '" onclick="addToCart(event,' + p.id + ')">' +
+          (inCart ? '✓ Added' : '+ Add to Cart') +
+        '</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  document.getElementById('productsGrid').innerHTML = html || '<p style="padding:20px;color:var(--text-muted);text-align:center;grid-column:span 2">No products found</p>';
+}
+
+function handleProductClick(id) { /* future: product detail page */ }
+
+function addToCart(e, id) {
+  e.stopPropagation();
+  var p = PRODUCTS.find(function(x) { return x.id === id; });
+  var existing = cart.find(function(c) { return c.id === id; });
+  if (existing) {
+    existing.qty++;
+  } else {
+    cart.push({ id: p.id, name: p.name, emoji: p.emoji, price: p.price, unit: p.unit, qty: 1 });
+  }
+  updateCartUI();
+  renderProducts();
+  showToast('✓ ' + p.name + ' added to cart');
+}
+
+function updateCartUI() {
+  var total = cart.reduce(function(s, c) { return s + c.price * c.qty; }, 0);
+  var count = cart.reduce(function(s, c) { return s + c.qty; }, 0);
+  document.getElementById('cartCount').textContent = count;
+  document.getElementById('cartTotal').textContent = 'KSh ' + total.toLocaleString();
+
+  if (cart.length === 0) {
+    document.getElementById('cartItems').innerHTML =
+      '<div class="cart-empty"><span>🌿</span>Your cart is empty<br/><small style="margin-top:6px;display:block;color:#aaa">Add some fresh produce to get started</small></div>';
+    return;
+  }
+  document.getElementById('cartItems').innerHTML = cart.map(function(c) {
+    return '<div class="cart-item">' +
+      '<div class="cart-item-img">' + c.emoji + '</div>' +
+      '<div class="cart-item-info">' +
+        '<div class="cart-item-name">' + c.name + '</div>' +
+        '<div class="cart-item-price">KSh ' + (c.price * c.qty).toLocaleString() + '</div>' +
+        '<div class="qty-row">' +
+          '<button class="qty-btn" onclick="changeQty(' + c.id + ',-1)">−</button>' +
+          '<span class="qty-num">' + c.qty + '</span>' +
+          '<button class="qty-btn" onclick="changeQty(' + c.id + ',1)">+</button>' +
+          '<button class="cart-remove" onclick="removeFromCart(' + c.id + ')">Remove</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function changeQty(id, delta) {
+  var item = cart.find(function(c) { return c.id === id; });
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) cart = cart.filter(function(c) { return c.id !== id; });
+  updateCartUI();
+  renderProducts();
+}
+
+function removeFromCart(id) {
+  cart = cart.filter(function(c) { return c.id !== id; });
+  updateCartUI();
+  renderProducts();
+}
+
+function toggleCart() {
+  document.getElementById('cartOverlay').classList.toggle('open');
+  document.getElementById('cartDrawer').classList.toggle('open');
+}
+
+function checkout() {
+  if (cart.length === 0) { showToast('Your cart is empty'); return; }
+  toggleCart();
+  enterApp();
+}
+
+function filterCat(cat, el) {
+  activeCat = cat;
+  document.querySelectorAll('.cat-pill').forEach(function(p) { p.classList.remove('active'); });
+  el.classList.add('active');
+  renderProducts();
+}
+
+function filterProducts() {
+  searchQ = document.getElementById('shopSearch').value;
+  renderProducts();
+}
+
+function sortProducts(val) {
+  if (val === 'price-asc')  PRODUCTS.sort(function(a,b) { return a.price - b.price; });
+  if (val === 'price-desc') PRODUCTS.sort(function(a,b) { return b.price - a.price; });
+  if (val === 'rating')     PRODUCTS.sort(function(a,b) { return b.rating - a.rating; });
+  if (val === 'default')    PRODUCTS.sort(function(a,b) { return a.id - b.id; });
+  renderProducts();
+}
+
+/* ─── BLOG ─────────────────────────────── */
+function activateBlogCat(el) {
+  document.querySelectorAll('.blog-cat').forEach(function(b) { b.classList.remove('active'); });
+  el.classList.add('active');
+}
+
+function openArticle(slug) {
+  showToast('📖 Opening article…');
+  setTimeout(function() { enterApp(); }, 800);
+}
+
+function subscribeNewsletter() {
+  showToast('✓ Subscribed! Weekly alerts coming your way');
+}
+
+/* ─── INIT ─────────────────────────────── */
+renderProducts();
+window.__reactReady = function() {};
 </script>
 <script type="module" src="/src/main.tsx"></script>
-
 </body>
 </html>
