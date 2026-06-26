@@ -5,7 +5,9 @@ import './index.css'
 import { TRPCProvider } from "@/providers/trpc"
 import App from './App.tsx'
 
-createRoot(document.getElementById('root')!).render(
+const rootEl = document.getElementById('root')!;
+
+createRoot(rootEl).render(
   <StrictMode>
     <BrowserRouter>
       <TRPCProvider>
@@ -14,3 +16,6 @@ createRoot(document.getElementById('root')!).render(
     </BrowserRouter>
   </StrictMode>,
 )
+
+// Signal to landing page that React is ready
+;(window as any).__reactReady?.()
