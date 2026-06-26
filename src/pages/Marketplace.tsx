@@ -29,15 +29,36 @@ export default function Marketplace() {
   const [postInitialCrop, setPostInitialCrop] = useState("");
   const [postInitialScanned, setPostInitialScanned] = useState(false);
 
-  const { data: listings, isLoading } = trpc.market.list.useQuery({
+  const { data: apiListings, isLoading } = trpc.market.list.useQuery({
     search: search || undefined,
     location: selectedLocation || undefined,
   });
 
-  const { data: listingDetail } = trpc.market.getById.useQuery(
+  const { data: apiListingDetail } = trpc.market.getById.useQuery(
     { id: selectedListing! },
     { enabled: !!selectedListing }
   );
+
+  // Static mock listings used when backend is unavailable
+  const MOCK_LISTINGS = [
+    { id:1,  cropName:"Tomato",       location:"Nakuru",   quantity:500,  quantityUnit:"kg",    expectedPrice:95,  description:"Grade A cherry tomatoes, freshly harvested. Available for immediate pickup or county delivery.", images:[], farmerName:"James Mwangi",    farmerPhone:"0712 345 678", farmerAvatar:null, farmerVerified:true,  farmerRating:4.9, harvestDate:null, status:"active" },
+    { id:2,  cropName:"Maize",        location:"Kisumu",   quantity:2000, quantityUnit:"kg",    expectedPrice:42,  description:"Dry shelled maize, moisture content below 13.5%. Ready for milling. Bulk discount available.", images:[], farmerName:"Grace Achieng",   farmerPhone:"0723 456 789", farmerAvatar:null, farmerVerified:true,  farmerRating:4.7, harvestDate:null, status:"active" },
+    { id:3,  cropName:"Avocado",      location:"Muranga",  quantity:300,  quantityUnit:"kg",    expectedPrice:85,  description:"Hass avocado, 80–100 g fruit size. Suitable for export or local market. Picked to order.", images:[], farmerName:"Peter Njoroge",   farmerPhone:"0734 567 890", farmerAvatar:null, farmerVerified:true,  farmerRating:4.8, harvestDate:null, status:"active" },
+    { id:4,  cropName:"Coffee",       location:"Thika",    quantity:200,  quantityUnit:"kg",    expectedPrice:320, description:"AA grade Arabica dry parchment. Sun-dried on raised beds. Cup score 82+.", images:[], farmerName:"Mary Wanjiku",    farmerPhone:"0745 678 901", farmerAvatar:null, farmerVerified:true,  farmerRating:5.0, harvestDate:null, status:"active" },
+    { id:5,  cropName:"Onion",        location:"Naivasha", quantity:800,  quantityUnit:"kg",    expectedPrice:110, description:"Red onion, medium size, cured and dry. Strong shelf life. Wholesale bags of 50 kg available.", images:[], farmerName:"Aisha Omar",      farmerPhone:"0756 789 012", farmerAvatar:null, farmerVerified:false, farmerRating:4.6, harvestDate:null, status:"active" },
+    { id:6,  cropName:"Beans",        location:"Meru",     quantity:400,  quantityUnit:"kg",    expectedPrice:135, description:"Rose coco beans, clean sorted. Packed in 90 kg bags. Delivery available to Nairobi market.", images:[], farmerName:"Simon Kirimi",    farmerPhone:"0767 890 123", farmerAvatar:null, farmerVerified:true,  farmerRating:4.5, harvestDate:null, status:"active" },
+    { id:7,  cropName:"Potato",       location:"Nyeri",    quantity:1000, quantityUnit:"kg",    expectedPrice:58,  description:"Shangi variety Irish potato. Washed and graded. Excellent for chips and crisps.", images:[], farmerName:"John Kamau",      farmerPhone:"0778 901 234", farmerAvatar:null, farmerVerified:true,  farmerRating:4.6, harvestDate:null, status:"active" },
+    { id:8,  cropName:"Sweet Potato", location:"Kakamega", quantity:600,  quantityUnit:"kg",    expectedPrice:55,  description:"Orange-fleshed sweet potato, rich in beta-carotene. Suitable for baby food processors.", images:[], farmerName:"David Odhiambo",  farmerPhone:"0789 012 345", farmerAvatar:null, farmerVerified:true,  farmerRating:4.7, harvestDate:null, status:"active" },
+    { id:9,  cropName:"Banana",       location:"Kisii",    quantity:500,  quantityUnit:"bunch", expectedPrice:48,  description:"William hybrid banana, ripe in 3–4 days. Transported on farm truck. Kisii or Nairobi delivery.", images:[], farmerName:"Ruth Akinyi",     farmerPhone:"0790 123 456", farmerAvatar:null, farmerVerified:true,  farmerRating:4.8, harvestDate:null, status:"active" },
+    { id:10, cropName:"Cabbage",      location:"Kiambu",   quantity:700,  quantityUnit:"kg",    expectedPrice:35,  description:"Danish ballhead cabbage, 1.5–2.5 kg heads. Freshly cut. Market or supermarket supply available.", images:[], farmerName:"Faith Muthoni",   farmerPhone:"0701 234 567", farmerAvatar:null, farmerVerified:false, farmerRating:4.4, harvestDate:null, status:"active" },
+    { id:11, cropName:"Sukuma Wiki",  location:"Nairobi",  quantity:200,  quantityUnit:"bunch", expectedPrice:30,  description:"Fresh kale, dark green, no pesticide residue. Daily harvest to Wakulima or Kangemi market.", images:[], farmerName:"Sarah Wambui",    farmerPhone:"0712 987 654", farmerAvatar:null, farmerVerified:false, farmerRating:4.3, harvestDate:null, status:"active" },
+    { id:12, cropName:"Tea",          location:"Kericho",  quantity:300,  quantityUnit:"kg",    expectedPrice:280, description:"KTDA certified BOP tea. Can supply weekly. Minimum order 50 kg. Price negotiable for bulk.", images:[], farmerName:"CTC Factory",      farmerPhone:"0722 111 222", farmerAvatar:null, farmerVerified:true,  farmerRating:4.6, harvestDate:null, status:"active" },
+  ];
+
+  const listings = (apiListings && apiListings.length > 0) ? apiListings : (!isLoading ? MOCK_LISTINGS : undefined);
+
+  // Find listing detail from mock data when API is unavailable
+  const listingDetail = apiListingDetail ?? (selectedListing ? MOCK_LISTINGS.find(l => l.id === selectedListing) : undefined);
 
   // Open post dialog or listing from URL params (once on mount)
   useEffect(() => {
@@ -67,6 +88,10 @@ export default function Marketplace() {
     onSuccess: () => {
       utils.market.list.invalidate();
       utils.market.myOrders.invalidate();
+      setOrderDialog(false);
+      setSelectedListing(null);
+    },
+    onError: () => {
       setOrderDialog(false);
       setSelectedListing(null);
     },

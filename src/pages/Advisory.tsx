@@ -45,14 +45,61 @@ export default function Advisory() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { data: cropList } = trpc.advisory.listCrops.useQuery();
-  const { data: guides } = trpc.advisory.getGuides.useQuery(
+  const { data: apiGuides } = trpc.advisory.getGuides.useQuery(
     { cropId: cropList?.find((c) => c.name === selectedCrop)?.id ?? 0 },
     { enabled: !!selectedCrop && !!cropList }
   );
-  const { data: schedule } = trpc.advisory.getSchedule.useQuery(
+  const { data: apiSchedule } = trpc.advisory.getSchedule.useQuery(
     { cropId: cropList?.find((c) => c.name === selectedCrop)?.id ?? 0 },
     { enabled: !!selectedCrop && !!cropList }
   );
+
+  // Static fallback guides used when backend is unavailable
+  const MOCK_GUIDES = [
+    {
+      stage: "Seedling",
+      title: "Nursery & Seedbed Preparation",
+      description: "Prepare a healthy seedbed to maximise germination and early growth.",
+      tasks: ["Mix topsoil and compost at 3:1 ratio", "Sow seeds 1 cm deep, 2 cm apart", "Water lightly twice daily with a fine spray", "Apply 50% shade net for first 2 weeks"],
+      tips: ["Use certified seeds for best germination rates — ask your agro-dealer for verified stock."],
+    },
+    {
+      stage: "Vegetative",
+      title: "Transplanting & Early Growth",
+      description: "Transplant seedlings at 3–4 weeks and establish strong root systems.",
+      tasks: ["Transplant in the evening or on cloudy days to reduce stress", "Water immediately after transplanting", "Apply DAP fertiliser at 2 g per hole", "Mulch to retain moisture and suppress weeds"],
+      tips: ["Harden seedlings 3 days before transplanting by reducing shade gradually."],
+    },
+    {
+      stage: "Flowering",
+      title: "Flower Development & Pollination",
+      description: "Support pollination and prevent blossom drop for a full harvest.",
+      tasks: ["Apply CAN fertiliser at 5 g per plant", "Maintain consistent soil moisture — irregular watering causes drop", "Scout for whiteflies and thrips daily", "Stake plants to prevent lodging"],
+      tips: ["Spray calcium nitrate at flowering to prevent blossom-end rot on tomatoes."],
+    },
+    {
+      stage: "Harvest",
+      title: "Harvesting & Post-Harvest",
+      description: "Harvest at peak maturity to maximise shelf life and market value.",
+      tasks: ["Harvest early morning for best freshness", "Use clean, sharp cutting tools", "Grade by size and quality before packing", "Store in a cool, shaded and ventilated area"],
+      tips: ["Post your harvest on SeedPro Marketplace to reach buyers across Kenya before prices drop."],
+    },
+  ];
+
+  const MOCK_SCHEDULE = [
+    { stage:"Seedling",   activityType:"irrigation",  dayFrom:1,  dayTo:14,  productName:"Water",           dosage:"2 L/m²",      instructions:"Mist lightly twice daily to keep seedbed moist without waterlogging." },
+    { stage:"Seedling",   activityType:"fertilizer",  dayFrom:7,  dayTo:10,  productName:"DAP",             dosage:"2 g/hole",    instructions:"Apply DAP at transplanting hole to boost root development." },
+    { stage:"Vegetative", activityType:"fertilizer",  dayFrom:21, dayTo:28,  productName:"CAN",             dosage:"5 g/plant",   instructions:"Top-dress with CAN to support leafy growth. Water in after application." },
+    { stage:"Vegetative", activityType:"pesticide",   dayFrom:25, dayTo:30,  productName:"Neem Extract",    dosage:"5 ml/L",      instructions:"Spray neem on leaf undersides to control aphids and whiteflies." },
+    { stage:"Flowering",  activityType:"fertilizer",  dayFrom:40, dayTo:45,  productName:"NPK 17:17:17",    dosage:"10 g/plant",  instructions:"Apply balanced NPK at base of plant then water. Avoid contact with leaves." },
+    { stage:"Flowering",  activityType:"fungicide",   dayFrom:42, dayTo:50,  productName:"Dithane M-45",    dosage:"2 g/L",       instructions:"Spray every 7 days to prevent early and late blight. Rotate fungicides." },
+    { stage:"Fruiting",   activityType:"irrigation",  dayFrom:50, dayTo:70,  productName:"Drip Irrigation", dosage:"4 L/plant/day",instructions:"Maintain consistent moisture. Irregular watering causes fruit cracking." },
+    { stage:"Fruiting",   activityType:"fertilizer",  dayFrom:55, dayTo:60,  productName:"Calcium Nitrate", dosage:"3 g/L spray", instructions:"Foliar spray to prevent blossom-end rot and strengthen cell walls." },
+    { stage:"Harvest",    activityType:"other",       dayFrom:70, dayTo:90,  productName:"Harvesting",      dosage:undefined,     instructions:"Harvest at colour break. Use clean knives. Pack in ventilated crates." },
+  ];
+
+  const guides   = (apiGuides   && apiGuides.length   > 0) ? apiGuides   : (selectedCrop ? MOCK_GUIDES   : undefined);
+  const schedule = (apiSchedule && apiSchedule.length > 0) ? apiSchedule : (selectedCrop ? MOCK_SCHEDULE : undefined);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

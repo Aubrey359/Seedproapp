@@ -27,4 +27,11 @@ export default defineConfig({
     outDir: path.resolve(__dirname, "dist/public"),
     emptyOutDir: true,
   },
+  optimizeDeps: {
+    exclude: ["mysql2", "drizzle-orm"],
+  },
+  ssr: {
+    external: ["mysql2", "drizzle-orm"],
+    noExternal: [],
+  },
 });

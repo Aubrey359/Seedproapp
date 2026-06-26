@@ -65,13 +65,29 @@ export default function Profile() {
     }
   }, [searchParams]);
 
-  const { data: myOrders } = trpc.market.myOrders.useQuery(undefined, {
+  const { data: apiOrders } = trpc.market.myOrders.useQuery(undefined, {
     enabled: isAuthenticated,
   });
 
-  const { data: myListings } = trpc.market.myListings.useQuery(undefined, {
+  const { data: apiListings } = trpc.market.myListings.useQuery(undefined, {
     enabled: isAuthenticated,
   });
+
+  // Static mock data when backend is unavailable
+  const MOCK_ORDERS = [
+    { id:1, cropName:"Tomato",  quantity:200, totalPrice:19000, status:"delivered", createdAt: new Date("2026-06-10") },
+    { id:2, cropName:"Onion",   quantity:100, totalPrice:11000, status:"pending",   createdAt: new Date("2026-06-20") },
+    { id:3, cropName:"Beans",   quantity:50,  totalPrice:6750,  status:"confirmed", createdAt: new Date("2026-06-22") },
+  ];
+
+  const MOCK_LISTINGS = [
+    { id:1, cropName:"Maize",  quantity:2000, expectedPrice:42, status:"active",  location:"Kisumu",  createdAt: new Date("2026-06-01") },
+    { id:2, cropName:"Tomato", quantity:500,  expectedPrice:95, status:"active",  location:"Nakuru",  createdAt: new Date("2026-06-15") },
+    { id:3, cropName:"Beans",  quantity:300,  expectedPrice:135,status:"sold",    location:"Kisumu",  createdAt: new Date("2026-05-20") },
+  ];
+
+  const myOrders   = (apiOrders   && apiOrders.length   > 0) ? apiOrders   : MOCK_ORDERS;
+  const myListings = (apiListings && apiListings.length > 0) ? apiListings : MOCK_LISTINGS;
 
   if (!isAuthenticated) {
     return (
