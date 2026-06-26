@@ -10,52 +10,102 @@
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Lato:wght@400;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/site.css" />
   <style>
-    .sell-hero { background: linear-gradient(110deg, var(--green-dark), #276b32); padding: 26px 16px 20px; }
-    .sell-hero h1 { font-size: 22px; font-weight: 900; color: white; margin-bottom: 4px; }
-    .sell-hero p  { font-size: 13px; color: rgba(255,255,255,.75); line-height: 1.6; }
+    .sell-hero {
+      background: var(--g-hero); padding: 30px 20px 24px;
+      position: relative; overflow: hidden;
+    }
+    .sell-hero::before { content:''; position:absolute; right:-40px; top:-40px; width:160px; height:160px; border-radius:50%; background:rgba(255,255,255,.06); }
+    .sell-hero::after  { content:''; position:absolute; left:20px; bottom:-50px; width:120px; height:120px; border-radius:50%; background:rgba(255,255,255,.04); }
+    .sell-hero h1 { font-size:24px; font-weight:900; color:white; margin-bottom:6px; position:relative; z-index:1; }
+    .sell-hero p  { font-size:13px; color:rgba(255,255,255,.78); line-height:1.65; max-width:360px; position:relative; z-index:1; }
 
-    .trust-row { display: flex; gap: 8px; overflow-x: auto; padding: 10px 16px; background: white; border-bottom: 1px solid var(--grey-border); scrollbar-width: none; }
-    .trust-row::-webkit-scrollbar { display: none; }
-    .trust-pill { flex-shrink: 0; display: flex; align-items: center; gap: 5px; background: var(--green-pale); border: 1px solid var(--green-light); border-radius: 20px; padding: 4px 12px; font-size: 11px; font-weight: 700; color: var(--green-dark); font-family:'Nunito',sans-serif; }
+    .trust-row { display:flex; gap:8px; overflow-x:auto; padding:12px 20px; background:white; border-bottom:1px solid var(--grey-border); scrollbar-width:none; }
+    .trust-row::-webkit-scrollbar { display:none; }
+    .trust-pill {
+      flex-shrink:0; display:flex; align-items:center; gap:5px;
+      background:linear-gradient(135deg, var(--green-pale), #F1F8E9);
+      border:1px solid rgba(46,125,50,.2); border-radius:100px;
+      padding:5px 14px; font-size:11px; font-weight:700; color:var(--green-dark);
+      font-family:'Nunito',sans-serif;
+    }
 
-    .form-section { padding: 16px; }
-    .form-card { background: white; border-radius: 12px; border: 1px solid var(--grey-border); padding: 18px 16px; box-shadow: var(--shadow-sm); }
-    .form-card h3 { font-size: 15px; font-weight: 900; color: var(--green-dark); margin-bottom: 14px; font-family:'Nunito',sans-serif; display: flex; align-items: center; gap: 6px; }
-    .form-group { margin-bottom: 14px; }
-    .form-group label { font-size: 12px; font-weight: 700; color: var(--text); display: block; margin-bottom: 5px; font-family:'Nunito',sans-serif; }
+    .form-section { padding:16px 20px; }
+    .form-card {
+      background:white; border-radius:var(--radius-xl);
+      border:1px solid var(--grey-border); overflow:hidden;
+      box-shadow:var(--shadow-md);
+    }
+    .form-card-head {
+      background:var(--g-green); padding:16px 20px; position:relative; overflow:hidden;
+    }
+    .form-card-head::before { content:''; position:absolute; right:-20px; top:-20px; width:80px; height:80px; border-radius:50%; background:rgba(255,255,255,.08); }
+    .form-card-head h3 { font-size:16px; font-weight:900; color:white; font-family:'Nunito',sans-serif; display:flex; align-items:center; gap:7px; position:relative; z-index:1; }
+    .form-card-body { padding:20px 18px 18px; }
+    .form-group { margin-bottom:16px; }
+    .form-group label { font-size:12px; font-weight:700; color:var(--text); display:block; margin-bottom:6px; font-family:'Nunito',sans-serif; }
     .form-group input,
     .form-group select,
-    .form-group textarea { width: 100%; border: 1.5px solid var(--grey-border); border-radius: 8px; padding: 0 12px; font-size: 13px; font-family:'Lato',sans-serif; background: white; transition: border-color .2s; }
+    .form-group textarea { width:100%; border:1.5px solid var(--grey-border); border-radius:var(--radius); padding:0 14px; font-size:13px; font-family:'Lato',sans-serif; background:white; transition:border-color .2s, box-shadow .2s; }
     .form-group input,
-    .form-group select { height: 44px; }
-    .form-group textarea { height: 88px; padding: 10px 12px; resize: none; }
+    .form-group select { height:46px; }
+    .form-group textarea { height:90px; padding:12px 14px; resize:none; }
     .form-group input:focus,
     .form-group select:focus,
-    .form-group textarea:focus { outline: none; border-color: var(--green); }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .form-group textarea:focus { outline:none; border-color:var(--green); box-shadow:0 0 0 3px rgba(46,125,50,.1); }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 
-    .scan-attach { border: 2px dashed var(--green-light); border-radius: 10px; padding: 14px; text-align: center; cursor: pointer; transition: all .2s; }
-    .scan-attach.verified { border-style: solid; border-color: var(--green); background: var(--green-pale); }
-    .scan-attach p { font-size: 12px; color: var(--grey-text); margin-top: 6px; }
-    .scan-attach .verified-badge { font-size: 13px; font-weight: 800; color: var(--green); font-family:'Nunito',sans-serif; }
+    .scan-attach {
+      border:2.5px dashed var(--green-light); border-radius:var(--radius-lg);
+      padding:18px 14px; text-align:center; cursor:pointer; transition:all .2s;
+      background:var(--green-bg);
+    }
+    .scan-attach:hover { border-color:var(--green); background:var(--green-pale); }
+    .scan-attach.verified { border-style:solid; border-color:var(--green); background:var(--green-pale); }
+    .scan-attach p { font-size:12px; color:var(--grey-text); margin-top:6px; line-height:1.5; }
+    .scan-attach .verified-badge { font-size:13px; font-weight:800; color:var(--green); font-family:'Nunito',sans-serif; }
 
-    .submit-btn { width: 100%; height: 50px; background: var(--green); color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 900; cursor: pointer; font-family:'Nunito',sans-serif; margin-top: 4px; transition: background .2s; }
-    .submit-btn:hover { background: var(--green-dark); }
+    .submit-btn {
+      width:100%; height:52px; background:var(--g-green); color:white;
+      border:none; border-radius:100px; font-size:15px; font-weight:900;
+      cursor:pointer; font-family:'Nunito',sans-serif; margin-top:6px;
+      box-shadow:var(--shadow-green); transition:all .25s;
+      display:flex; align-items:center; justify-content:center; gap:8px;
+    }
+    .submit-btn:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(46,125,50,.4); }
 
-    .success-overlay { display: none; position: fixed; inset: 0; z-index: 999; background: rgba(0,0,0,.5); align-items: center; justify-content: center; padding: 20px; }
-    .success-overlay.show { display: flex; }
-    .success-card { background: white; border-radius: 16px; padding: 28px 20px; text-align: center; max-width: 340px; width: 100%; }
-    .success-card .big-icon { font-size: 52px; margin-bottom: 12px; }
-    .success-card h2 { font-size: 20px; font-weight: 900; color: var(--green-dark); margin-bottom: 8px; font-family:'Nunito',sans-serif; }
-    .success-card p { font-size: 13px; color: #555; line-height: 1.6; margin-bottom: 18px; }
-    .success-card .success-actions { display: flex; flex-direction: column; gap: 8px; }
+    .success-overlay {
+      display:none; position:fixed; inset:0; z-index:999;
+      background:rgba(0,0,0,.55); backdrop-filter:blur(6px);
+      align-items:center; justify-content:center; padding:20px;
+    }
+    .success-overlay.show { display:flex; }
+    .success-card {
+      background:white; border-radius:var(--radius-xl); padding:32px 24px;
+      text-align:center; max-width:340px; width:100%;
+      box-shadow:var(--shadow-lg); animation:fadeUp .4s ease;
+    }
+    .success-card .big-icon { font-size:60px; margin-bottom:14px; }
+    .success-card h2 { font-size:22px; font-weight:900; color:var(--green-dark); margin-bottom:8px; font-family:'Nunito',sans-serif; }
+    .success-card p { font-size:13px; color:#555; line-height:1.65; margin-bottom:20px; }
+    .success-card .success-actions { display:flex; flex-direction:column; gap:10px; }
 
-    .why-sell { padding: 0 16px 16px; }
-    .why-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-    .why-card { background: white; border-radius: 10px; border: 1px solid var(--grey-border); padding: 12px; box-shadow: var(--shadow-sm); }
-    .why-card .icon { font-size: 22px; margin-bottom: 4px; }
-    .why-card h4 { font-size: 12px; font-weight: 800; color: var(--dark); margin-bottom: 2px; font-family:'Nunito',sans-serif; }
-    .why-card p  { font-size: 11px; color: var(--grey-text); line-height: 1.4; }
+    .why-sell { padding:0 20px 22px; }
+    .why-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
+    .why-card {
+      background:white; border-radius:var(--radius-lg); border:1px solid var(--grey-border);
+      padding:16px 14px; box-shadow:var(--shadow-xs); transition:all .25s; text-align:center;
+    }
+    .why-card:hover { box-shadow:var(--shadow-md); transform:translateY(-3px); border-color:var(--green-light); }
+    .why-card .icon-bg {
+      width:48px; height:48px; border-radius:12px; margin:0 auto 10px;
+      display:flex; align-items:center; justify-content:center; font-size:22px;
+    }
+    .why-card:nth-child(1) .icon-bg { background:linear-gradient(135deg,#E8F5E9,#C8E6C9); }
+    .why-card:nth-child(2) .icon-bg { background:linear-gradient(135deg,#FFF3E0,#FFE0B2); }
+    .why-card:nth-child(3) .icon-bg { background:linear-gradient(135deg,#E3F2FD,#BBDEFB); }
+    .why-card:nth-child(4) .icon-bg { background:linear-gradient(135deg,#F3E5F5,#E1BEE7); }
+    .why-card h4 { font-size:12px; font-weight:800; color:var(--dark); margin-bottom:4px; font-family:'Nunito',sans-serif; }
+    .why-card p  { font-size:11px; color:var(--grey-text); line-height:1.45; }
   </style>
 </head>
 <body>
@@ -112,7 +162,8 @@
 <!-- SELL FORM -->
 <div class="form-section">
   <div class="form-card">
-    <h3>📝 Your Listing Details</h3>
+    <div class="form-card-head"><h3>📝 Your Listing Details</h3></div>
+    <div class="form-card-body">
 
     <div class="form-group">
       <label>Crop / Produce *</label>
@@ -177,6 +228,7 @@
     </div>
 
     <button class="submit-btn" onclick="submitListing()">🚀 Publish Listing — It's Free!</button>
+    </div><!-- /form-card-body -->
   </div>
 </div>
 
@@ -184,10 +236,10 @@
 <div class="why-sell">
   <div class="section-title">Why Sell on SeedPro?</div>
   <div class="why-grid">
-    <div class="why-card"><div class="icon">📲</div><h4>30,000+ Active Buyers</h4><p>Reach supermarkets, hotels and individual buyers instantly.</p></div>
-    <div class="why-card"><div class="icon">💳</div><h4>M-Pesa Payments</h4><p>Get paid directly to your Safaricom number. Fast and secure.</p></div>
-    <div class="why-card"><div class="icon">📈</div><h4>Live Price Guidance</h4><p>We show you today's market price so you never undersell.</p></div>
-    <div class="why-card"><div class="icon">✅</div><h4>Verified Farmer Badge</h4><p>Scan your produce to build buyer trust and command better prices.</p></div>
+    <div class="why-card"><div class="icon-bg">📲</div><h4>30,000+ Active Buyers</h4><p>Reach supermarkets, hotels and individual buyers instantly.</p></div>
+    <div class="why-card"><div class="icon-bg">💳</div><h4>M-Pesa Payments</h4><p>Get paid directly to your Safaricom number. Fast and secure.</p></div>
+    <div class="why-card"><div class="icon-bg">📈</div><h4>Live Price Guidance</h4><p>We show you today's market price so you never undersell.</p></div>
+    <div class="why-card"><div class="icon-bg">✅</div><h4>Verified Farmer Badge</h4><p>Scan your produce to build buyer trust and command better prices.</p></div>
   </div>
 </div>
 
