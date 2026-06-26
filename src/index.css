@@ -1,0 +1,166 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* SeedPro Design Tokens */
+    --seed-green: #2D6A4F;
+    --seed-green-light: #52B788;
+    --seed-gold: #D4A373;
+    --seed-gold-light: #E9C46A;
+    --seed-brown: #6B4226;
+    --seed-brown-light: #A47E5B;
+    --seed-cream: #FAF6F0;
+    --seed-white: #FFFFFF;
+    --seed-error: #C0392B;
+    --seed-success: #27AE60;
+    --seed-info: #2980B9;
+    --seed-whatsapp: #25D366;
+    --text-primary: #2C1810;
+    --text-secondary: #6B5B4F;
+    --border-light: #E8DFD4;
+    --shadow-card: rgba(45, 106, 79, 0.08);
+
+    /* shadcn/ui overrides */
+    --background: 36 33% 96%;
+    --foreground: 20 40% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 20 40% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 40% 12%;
+    --primary: 153 40% 30%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 36 33% 93%;
+    --secondary-foreground: 20 40% 12%;
+    --muted: 36 20% 90%;
+    --muted-foreground: 24 14% 37%;
+    --accent: 30 45% 64%;
+    --accent-foreground: 20 40% 12%;
+    --destructive: 4 60% 46%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 30 20% 88%;
+    --input: 30 20% 88%;
+    --ring: 153 40% 30%;
+    --radius: 0.75rem;
+    --sidebar-background: 36 33% 96%;
+    --sidebar-foreground: 20 40% 12%;
+    --sidebar-primary: 153 40% 30%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 36 33% 93%;
+    --sidebar-accent-foreground: 20 40% 12%;
+    --sidebar-border: 30 20% 88%;
+    --sidebar-ring: 153 40% 30%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: 'Playfair Display', serif;
+  }
+
+  .font-body {
+    font-family: 'Inter', sans-serif;
+  }
+
+  .bg-seed-green { background-color: var(--seed-green); }
+  .bg-seed-green-light { background-color: var(--seed-green-light); }
+  .bg-seed-gold { background-color: var(--seed-gold); }
+  .bg-seed-gold-light { background-color: var(--seed-gold-light); }
+  .bg-seed-brown { background-color: var(--seed-brown); }
+  .bg-seed-cream { background-color: var(--seed-cream); }
+  .bg-seed-whatsapp { background-color: var(--seed-whatsapp); }
+  .bg-seed-success { background-color: var(--seed-success); }
+  .bg-seed-error { background-color: var(--seed-error); }
+
+  .text-seed-green { color: var(--seed-green); }
+  .text-seed-green-light { color: var(--seed-green-light); }
+  .text-seed-gold { color: var(--seed-gold); }
+  .text-seed-brown { color: var(--seed-brown); }
+  .text-seed-brown-light { color: var(--seed-brown-light); }
+  .text-seed-whatsapp { color: var(--seed-whatsapp); }
+  .text-seed-success { color: var(--seed-success); }
+  .text-seed-error { color: var(--seed-error); }
+  .text-seed-info { color: var(--seed-info); }
+
+  .border-seed-green { border-color: var(--seed-green); }
+  .border-seed-gold { border-color: var(--seed-gold); }
+  .border-seed-brown { border-color: var(--seed-brown); }
+  .border-light { border-color: var(--border-light); }
+
+  .shadow-card {
+    box-shadow: 0 2px 12px var(--shadow-card);
+  }
+
+  .shadow-fab {
+    box-shadow: 0 4px 16px rgba(45, 106, 79, 0.3);
+  }
+}
+
+/* Pulse ring animation for notifications */
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.6); opacity: 0; }
+  100% { transform: scale(1); opacity: 0; }
+}
+
+.pulse-ring::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  animation: pulse-ring 2s ease-out infinite;
+}
+
+/* Chat background pattern */
+.chat-bg {
+  background-color: var(--seed-cream);
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(45, 106, 79, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(212, 163, 115, 0.03) 0%, transparent 50%);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-light);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--seed-brown-light);
+}
+
+/* Hide scrollbar for horizontal scroll containers */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
