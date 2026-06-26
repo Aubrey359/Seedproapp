@@ -1,295 +1,315 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router";
-import { trpc } from "@/providers/trpc";
 import {
-  FiPlus, FiTrendingUp, FiMessageCircle, FiFileText, FiClipboard,
-  FiChevronRight, FiAlertTriangle, FiSun, FiCamera
+  FiCamera, FiShoppingBag, FiTrendingUp, FiMessageCircle,
+  FiCheckCircle, FiStar, FiArrowRight, FiMapPin, FiUsers,
+  FiPackage, FiChevronRight,
 } from "react-icons/fi";
 import { AppLayout } from "@/components/AppLayout";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  DEFAULT_TOWN, CROP_EMOJI, formatKES,
-} from "@contracts/kenya";
+import { CROP_EMOJI } from "@contracts/kenya";
 
-const heroSlides = [
-  {
-    image: "/images/hero-farm-1.jpg",
-    headline: "Tomato Prices Rising in Nairobi",
-    subline: "Post your harvest now and connect with buyers across Kenya",
-    cta: "Post Produce",
-    link: "/market?action=post",
-  },
-  {
-    image: "/images/hero-farm-2.jpg",
-    headline: "Long Rains Season Guide",
-    subline: "Get expert advice for maximum yield this season",
-    cta: "Get Advisory",
-    link: "/advisory",
-  },
+/* ─── static mock data ─────────────────────────────────────── */
+const FEATURED = [
+  { id: 1, crop: "Tomato", farmer: "James Mwangi", location: "Nakuru", price: 95, qty: 500, rating: 4.9, verified: true, img: "/images/crop-tomato.jpg" },
+  { id: 2, crop: "Maize",  farmer: "Grace Achieng", location: "Kisumu", price: 42, qty: 2000, rating: 4.7, verified: true, img: "/images/crop-maize.jpg" },
+  { id: 3, crop: "Potato", farmer: "Peter Njoroge", location: "Nyeri",  price: 58, qty: 800, rating: 4.8, verified: false, img: "/images/crop-potato.jpg" },
+  { id: 4, crop: "Coffee", farmer: "Mary Wanjiku",  location: "Thika",  price: 320, qty: 200, rating: 5.0, verified: true, img: "/images/crop-coffee.jpg" },
 ];
 
-const quickActions = [
-  { icon: FiPlus, label: "Post Produce", color: "bg-seed-green", link: "/market?action=post" },
-  { icon: FiCamera, label: "Scan Plant", color: "bg-seed-brown", link: "/scan" },
-  { icon: FiTrendingUp, label: "Get Prices", color: "bg-seed-gold", link: "/prices" },
-  { icon: FiMessageCircle, label: "Ask Expert", color: "bg-seed-green", link: "/advisory" },
-  { icon: FiFileText, label: "My Listings", color: "bg-seed-brown", link: "/profile?tab=listings" },
-  { icon: FiClipboard, label: "Orders", color: "bg-seed-green", link: "/profile?tab=orders" },
+const PRICES = [
+  { crop: "Tomato",  price: 95,  trend: "up",   pct: 12 },
+  { crop: "Maize",   price: 42,  trend: "down",  pct: 3  },
+  { crop: "Coffee",  price: 320, trend: "up",    pct: 8  },
+  { crop: "Potato",  price: 58,  trend: "up",    pct: 5  },
+  { crop: "Onion",   price: 110, trend: "up",    pct: 15 },
+  { crop: "Cabbage", price: 35,  trend: "down",  pct: 2  },
+];
+
+const TESTIMONIALS = [
+  { name: "Grace Achieng", role: "Maize Farmer, Kisumu", quote: "I sold 3 tonnes in one week after posting my verified listing. Buyers trust the scan badge — it makes all the difference.", avatar: "👩🏾‍🌾" },
+  { name: "James Mwangi",  role: "Tomato Farmer, Nakuru", quote: "Before SeedPro I drove 2 hours to find buyers. Now they come to me. I've tripled my income in 3 months.", avatar: "👨🏿‍🌾" },
+  { name: "Mary Wanjiku",  role: "Coffee Farmer, Thika",  quote: "The price tracker told me when to hold and when to sell. I got 22% more than my neighbours this season.", avatar: "👩🏽‍🌾" },
+];
+
+const HERO_SLIDES = [
+  { headline: "Kenya's Farmer Marketplace", sub: "Sell your produce directly to buyers — no middlemen, better prices.", cta: "Post Produce", link: "/market?action=post", bg: "from-[#1a4731] to-[#2D6A4F]" },
+  { headline: "Scan Your Plant, Prove It's Real", sub: "Use your camera to verify produce authenticity and earn the trusted badge.", cta: "Try Plant Scan", link: "/scan", bg: "from-[#2D6A4F] to-[#52B788]" },
+  { headline: "Real-Time Market Prices", sub: "Track prices across 12 Kenyan counties and sell at exactly the right moment.", cta: "Check Prices", link: "/prices", bg: "from-[#3d5a3e] to-[#2D6A4F]" },
 ];
 
 export default function Home() {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const { data: listings, isLoading: listingsLoading } = trpc.market.list.useQuery({});
-  const { data: prices } = trpc.prices.getByTown.useQuery({ town: DEFAULT_TOWN });
+  const [slide, setSlide] = useState(0);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
-    }, 5000);
-    return () => clearInterval(timer);
+    const t = setInterval(() => setSlide(s => (s + 1) % HERO_SLIDES.length), 4500);
+    return () => clearInterval(t);
   }, []);
+
+  const current = HERO_SLIDES[slide];
 
   return (
     <AppLayout>
-      {/* Hero Carousel */}
-      <div className="relative h-48 overflow-hidden">
-        {heroSlides.map((slide, index) => (
-          <div
-            key={index}
-            className={`absolute inset-0 transition-opacity duration-700 ${
-              index === currentSlide ? "opacity-100" : "opacity-0"
-            }`}
+      {/* ── HERO CAROUSEL ─────────────────────────────────── */}
+      <div className={`relative bg-gradient-to-br ${current.bg} px-5 pt-8 pb-10 overflow-hidden transition-all duration-700`}>
+        {/* decorative blobs */}
+        <div className="absolute -top-8 -right-8 w-40 h-40 bg-white/5 rounded-full" />
+        <div className="absolute bottom-0 -left-6 w-28 h-28 bg-white/5 rounded-full" />
+
+        {/* floating emojis */}
+        <div className="absolute top-5 right-5 text-3xl opacity-30 animate-bounce">🌱</div>
+        <div className="absolute bottom-8 right-12 text-2xl opacity-20">🌿</div>
+
+        <p className="text-white/60 text-[11px] font-semibold tracking-widest uppercase mb-2">SeedPro Kenya</p>
+        <h1 className="text-white font-bold text-2xl leading-tight mb-3 max-w-[260px]">
+          {current.headline}
+        </h1>
+        <p className="text-white/75 text-sm leading-relaxed mb-6 max-w-[280px]">
+          {current.sub}
+        </p>
+        <div className="flex gap-3">
+          <Link
+            to={current.link}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-[#2D6A4F] rounded-full text-sm font-bold shadow-lg"
           >
-            <img
-              src={slide.image}
-              alt={slide.headline}
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-4">
-              <h2 className="text-white font-semibold text-lg leading-tight">{slide.headline}</h2>
-              <p className="text-white/80 text-xs mt-1">{slide.subline}</p>
-              <Link
-                to={slide.link}
-                className="inline-block mt-2 px-4 py-1.5 bg-seed-green text-white text-xs font-medium rounded-full"
-              >
-                {slide.cta}
-              </Link>
-            </div>
-          </div>
-        ))}
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
-          {heroSlides.map((_, i) => (
+            {current.cta} <FiArrowRight className="w-4 h-4" />
+          </Link>
+          <Link
+            to="/market"
+            className="inline-flex items-center gap-2 px-4 py-2.5 border border-white/30 text-white rounded-full text-sm font-medium"
+          >
+            Browse
+          </Link>
+        </div>
+
+        {/* slide dots */}
+        <div className="flex gap-1.5 mt-6">
+          {HERO_SLIDES.map((_, i) => (
             <button
               key={i}
-              onClick={() => setCurrentSlide(i)}
-              className={`w-1.5 h-1.5 rounded-full transition-all ${
-                i === currentSlide ? "bg-white w-3" : "bg-white/40"
-              }`}
+              onClick={() => setSlide(i)}
+              className={`h-1.5 rounded-full transition-all duration-300 ${i === slide ? "w-6 bg-white" : "w-1.5 bg-white/40"}`}
             />
           ))}
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="px-4 py-4">
-        <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-1">
-          {quickActions.map((action) => {
-            const Icon = action.icon;
-            return (
-              <Link
-                key={action.label}
-                to={action.link}
-                className="flex flex-col items-center gap-1.5 min-w-[64px]"
-              >
-                <div className={`w-12 h-12 ${action.color} rounded-xl flex items-center justify-center shadow-md`}>
-                  <Icon className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-[11px] font-medium text-text-primary">{action.label}</span>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Market Snapshot */}
-      <div className="px-4 mb-4">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-display text-lg font-semibold text-seed-brown">Today&apos;s Market</h3>
-          <Link to="/prices" className="text-xs text-seed-green font-medium flex items-center gap-0.5">
-            See All <FiChevronRight className="w-3 h-3" />
-          </Link>
-        </div>
-
-        {prices && prices.length > 0 ? (
-          <div className="space-y-2">
-            {prices.slice(0, 3).map((price) => (
-              <div
-                key={price.id}
-                className="bg-white rounded-xl p-3 flex items-center justify-between shadow-card border border-light"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-seed-green/10 flex items-center justify-center">
-                    <span className="text-lg">{CROP_EMOJI[price.cropName] || "🌱"}</span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-text-primary">{price.cropName}</p>
-                    <p className="text-[11px] text-text-secondary">{DEFAULT_TOWN}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-seed-green">{formatKES(price.wholesalePrice, "kg")}</p>
-                  <p className="text-[10px] flex items-center justify-end gap-0.5">
-                    {price.trend === "up" ? (
-                      <span className="text-seed-success flex items-center">▲ {price.trendPercent}%</span>
-                    ) : price.trend === "down" ? (
-                      <span className="text-seed-error flex items-center">▼ {price.trendPercent}%</span>
-                    ) : (
-                      <span className="text-text-secondary">— {price.trendPercent}%</span>
-                    )}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-16 rounded-xl" />
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Crop Advisory Preview */}
-      <div className="px-4 mb-4">
-        <div className="bg-white rounded-2xl p-4 shadow-card border border-light border-l-4 border-l-[#25D366]">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-5 h-5 rounded-full bg-[#25D366] flex items-center justify-center">
-              <FiMessageCircle className="w-3 h-3 text-white" />
-            </div>
-            <span className="text-sm font-semibold text-text-primary">SeedPro Advisory</span>
-          </div>
-          <div className="bg-seed-cream rounded-xl p-3 mb-2">
-            <p className="text-sm text-text-primary">
-              Habari! Your tomato crop is entering flowering stage. Time to apply calcium fertilizer before the rains.
-            </p>
-          </div>
-          <p className="text-xs text-text-secondary italic mb-3">
-            Reply with PHOTO to diagnose crop problems
-          </p>
-          <Link
-            to="/advisory"
-            className="block w-full py-2.5 bg-[#25D366] text-white text-sm font-semibold rounded-xl text-center"
-          >
-            Open Advisory
-          </Link>
-        </div>
-      </div>
-
-      {/* Daily Tip */}
-      <div className="px-4 mb-4">
-        <div className="rounded-2xl p-5 bg-gradient-to-br from-seed-green to-seed-green-light relative overflow-hidden">
-          <FiSun className="absolute top-3 right-3 w-8 h-8 text-white/20" />
-          <p className="text-[10px] font-medium text-white/70 uppercase tracking-wider mb-1">Tip of the Day</p>
-          <p className="text-sm font-semibold text-white leading-relaxed">
-            Rotate your tomato crops with legumes to improve soil nitrogen naturally and reduce pest pressure in Kenyan highlands.
-          </p>
-        </div>
-      </div>
-
-      {/* Recent Activity */}
-      <div className="px-4 mb-4">
-        <h3 className="font-display text-lg font-semibold text-seed-brown mb-3">Recent Activity</h3>
-        <div className="space-y-3">
+      {/* ── STATS BAR ─────────────────────────────────────── */}
+      <div className="bg-white border-b border-[#E8DFD4] px-4 py-3">
+        <div className="flex items-center justify-around">
           {[
-            { icon: FiFileText, text: "You posted 200kg of onions for sale", time: "2h ago", color: "text-seed-green bg-seed-green/10" },
-            { icon: FiClipboard, text: "New buyer order #1234 for tomatoes", time: "5h ago", color: "text-seed-gold bg-seed-gold/10", action: "View" },
-            { icon: FiAlertTriangle, text: "Price alert: Coffee prices up 8% in Nyeri", time: "1d ago", color: "text-seed-error bg-seed-error/10" },
-          ].map((activity, i) => {
-            const Icon = activity.icon;
-            return (
-              <div key={i} className="flex items-center gap-3 py-2 border-b border-light last:border-0">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${activity.color}`}>
-                  <Icon className="w-4 h-4" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-text-primary">{activity.text}</p>
-                  <p className="text-[11px] text-text-secondary">{activity.time}</p>
-                </div>
-                {activity.action && (
-                  <button className="text-xs text-seed-green font-medium">{activity.action}</button>
-                )}
+            { icon: FiUsers,   val: "2,400+", label: "Farmers" },
+            { icon: FiPackage, val: "8,100+", label: "Listings" },
+            { icon: FiMapPin,  val: "12",     label: "Counties" },
+          ].map(({ icon: Icon, val, label }) => (
+            <div key={label} className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-[#2D6A4F]/10 flex items-center justify-center">
+                <Icon className="w-4 h-4 text-[#2D6A4F]" />
               </div>
-            );
-          })}
+              <div>
+                <p className="text-sm font-bold text-[#2C1810] leading-none">{val}</p>
+                <p className="text-[10px] text-[#6B5B4F]">{label}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Featured Listings */}
-      <div className="px-4 mb-6">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-display text-lg font-semibold text-seed-brown">Fresh Listings</h3>
-          <Link to="/market" className="text-xs text-seed-green font-medium flex items-center gap-0.5">
-            Browse <FiChevronRight className="w-3 h-3" />
-          </Link>
+      {/* ── QUICK ACTIONS ─────────────────────────────────── */}
+      <div className="px-4 pt-5 pb-2">
+        <div className="grid grid-cols-4 gap-3">
+          {[
+            { icon: FiShoppingBag, label: "Post Produce", link: "/market?action=post", bg: "bg-[#2D6A4F]" },
+            { icon: FiCamera,      label: "Scan Plant",   link: "/scan",              bg: "bg-[#52B788]" },
+            { icon: FiTrendingUp,  label: "Prices",       link: "/prices",            bg: "bg-[#D4A373]" },
+            { icon: FiMessageCircle, label: "Advisory",   link: "/advisory",          bg: "bg-[#6B4226]" },
+          ].map(({ icon: Icon, label, link, bg }) => (
+            <Link key={label} to={link} className="flex flex-col items-center gap-1.5">
+              <div className={`w-14 h-14 ${bg} rounded-2xl flex items-center justify-center shadow-md`}>
+                <Icon className="w-6 h-6 text-white" />
+              </div>
+              <span className="text-[11px] font-medium text-[#2C1810] text-center leading-tight">{label}</span>
+            </Link>
+          ))}
         </div>
+      </div>
 
-        {listingsLoading ? (
-          <div className="space-y-3">
-            {[1, 2].map((i) => (
-              <Skeleton key={i} className="h-40 rounded-2xl" />
-            ))}
+      {/* ── PLANT SCAN SPOTLIGHT ──────────────────────────── */}
+      <div className="px-4 mt-5">
+        <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-[#1a4731] to-[#2D6A4F] p-5">
+          <div className="absolute right-0 top-0 bottom-0 w-28 flex items-center justify-center opacity-20">
+            <span className="text-7xl">🌿</span>
           </div>
-        ) : listings && listings.length > 0 ? (
-          <div className="space-y-3">
-            {listings.slice(0, 2).map((listing) => (
-              <Link
-                key={listing.id}
-                to={`/market?listing=${listing.id}`}
-                className="block bg-white rounded-2xl overflow-hidden shadow-card border border-light"
-              >
-                <div className="h-28 relative">
-                  <img
-                    src={listing.images?.[0] || "/images/crop-tomato.jpg"}
-                    alt={listing.cropName}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                  <div className="absolute bottom-2 left-3 right-3 flex items-end justify-between">
-                    <div>
-                      <h4 className="text-white font-semibold text-sm">{listing.cropName}</h4>
-                      <p className="text-white/80 text-[11px]">{listing.location}</p>
-                    </div>
-                    <span className="px-2 py-0.5 bg-seed-green text-white text-[10px] rounded-full font-medium">
-                      {listing.quantity}kg
-                    </span>
-                  </div>
-                </div>
-                <div className="p-3 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] text-text-secondary">{listing.farmerName || "Farmer"}</span>
-                  </div>
-                  <p className="text-sm font-bold text-seed-green">
-                    {formatKES(listing.expectedPrice, "kg")}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <div className="bg-white rounded-2xl p-6 text-center border border-light">
-            <p className="text-sm text-text-secondary">No listings yet. Be the first Kenyan farmer to post!</p>
-            <Link to="/market?action=post" className="inline-block mt-2 text-sm text-seed-green font-medium">
-              Advertise your produce
+          <div className="relative">
+            <div className="inline-flex items-center gap-1.5 bg-white/20 rounded-full px-3 py-1 mb-3">
+              <FiCamera className="w-3 h-3 text-white" />
+              <span className="text-white text-[11px] font-semibold">NEW FEATURE</span>
+            </div>
+            <h3 className="text-white font-bold text-lg leading-tight mb-1">Scan & Verify Your Crop</h3>
+            <p className="text-white/70 text-xs mb-4 max-w-[200px]">
+              Point your camera at any plant — our AI identifies it and adds a trusted verified badge to your listing.
+            </p>
+            <Link
+              to="/scan"
+              className="inline-flex items-center gap-2 bg-white text-[#2D6A4F] rounded-full px-4 py-2 text-xs font-bold"
+            >
+              <FiCamera className="w-3.5 h-3.5" /> Try Plant Scan
             </Link>
           </div>
-        )}
+        </div>
       </div>
 
-      <div className="text-center py-4 pb-24">
-        <p className="text-[11px] text-text-secondary">SeedPro Kenya v1.0</p>
+      {/* ── LIVE PRICES ───────────────────────────────────── */}
+      <div className="px-4 mt-6">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-bold text-[#2C1810] text-base">Today's Prices</h2>
+          <Link to="/prices" className="text-xs text-[#2D6A4F] font-semibold flex items-center gap-0.5">
+            View all <FiChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {PRICES.map(({ crop, price, trend, pct }) => (
+            <div key={crop} className="bg-white rounded-xl p-3 border border-[#E8DFD4] shadow-sm">
+              <div className="text-xl mb-1">{CROP_EMOJI[crop] || "🌱"}</div>
+              <p className="text-xs font-semibold text-[#2C1810] truncate">{crop}</p>
+              <p className="text-sm font-bold text-[#2D6A4F]">KSh {price}</p>
+              <p className={`text-[10px] font-medium ${trend === "up" ? "text-emerald-600" : "text-red-500"}`}>
+                {trend === "up" ? "▲" : "▼"} {pct}%
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
+
+      {/* ── FEATURED LISTINGS ─────────────────────────────── */}
+      <div className="px-4 mt-6">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-bold text-[#2C1810] text-base">Fresh Listings</h2>
+          <Link to="/market" className="text-xs text-[#2D6A4F] font-semibold flex items-center gap-0.5">
+            Browse all <FiChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+        <div className="space-y-3">
+          {FEATURED.map(({ id, crop, farmer, location, price, qty, rating, verified, img }) => (
+            <Link
+              key={id}
+              to="/market"
+              className="flex gap-3 bg-white rounded-2xl p-3 border border-[#E8DFD4] shadow-sm"
+            >
+              <div className="relative flex-shrink-0">
+                <img
+                  src={img}
+                  alt={crop}
+                  className="w-20 h-20 rounded-xl object-cover"
+                  onError={e => { (e.target as HTMLImageElement).src = "/images/crop-tomato.jpg"; }}
+                />
+                {verified && (
+                  <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center shadow">
+                    <FiCheckCircle className="w-3 h-3 text-white" />
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-1">
+                  <h3 className="font-bold text-[#2C1810] text-sm">{crop}</h3>
+                  <span className="text-sm font-bold text-[#2D6A4F] flex-shrink-0">KSh {price}<span className="text-[10px] font-normal text-[#6B5B4F]">/kg</span></span>
+                </div>
+                <p className="text-xs text-[#6B5B4F] flex items-center gap-0.5 mt-0.5">
+                  <FiMapPin className="w-3 h-3" /> {location}
+                </p>
+                <div className="flex items-center justify-between mt-2">
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs text-[#6B5B4F]">{farmer}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <FiStar className="w-3 h-3 text-[#D4A373] fill-current" />
+                    <span className="text-xs font-semibold text-[#2C1810]">{rating}</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between mt-1.5">
+                  <span className="text-[10px] bg-[#2D6A4F]/10 text-[#2D6A4F] rounded-full px-2 py-0.5 font-medium">
+                    {qty.toLocaleString()} kg
+                  </span>
+                  {verified && (
+                    <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-0.5">
+                      <FiCheckCircle className="w-3 h-3" /> Scan Verified
+                    </span>
+                  )}
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* ── HOW IT WORKS ──────────────────────────────────── */}
+      <div className="px-4 mt-8">
+        <h2 className="font-bold text-[#2C1810] text-base mb-4 text-center">How SeedPro Works</h2>
+        <div className="space-y-3">
+          {[
+            { step: "1", icon: "📸", title: "Scan Your Crop", desc: "Take a photo — our AI verifies it's real and healthy" },
+            { step: "2", icon: "📋", title: "Post Your Listing", desc: "Add your price, quantity and location in under 60 seconds" },
+            { step: "3", icon: "💰", title: "Connect & Sell", desc: "Buyers find you directly — no broker, full price for you" },
+          ].map(({ step, icon, title, desc }) => (
+            <div key={step} className="flex items-start gap-4 bg-white rounded-2xl p-4 border border-[#E8DFD4] shadow-sm">
+              <div className="w-10 h-10 rounded-xl bg-[#2D6A4F] flex items-center justify-center flex-shrink-0 shadow">
+                <span className="text-lg">{icon}</span>
+              </div>
+              <div className="flex-1">
+                <p className="text-[10px] text-[#2D6A4F] font-bold uppercase tracking-wider mb-0.5">Step {step}</p>
+                <p className="text-sm font-bold text-[#2C1810]">{title}</p>
+                <p className="text-xs text-[#6B5B4F] mt-0.5 leading-relaxed">{desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── TESTIMONIALS ──────────────────────────────────── */}
+      <div className="px-4 mt-8">
+        <h2 className="font-bold text-[#2C1810] text-base mb-4">What Farmers Say</h2>
+        <div className="space-y-3">
+          {TESTIMONIALS.map(({ name, role, quote, avatar }) => (
+            <div key={name} className="bg-white rounded-2xl p-4 border border-[#E8DFD4] shadow-sm">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-10 h-10 rounded-full bg-[#2D6A4F]/10 flex items-center justify-center text-xl">
+                  {avatar}
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-[#2C1810]">{name}</p>
+                  <p className="text-[11px] text-[#6B5B4F]">{role}</p>
+                </div>
+                <div className="ml-auto flex gap-0.5">
+                  {[...Array(5)].map((_, i) => (
+                    <FiStar key={i} className="w-3 h-3 text-[#D4A373] fill-current" />
+                  ))}
+                </div>
+              </div>
+              <p className="text-sm text-[#6B5B4F] leading-relaxed italic">"{quote}"</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── BOTTOM CTA ────────────────────────────────────── */}
+      <div className="px-4 mt-8 mb-6">
+        <div className="bg-gradient-to-br from-[#1a4731] to-[#2D6A4F] rounded-2xl p-6 text-center relative overflow-hidden">
+          <div className="absolute -top-4 -right-4 w-20 h-20 bg-white/5 rounded-full" />
+          <div className="absolute -bottom-4 -left-4 w-16 h-16 bg-white/5 rounded-full" />
+          <span className="text-3xl mb-3 block">🌱</span>
+          <h3 className="text-white font-bold text-lg mb-2">Start Selling Today</h3>
+          <p className="text-white/70 text-sm mb-5 leading-relaxed">
+            Join 2,400 Kenyan farmers earning more by selling directly to buyers.
+          </p>
+          <Link
+            to="/market?action=post"
+            className="inline-flex items-center gap-2 bg-white text-[#2D6A4F] rounded-full px-6 py-3 text-sm font-bold shadow-lg"
+          >
+            Post Your First Listing <FiArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      </div>
+
+      <p className="text-center text-[11px] text-[#6B5B4F] pb-6">SeedPro Kenya · Empowering Farmers</p>
     </AppLayout>
   );
 }
