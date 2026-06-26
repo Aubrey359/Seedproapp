@@ -3,1346 +3,1375 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SeedPro — Kenya's #1 Farmer Marketplace</title>
-  <meta name="description" content="Sell your farm produce directly to buyers across Kenya. Scan your plants to verify quality, track live market prices, and earn more — no middlemen." />
+  <title>SeedPro — Fresh Farm Produce | Kenya's Farmer Marketplace</title>
+  <meta name="description" content="Buy fresh farm produce directly from verified Kenyan farmers. Fast delivery, M-Pesa payments, best farm prices." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Lato:wght@400;700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --green:       #2D6A4F;
-      --green-dark:  #1a4731;
-      --green-light: #52B788;
-      --green-pale:  #d8f3dc;
-      --gold:        #D4A373;
-      --gold-light:  #FFECD2;
-      --cream:       #FAF6F0;
-      --brown:       #6B4226;
-      --text:        #1a2e1a;
-      --text-muted:  #5a7a5e;
-      --white:       #ffffff;
-      --border:      #d4e8d4;
-      --radius:      16px;
-      --shadow:      0 4px 24px rgba(45,106,79,.10);
-      --shadow-lg:   0 8px 40px rgba(45,106,79,.18);
+      --green:        #2E7D32;
+      --green-dark:   #1B5E20;
+      --green-mid:    #388E3C;
+      --green-light:  #66BB6A;
+      --green-pale:   #E8F5E9;
+      --green-bg:     #F1F8F1;
+      --orange:       #E65100;
+      --orange-mid:   #F57C00;
+      --orange-light: #FF9800;
+      --orange-pale:  #FFF3E0;
+      --cream:        #FAFAF5;
+      --white:        #FFFFFF;
+      --grey-bg:      #F5F5F5;
+      --grey-border:  #E0E0E0;
+      --grey-text:    #757575;
+      --dark:         #212121;
+      --text:         #333333;
+      --shadow-sm:    0 1px 4px rgba(0,0,0,.08);
+      --shadow:       0 2px 12px rgba(0,0,0,.10);
+      --shadow-lg:    0 4px 24px rgba(0,0,0,.14);
+      --radius:       10px;
     }
 
     html { scroll-behavior: smooth; }
     body {
-      font-family: 'Inter', sans-serif;
-      background: var(--cream);
+      font-family: 'Lato', sans-serif;
+      background: var(--grey-bg);
       color: var(--text);
       -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
     }
 
-    /* ── PAGE SYSTEM ─────────────────────────── */
+    h1, h2, h3, h4, .logo-text, .btn-primary, .btn-orange {
+      font-family: 'Nunito', sans-serif;
+    }
+
+    /* ── PAGE SYSTEM ── */
     .page { display: none; }
     .page.active { display: block; }
 
-    /* ── NAV ─────────────────────────────────── */
+    /* ══════════════════════════════════════
+       TOP BAR
+    ══════════════════════════════════════ */
+    .top-bar {
+      background: var(--green-dark);
+      padding: 6px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 12px; color: rgba(255,255,255,.85);
+    }
+    .top-bar-right { display: flex; gap: 16px; align-items: center; }
+
+    /* ══════════════════════════════════════
+       MAIN NAV
+    ══════════════════════════════════════ */
     nav {
       position: sticky; top: 0; z-index: 200;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 20px; height: 60px;
-      background: rgba(250,246,240,.95);
-      backdrop-filter: blur(14px);
-      border-bottom: 1px solid var(--border);
+      background: var(--white);
+      border-bottom: 2px solid var(--green);
+      box-shadow: var(--shadow-sm);
+    }
+    .nav-top {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 16px;
     }
     .nav-logo {
       display: flex; align-items: center; gap: 8px;
-      text-decoration: none; cursor: pointer;
+      text-decoration: none; cursor: pointer; flex-shrink: 0;
     }
     .nav-logo-icon {
-      width: 34px; height: 34px; background: var(--green);
-      border-radius: 10px; display: flex; align-items: center;
-      justify-content: center; font-size: 18px;
-    }
-    .nav-logo-text { font-size: 20px; font-weight: 800; color: var(--green-dark); }
-
-    .nav-links {
-      display: flex; gap: 4px;
-      position: absolute; left: 50%; transform: translateX(-50%);
-    }
-    .nav-link {
-      padding: 6px 14px; border-radius: 100px;
-      font-size: 13px; font-weight: 600; color: var(--text-muted);
-      background: none; border: none; cursor: pointer;
-      text-decoration: none; transition: all .2s;
-    }
-    .nav-link:hover { color: var(--green); background: var(--green-pale); }
-    .nav-link.active { color: var(--green); background: var(--green-pale); }
-
-    .nav-actions { display: flex; gap: 8px; align-items: center; }
-    .cart-btn {
-      position: relative; width: 38px; height: 38px;
-      background: var(--green-pale); border-radius: 50%;
+      width: 38px; height: 38px;
+      background: var(--green);
+      border-radius: 8px;
       display: flex; align-items: center; justify-content: center;
-      cursor: pointer; border: none; font-size: 16px;
+      font-size: 20px;
     }
-    .cart-count {
-      position: absolute; top: -3px; right: -3px;
-      width: 16px; height: 16px; background: #e74c3c; border-radius: 50%;
-      color: white; font-size: 9px; font-weight: 800;
-      display: flex; align-items: center; justify-content: center;
+    .logo-text {
+      font-size: 22px; font-weight: 900;
+      color: var(--green-dark); line-height: 1; font-family:'Nunito',sans-serif;
     }
-    .btn-ghost {
-      padding: 7px 14px; border-radius: 100px;
-      font-size: 13px; font-weight: 600; color: var(--green);
-      background: none; border: 1.5px solid var(--border);
-      cursor: pointer; text-decoration: none; transition: all .2s;
+    .logo-tagline {
+      font-size: 10px; color: var(--orange); font-weight: 700;
+      letter-spacing: .04em; text-transform: uppercase; font-family:'Nunito',sans-serif;
     }
-    .btn-ghost:hover { background: var(--green-pale); }
-    .btn-primary {
-      padding: 8px 16px; border-radius: 100px;
-      font-size: 13px; font-weight: 700; color: white;
-      background: var(--green); border: none;
-      cursor: pointer; text-decoration: none; transition: all .2s;
+    .nav-search {
+      flex: 1; display: flex; height: 40px;
+      border: 2px solid var(--green-light); border-radius: 6px; overflow: hidden;
     }
-    .btn-primary:hover { background: var(--green-dark); transform: translateY(-1px); }
-
-    /* ── SHARED COMPONENTS ───────────────────── */
-    .section-label {
-      font-size: 11px; font-weight: 700; letter-spacing: .1em;
-      text-transform: uppercase; color: var(--green); margin-bottom: 6px;
+    .nav-search input {
+      flex: 1; padding: 0 12px; border: none; outline: none;
+      font-size: 13px; font-family: 'Lato', sans-serif; background: var(--green-bg);
     }
-    .section-title {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(22px, 6vw, 34px); font-weight: 800;
-      color: var(--green-dark); line-height: 1.25; margin-bottom: 10px;
+    .nav-search button {
+      background: var(--green); color: white;
+      border: none; padding: 0 16px; cursor: pointer;
+      font-size: 16px; font-weight: 700;
     }
-    .section-sub {
-      font-size: 14px; color: var(--text-muted);
-      line-height: 1.65; margin-bottom: 28px;
+    .nav-actions {
+      display: flex; align-items: center; gap: 8px; flex-shrink: 0;
     }
-    .verified-badge {
-      font-size: 10px; font-weight: 700; color: #16a34a;
-      background: #dcfce7; padding: 2px 8px; border-radius: 100px;
-      display: inline-flex; align-items: center; gap: 3px;
-    }
-
-    /* ═══════════════════════════════════════════
-       PAGE 1 — HOME
-    ═══════════════════════════════════════════ */
-
-    /* HERO */
-    .hero {
+    .icon-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      background: none; border: none; cursor: pointer; padding: 4px 8px;
       position: relative;
-      background: linear-gradient(145deg, var(--green-dark) 0%, var(--green) 60%, #3a8c68 100%);
-      padding: 60px 20px 70px; overflow: hidden; text-align: center;
     }
-    .hero::before {
-      content: '';
-      position: absolute; inset: 0;
-      background: radial-gradient(ellipse at 70% 20%, rgba(82,183,136,.25) 0%, transparent 60%),
-                  radial-gradient(ellipse at 20% 80%, rgba(212,163,115,.15) 0%, transparent 50%);
+    .icon-btn .icon { font-size: 20px; }
+    .icon-btn .label { font-size: 10px; color: var(--grey-text); font-family:'Nunito',sans-serif; font-weight:700; }
+    .icon-btn .badge {
+      position: absolute; top: 0; right: 4px;
+      background: var(--orange); color: white;
+      width: 16px; height: 16px; border-radius: 50%;
+      font-size: 9px; font-weight: 800; font-family:'Nunito',sans-serif;
+      display: flex; align-items: center; justify-content: center;
     }
-    .hero-badge {
-      display: inline-flex; align-items: center; gap: 6px;
-      background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
-      color: rgba(255,255,255,.9); padding: 5px 14px; border-radius: 100px;
-      font-size: 11px; font-weight: 700; letter-spacing: .08em;
-      text-transform: uppercase; margin-bottom: 20px;
+    .btn-orange {
+      background: var(--orange); color: white;
+      padding: 9px 16px; border-radius: 6px;
+      font-size: 13px; font-weight: 800; border: none; cursor: pointer;
+      text-decoration: none; white-space: nowrap; transition: background .2s;
+      font-family:'Nunito',sans-serif;
     }
-    .hero h1 {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(30px, 8vw, 50px); font-weight: 800;
-      color: white; line-height: 1.15; margin-bottom: 18px; position: relative;
-    }
-    .hero h1 span { color: #86efac; }
-    .hero > p {
-      font-size: 15px; color: rgba(255,255,255,.8);
-      max-width: 340px; margin: 0 auto 32px; line-height: 1.65; position: relative;
-    }
-    .hero-ctas {
-      display: flex; flex-direction: column; gap: 12px;
-      align-items: center; position: relative;
-    }
-    .btn-hero {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 14px 28px; border-radius: 100px;
-      font-size: 15px; font-weight: 800; text-decoration: none; cursor: pointer;
-      border: none; transition: all .2s;
-    }
-    .btn-hero-white { background: white; color: var(--green); box-shadow: 0 4px 24px rgba(0,0,0,.2); }
-    .btn-hero-white:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,.25); }
-    .btn-hero-outline { background: transparent; color: rgba(255,255,255,.9); border: 1.5px solid rgba(255,255,255,.35); }
-    .btn-hero-outline:hover { background: rgba(255,255,255,.1); }
-    .hero-floats { position: absolute; inset: 0; pointer-events: none; }
-    .float-item {
-      position: absolute; font-size: 28px; opacity: .2;
-      animation: float 6s ease-in-out infinite;
-    }
-    .float-item:nth-child(1) { top:12%; left:8%;  animation-delay:0s; }
-    .float-item:nth-child(2) { top:20%; right:10%; animation-delay:1.5s; }
-    .float-item:nth-child(3) { bottom:22%; left:5%; animation-delay:3s; }
-    .float-item:nth-child(4) { bottom:15%; right:8%; animation-delay:.8s; }
-    .float-item:nth-child(5) { top:55%; left:3%; animation-delay:2.2s; }
-    @keyframes float {
-      0%,100% { transform: translateY(0) rotate(0deg); }
-      50%      { transform: translateY(-12px) rotate(5deg); }
-    }
+    .btn-orange:hover { background: var(--orange-mid); }
 
-    /* STATS */
-    .stats {
-      background: white; border-bottom: 1px solid var(--border);
-      padding: 16px 20px; display: flex; justify-content: space-around;
+    .nav-bottom {
+      background: var(--green);
+      display: flex; align-items: center; gap: 0;
+      padding: 0 8px; overflow-x: auto; scrollbar-width: none;
     }
-    .stat { text-align: center; }
-    .stat-value { font-size: 20px; font-weight: 800; color: var(--green-dark); }
-    .stat-label { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-top: 2px; }
+    .nav-bottom::-webkit-scrollbar { display: none; }
+    .nav-link {
+      color: rgba(255,255,255,.88);
+      padding: 8px 14px; font-size: 13px; font-weight: 700;
+      white-space: nowrap; cursor: pointer; border: none;
+      background: none; transition: all .2s; border-bottom: 3px solid transparent;
+      font-family:'Nunito',sans-serif;
+    }
+    .nav-link:hover { color: white; background: rgba(255,255,255,.1); }
+    .nav-link.active { color: white; border-bottom-color: var(--orange-light); }
+    .nav-link.hot { color: #FFD54F; }
 
-    /* FEATURES */
-    .features-grid { display: grid; gap: 14px; padding: 40px 20px; }
-    .feature-card {
-      background: white; border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 22px 18px; box-shadow: var(--shadow);
-      transition: transform .2s, box-shadow .2s;
-    }
-    .feature-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
-    .feature-icon {
-      width: 50px; height: 50px; background: var(--green-pale);
-      border-radius: 13px; display: flex; align-items: center;
-      justify-content: center; font-size: 22px; margin-bottom: 14px;
-    }
-    .feature-card h3 { font-size: 16px; font-weight: 700; color: var(--green-dark); margin-bottom: 7px; }
-    .feature-card p  { font-size: 13px; color: var(--text-muted); line-height: 1.65; }
-    .feature-tag {
-      display: inline-block; margin-top: 10px; padding: 3px 10px;
-      border-radius: 100px; background: var(--green-pale);
-      color: var(--green); font-size: 11px; font-weight: 700;
-    }
-
-    /* SCAN SPOTLIGHT */
-    .scan-section {
-      background: linear-gradient(135deg, var(--green-dark), var(--green));
-      border-radius: 20px; margin: 0 20px 40px;
-      padding: 30px 22px; position: relative; overflow: hidden;
-    }
-    .scan-section::before { content:'🌿'; position:absolute; right:-10px; top:-10px; font-size:90px; opacity:.08; }
-    .scan-badge-pill {
-      display: inline-flex; align-items: center; gap: 5px;
-      background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
-      color: rgba(255,255,255,.9); padding: 4px 12px; border-radius: 100px;
-      font-size: 11px; font-weight: 700; letter-spacing:.08em; text-transform:uppercase;
+    /* ══════════════════════════════════════
+       UTILITIES
+    ══════════════════════════════════════ */
+    .section { padding: 20px 16px; }
+    .section-head {
+      display: flex; align-items: center; justify-content: space-between;
       margin-bottom: 14px;
     }
-    .scan-section h2 {
-      font-family: 'Playfair Display', serif;
-      font-size: 24px; font-weight: 800; color: white; margin-bottom: 10px;
+    .section-title {
+      font-size: 17px; font-weight: 900; color: var(--green-dark);
+      display: flex; align-items: center; gap: 8px; font-family:'Nunito',sans-serif;
     }
-    .scan-section > p { font-size: 13px; color: rgba(255,255,255,.75); line-height: 1.65; margin-bottom: 20px; }
-    .scan-steps { display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px; }
-    .scan-step { display: flex; align-items: center; gap: 12px; }
-    .scan-step-icon {
-      width: 34px; height: 34px; background: rgba(255,255,255,.15);
-      border-radius: 9px; display: flex; align-items: center;
-      justify-content: center; font-size: 15px; flex-shrink: 0;
+    .section-title::before {
+      content: ''; display: block;
+      width: 4px; height: 18px; background: var(--orange);
+      border-radius: 2px;
     }
-    .scan-step span { font-size: 13px; color: rgba(255,255,255,.85); }
-    .btn-scan {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: white; color: var(--green);
-      padding: 11px 20px; border-radius: 100px;
-      font-size: 13px; font-weight: 800; text-decoration: none; cursor: pointer;
-      border: none; transition: all .2s;
+    .see-all {
+      font-size: 13px; font-weight: 700; color: var(--green);
+      cursor: pointer; background: none; border: none;
+      font-family:'Nunito',sans-serif;
     }
-    .btn-scan:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.2); }
+    .see-all:hover { color: var(--orange); }
+    .btn-primary {
+      background: var(--green); color: white;
+      padding: 10px 20px; border-radius: 6px;
+      font-size: 14px; font-weight: 800; border: none; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px;
+      transition: background .2s; font-family:'Nunito',sans-serif;
+    }
+    .btn-primary:hover { background: var(--green-dark); }
+    .btn-whatsapp {
+      background: #25D366; color: white;
+      padding: 8px 14px; border-radius: 6px;
+      font-size: 12px; font-weight: 800; border: none; cursor: pointer;
+      display: flex; align-items: center; gap: 5px;
+      font-family:'Nunito',sans-serif; transition: background .2s;
+    }
+    .btn-whatsapp:hover { background: #1ebe5d; }
 
-    /* STEPS */
-    .steps { display: flex; flex-direction: column; gap: 14px; padding: 0 20px 40px; }
-    .step {
-      display: flex; gap: 16px; background: white;
-      border: 1px solid var(--border); border-radius: var(--radius);
-      padding: 18px; box-shadow: var(--shadow);
-    }
-    .step-num {
-      width: 42px; height: 42px; flex-shrink: 0;
-      background: var(--green); border-radius: 11px;
-      display: flex; align-items: center; justify-content: center; font-size: 17px;
-    }
-    .step-content p:first-child {
-      font-size: 10px; font-weight: 700; letter-spacing:.1em;
-      text-transform: uppercase; color: var(--green); margin-bottom: 3px;
-    }
-    .step-content h3 { font-size: 14px; font-weight: 700; color: var(--green-dark); margin-bottom: 3px; }
-    .step-content p:last-child { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+    /* ══════════════════════════════════════
+       HOME
+    ══════════════════════════════════════ */
 
-    /* TESTIMONIALS */
-    .testimonials { display: flex; flex-direction: column; gap: 14px; padding: 0 20px 48px; }
-    .testimonial {
-      background: white; border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow);
+    .hero-banner {
+      background: linear-gradient(110deg, var(--green-dark) 0%, var(--green) 60%, #43A047 100%);
+      padding: 30px 20px 26px; position: relative; overflow: hidden;
     }
-    .testimonial-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-    .farmer-info { display: flex; align-items: center; gap: 10px; }
-    .farmer-avatar {
-      width: 42px; height: 42px; border-radius: 50%;
+    .hero-banner::after {
+      content: '';
+      position: absolute; right: -20px; top: -20px;
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(255,255,255,.07) 0%, transparent 70%);
+    }
+    .hero-content { position: relative; z-index: 1; }
+    .hero-tag {
+      display: inline-block;
+      background: var(--orange); color: white;
+      padding: 3px 12px; border-radius: 4px;
+      font-size: 11px; font-weight: 800; font-family:'Nunito',sans-serif;
+      text-transform: uppercase; letter-spacing: .06em; margin-bottom: 12px;
+    }
+    .hero-banner h1 {
+      font-size: clamp(24px, 7vw, 38px); font-weight: 900;
+      color: white; line-height: 1.2; margin-bottom: 10px;
+    }
+    .hero-banner h1 em { font-style: normal; color: #A5D6A7; }
+    .hero-banner > .hero-content > p {
+      font-size: 14px; color: rgba(255,255,255,.82);
+      line-height: 1.6; margin-bottom: 20px; max-width: 360px;
+    }
+    .hero-btns { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+    .btn-hero-white {
+      background: white; color: var(--green-dark);
+      padding: 11px 22px; border-radius: 6px;
+      font-size: 14px; font-weight: 800; border: none; cursor: pointer;
+      font-family:'Nunito',sans-serif; transition: all .2s;
+    }
+    .btn-hero-white:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,.2); }
+    .btn-hero-outline {
+      background: rgba(255,255,255,.12); color: white;
+      padding: 11px 22px; border-radius: 6px;
+      font-size: 14px; font-weight: 800;
+      border: 1.5px solid rgba(255,255,255,.4); cursor: pointer;
+      font-family:'Nunito',sans-serif;
+    }
+    .hero-trust {
+      display: flex; gap: 14px; flex-wrap: wrap;
+    }
+    .trust-item {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 12px; color: rgba(255,255,255,.75); font-weight: 600;
+    }
+
+    .stats-strip {
+      background: var(--white); border-bottom: 1px solid var(--grey-border);
+      display: grid; grid-template-columns: repeat(4,1fr);
+    }
+    .stat-item {
+      text-align: center; padding: 12px 6px;
+      border-right: 1px solid var(--grey-border);
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-num { font-size: 17px; font-weight: 900; color: var(--green-dark); font-family:'Nunito',sans-serif; }
+    .stat-lbl { font-size: 10px; color: var(--grey-text); font-weight: 700; text-transform: uppercase; }
+
+    .promo-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+      padding: 12px 16px;
+    }
+    .promo-card {
+      border-radius: 8px; padding: 14px 12px; position: relative;
+      overflow: hidden; cursor: pointer;
+    }
+    .promo-card h3 { font-size: 13px; font-weight: 900; margin-bottom: 4px; font-family:'Nunito',sans-serif; }
+    .promo-card p  { font-size: 11px; opacity: .85; margin-bottom: 10px; line-height: 1.4; }
+    .promo-card .bg-emoji { position: absolute; right: -4px; bottom: -4px; font-size: 46px; opacity: .2; }
+    .promo-btn {
+      font-size: 11px; font-weight: 800; font-family:'Nunito',sans-serif;
+      padding: 5px 12px; border-radius: 4px; cursor: pointer;
+      display: inline-block; border: none; text-decoration: none;
+    }
+    .promo-green  { background: var(--green-dark); color: white; }
+    .promo-green .promo-btn { background: white; color: var(--green-dark); }
+    .promo-orange { background: var(--orange); color: white; }
+    .promo-orange .promo-btn { background: white; color: var(--orange); }
+
+    .cats-scroll {
+      display: flex; gap: 10px; overflow-x: auto; padding: 12px 16px 14px;
+      scrollbar-width: none; background: white; border-bottom: 1px solid var(--grey-border);
+    }
+    .cats-scroll::-webkit-scrollbar { display: none; }
+    .cat-card {
+      flex-shrink: 0; text-align: center; cursor: pointer;
+      background: none; border: none; padding: 0;
+    }
+    .cat-icon-circle {
+      width: 62px; height: 62px; border-radius: 50%;
+      background: var(--green-pale);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; margin: 0 auto 5px;
+      border: 2px solid transparent; transition: all .2s;
+    }
+    .cat-card:hover .cat-icon-circle,
+    .cat-card.active .cat-icon-circle {
+      border-color: var(--green); background: #C8E6C9;
+    }
+    .cat-card span {
+      font-size: 11px; font-weight: 700; color: var(--text);
+      font-family:'Nunito',sans-serif; display: block;
+    }
+
+    /* DEAL CARD */
+    .deal-card {
+      background: white; border-radius: var(--radius);
+      border: 2px solid var(--orange-light); overflow: hidden; box-shadow: var(--shadow);
+    }
+    .deal-head {
+      background: var(--orange); padding: 10px 14px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .deal-head h3 { font-size: 15px; font-weight: 900; color: white; font-family:'Nunito',sans-serif; }
+    .deal-countdown { display: flex; gap: 5px; }
+    .deal-box {
+      background: rgba(255,255,255,.2); border-radius: 4px;
+      padding: 3px 7px; text-align: center;
+    }
+    .deal-box .n { font-size: 15px; font-weight: 900; color: white; line-height: 1; font-family:'Nunito',sans-serif; }
+    .deal-box .l { font-size: 8px; color: rgba(255,255,255,.8); }
+    .deal-body { padding: 16px; display: flex; gap: 14px; align-items: center; }
+    .deal-emoji { font-size: 68px; line-height: 1; }
+    .deal-info h4 { font-size: 18px; font-weight: 900; color: var(--dark); margin-bottom: 3px; font-family:'Nunito',sans-serif; }
+    .deal-county { font-size: 12px; color: var(--grey-text); margin-bottom: 8px; }
+    .deal-prices { display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+    .deal-now { font-size: 22px; font-weight: 900; color: var(--orange); font-family:'Nunito',sans-serif; }
+    .deal-was { font-size: 13px; color: var(--grey-text); text-decoration: line-through; }
+    .deal-pct {
+      background: var(--orange-pale); color: var(--orange);
+      font-size: 11px; font-weight: 800; font-family:'Nunito',sans-serif;
+      padding: 2px 8px; border-radius: 4px;
+    }
+    .deal-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    /* PRODUCT CARDS */
+    .products-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+    }
+    .prod-card {
+      background: white; border-radius: var(--radius);
+      border: 1px solid var(--grey-border); overflow: hidden;
+      box-shadow: var(--shadow-sm); cursor: pointer; transition: box-shadow .2s, transform .2s;
+    }
+    .prod-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+    .prod-img {
+      background: var(--green-pale); height: 118px; position: relative;
+      display: flex; align-items: center; justify-content: center; font-size: 50px;
+    }
+    .prod-discount {
+      position: absolute; top: 7px; left: 7px;
+      background: var(--orange); color: white;
+      font-size: 9px; font-weight: 800; font-family:'Nunito',sans-serif;
+      padding: 2px 6px; border-radius: 3px;
+    }
+    .prod-check {
+      position: absolute; top: 7px; right: 7px;
+      width: 20px; height: 20px; background: var(--green);
+      border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; color: white; font-size: 10px;
+    }
+    .prod-fav {
+      position: absolute; bottom: 7px; right: 7px;
+      width: 26px; height: 26px; background: white;
+      border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; font-size: 13px; box-shadow: var(--shadow-sm);
+      cursor: pointer; border: none;
+    }
+    .prod-body { padding: 10px 10px 12px; }
+    .prod-name {
+      font-size: 13px; font-weight: 700; color: var(--dark);
+      margin-bottom: 2px; line-height: 1.3; font-family:'Nunito',sans-serif;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .prod-meta { font-size: 11px; color: var(--grey-text); margin-bottom: 5px; }
+    .prod-rating { color: #FFA000; }
+    .prod-price-row { display: flex; align-items: baseline; gap: 5px; margin-bottom: 8px; }
+    .prod-price { font-size: 16px; font-weight: 900; color: var(--green-dark); font-family:'Nunito',sans-serif; }
+    .prod-unit { font-size: 10px; color: var(--grey-text); }
+    .prod-old { font-size: 11px; color: var(--grey-text); text-decoration: line-through; }
+    .prod-actions { display: flex; gap: 6px; }
+    .prod-add {
+      flex: 1; height: 32px; border-radius: 5px;
+      background: var(--green); color: white;
+      font-size: 12px; font-weight: 800; border: none; cursor: pointer;
+      font-family:'Nunito',sans-serif; transition: background .2s;
+      display: flex; align-items: center; justify-content: center; gap: 3px;
+    }
+    .prod-add:hover { background: var(--green-dark); }
+    .prod-add.added { background: #388E3C; }
+    .prod-wa {
+      width: 32px; height: 32px; border-radius: 5px;
+      background: #25D366; color: white; border: none; cursor: pointer;
+      font-size: 15px; display: flex; align-items: center; justify-content: center;
+    }
+
+    /* FARMER CARDS */
+    .farmer-row { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
+    .farmer-row::-webkit-scrollbar { display: none; }
+    .farmer-card {
+      flex-shrink: 0; width: 130px; background: white;
+      border-radius: var(--radius); border: 1px solid var(--grey-border);
+      padding: 14px 10px; text-align: center; box-shadow: var(--shadow-sm);
+      cursor: pointer; transition: box-shadow .2s;
+    }
+    .farmer-card:hover { box-shadow: var(--shadow); }
+    .farmer-av {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: var(--green-pale); margin: 0 auto 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; border: 2px solid var(--green-light);
+    }
+    .farmer-name { font-size: 12px; font-weight: 800; color: var(--dark); margin-bottom: 2px; font-family:'Nunito',sans-serif; }
+    .farmer-loc  { font-size: 10px; color: var(--grey-text); margin-bottom: 4px; }
+    .farmer-stars { font-size: 11px; color: #FFA000; }
+    .farmer-count { font-size: 10px; color: var(--green); font-weight: 700; margin-top: 2px; font-family:'Nunito',sans-serif; }
+
+    /* PRICES TABLE */
+    .prices-table { background: white; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--grey-border); }
+    .price-head {
+      display: grid; grid-template-columns: 1fr auto auto;
+      background: var(--green); padding: 8px 14px;
+      font-size: 11px; font-weight: 800; color: white;
+      text-transform: uppercase; letter-spacing: .05em; font-family:'Nunito',sans-serif;
+    }
+    .price-row-item {
+      display: grid; grid-template-columns: 1fr auto auto;
+      padding: 10px 14px; align-items: center;
+      border-bottom: 1px solid var(--grey-border);
+    }
+    .price-row-item:last-child { border-bottom: none; }
+    .price-row-item:nth-child(even) { background: var(--grey-bg); }
+    .price-crop { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; font-family:'Nunito',sans-serif; }
+    .price-val { font-size: 14px; font-weight: 900; color: var(--green-dark); font-family:'Nunito',sans-serif; text-align: right; }
+    .trend-up   { color: #2E7D32; font-size: 12px; text-align: right; }
+    .trend-down { color: #C62828; font-size: 12px; text-align: right; }
+
+    /* REVIEWS */
+    .review-list { display: flex; flex-direction: column; gap: 10px; }
+    .review-card {
+      background: white; border-radius: var(--radius);
+      border: 1px solid var(--grey-border); padding: 14px; box-shadow: var(--shadow-sm);
+    }
+    .review-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+    .review-av {
+      width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
       background: var(--green-pale); display: flex; align-items: center;
-      justify-content: center; font-size: 20px;
+      justify-content: center; font-size: 20px; border: 2px solid var(--green-light);
     }
-    .farmer-name { font-size: 13px; font-weight: 700; color: var(--green-dark); }
-    .farmer-role { font-size: 11px; color: var(--text-muted); }
-    .stars { color: var(--gold); font-size: 12px; }
-    .testimonial blockquote {
-      font-size: 13px; color: #4a6649; line-height: 1.7;
-      font-style: italic; border-left: 3px solid var(--green-pale); padding-left: 11px;
-    }
+    .review-name  { font-size: 13px; font-weight: 800; color: var(--dark); font-family:'Nunito',sans-serif; }
+    .review-role  { font-size: 11px; color: var(--grey-text); }
+    .review-stars { color: #FFA000; font-size: 12px; margin-bottom: 2px; }
+    .review-text  { font-size: 13px; color: #555; line-height: 1.65; font-style: italic; }
+    .review-tag   { margin-top: 8px; font-size: 11px; color: var(--green); font-weight: 700; }
 
     /* HOME CTA */
     .home-cta {
-      background: linear-gradient(135deg, var(--green-dark), var(--green));
-      padding: 48px 24px; text-align: center;
+      background: linear-gradient(110deg, var(--green-dark), var(--green-mid));
+      padding: 28px 20px; text-align: center;
     }
-    .home-cta h2 {
-      font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 800;
-      color: white; margin-bottom: 10px;
-    }
-    .home-cta p { font-size: 14px; color: rgba(255,255,255,.75); margin-bottom: 24px; line-height: 1.6; }
-    .cta-note { font-size: 11px; color: rgba(255,255,255,.45); margin-top: 10px; }
+    .home-cta h2 { font-size: 22px; font-weight: 900; color: white; margin-bottom: 8px; }
+    .home-cta p  { font-size: 13px; color: rgba(255,255,255,.75); margin-bottom: 18px; line-height: 1.6; }
+    .home-cta .mpesa { font-size: 11px; color: rgba(255,255,255,.45); margin-top: 10px; }
 
-    /* ═══════════════════════════════════════════
-       PAGE 2 — SHOP (E-COMMERCE)
-    ═══════════════════════════════════════════ */
-
+    /* ══════════════════════════════════════
+       SHOP
+    ══════════════════════════════════════ */
     .shop-hero {
-      background: linear-gradient(135deg, #1a3c2e 0%, #2D6A4F 100%);
-      padding: 36px 20px 28px; position: relative; overflow: hidden;
+      background: linear-gradient(110deg, var(--green-dark), var(--green));
+      padding: 22px 16px 18px;
     }
-    .shop-hero::after { content:'🛒'; position:absolute; right:16px; top:50%; transform:translateY(-50%); font-size:60px; opacity:.12; }
-    .shop-hero h1 {
-      font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 800;
-      color: white; margin-bottom: 6px;
-    }
-    .shop-hero p { font-size: 13px; color: rgba(255,255,255,.7); margin-bottom: 16px; }
+    .shop-hero h1 { font-size: 20px; font-weight: 900; color: white; margin-bottom: 4px; }
+    .shop-hero p  { font-size: 12px; color: rgba(255,255,255,.75); margin-bottom: 14px; }
     .shop-search {
-      display: flex; gap: 8px;
+      display: flex; height: 42px; border-radius: 6px; overflow: hidden;
     }
     .shop-search input {
-      flex: 1; height: 42px; padding: 0 14px; border-radius: 100px;
-      border: none; font-size: 13px; background: white;
-      outline: none; font-family: 'Inter', sans-serif;
+      flex: 1; padding: 0 14px; border: none; outline: none;
+      font-size: 13px; font-family:'Lato',sans-serif;
     }
     .shop-search button {
-      height: 42px; padding: 0 18px; border-radius: 100px;
-      background: var(--gold); color: var(--green-dark);
-      font-weight: 700; font-size: 13px; border: none; cursor: pointer;
+      background: var(--orange); color: white; border: none;
+      padding: 0 18px; font-size: 13px; font-weight: 800; cursor: pointer;
+      font-family:'Nunito',sans-serif;
     }
-
-    /* CATEGORIES */
-    .cat-scroll {
-      display: flex; gap: 8px; overflow-x: auto; padding: 16px 20px 4px;
-      scrollbar-width: none;
-    }
-    .cat-scroll::-webkit-scrollbar { display: none; }
-    .cat-pill {
-      display: flex; flex-direction: column; align-items: center; gap: 4px;
-      flex-shrink: 0; cursor: pointer;
-    }
-    .cat-icon {
-      width: 54px; height: 54px; border-radius: 14px;
-      background: white; border: 2px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 24px; transition: all .2s;
-    }
-    .cat-pill.active .cat-icon { border-color: var(--green); background: var(--green-pale); }
-    .cat-pill span { font-size: 10px; font-weight: 600; color: var(--text-muted); }
-    .cat-pill.active span { color: var(--green); }
-
-    /* PRODUCT GRID */
-    .shop-toolbar {
+    .flash-strip {
+      background: var(--orange); padding: 8px 16px;
       display: flex; align-items: center; justify-content: space-between;
-      padding: 12px 20px; border-bottom: 1px solid var(--border);
     }
-    .shop-toolbar span { font-size: 12px; color: var(--text-muted); }
-    .sort-select {
-      font-size: 12px; font-weight: 600; color: var(--green);
-      background: none; border: none; cursor: pointer;
-      font-family: 'Inter', sans-serif;
+    .flash-strip-txt { font-size: 13px; font-weight: 800; color: white; font-family:'Nunito',sans-serif; }
+    .flash-strip-txt span { font-size: 11px; font-weight: 400; opacity: .85; margin-left: 6px; }
+    .flash-timer { display: flex; gap: 4px; }
+    .flash-box {
+      background: rgba(255,255,255,.2); border-radius: 4px;
+      padding: 3px 7px; font-size: 13px; font-weight: 900;
+      color: white; font-family:'Nunito',sans-serif;
     }
-    .products-grid {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 14px; padding: 16px 20px;
-    }
-    .product-card {
-      background: white; border: 1px solid var(--border);
-      border-radius: 16px; overflow: hidden; box-shadow: var(--shadow);
-      cursor: pointer; transition: transform .2s;
-    }
-    .product-card:hover { transform: translateY(-3px); }
-    .product-img {
-      height: 110px; background: var(--green-pale);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 48px; position: relative;
-    }
-    .product-verified {
-      position: absolute; top: 8px; right: 8px;
-      background: #16a34a; color: white; border-radius: 50%;
-      width: 20px; height: 20px; display: flex; align-items: center;
-      justify-content: center; font-size: 10px; box-shadow: 0 2px 6px rgba(0,0,0,.2);
-    }
-    .product-badge {
-      position: absolute; top: 8px; left: 8px;
-      background: #e74c3c; color: white;
-      font-size: 9px; font-weight: 700;
-      padding: 2px 6px; border-radius: 100px;
-    }
-    .product-body { padding: 12px 12px 14px; }
-    .product-name { font-size: 14px; font-weight: 700; color: var(--green-dark); margin-bottom: 2px; }
-    .product-farmer { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
-    .product-footer { display: flex; align-items: center; justify-content: space-between; }
-    .product-price { font-size: 15px; font-weight: 800; color: var(--green); }
-    .product-price span { font-size: 10px; font-weight: 400; color: var(--text-muted); }
-    .product-rating { font-size: 11px; color: var(--gold); }
-    .add-btn {
-      width: 100%; margin-top: 10px; height: 34px;
-      background: var(--green); color: white; border: none;
-      border-radius: 100px; font-size: 12px; font-weight: 700;
-      cursor: pointer; transition: all .2s; font-family: 'Inter', sans-serif;
-    }
-    .add-btn:hover { background: var(--green-dark); }
-    .add-btn.added { background: #16a34a; }
-
-    /* DEALS BANNER */
-    .deals-banner {
-      margin: 8px 20px 4px; border-radius: 16px; overflow: hidden;
-      background: linear-gradient(90deg, #D4A373, #e9b98a);
-      padding: 16px 18px; display: flex; align-items: center; justify-content: space-between;
-    }
-    .deals-banner div h3 { font-size: 15px; font-weight: 800; color: var(--green-dark); }
-    .deals-banner div p  { font-size: 12px; color: var(--brown); margin-top: 2px; }
-    .deals-banner span   { font-size: 36px; }
-    .countdown {
-      display: flex; gap: 6px; margin-top: 8px;
-    }
-    .countdown-box {
-      background: var(--green-dark); color: white;
-      padding: 4px 8px; border-radius: 6px; text-align: center;
-    }
-    .countdown-box .num { font-size: 16px; font-weight: 800; line-height: 1; }
-    .countdown-box .lbl { font-size: 8px; opacity: .7; }
-
-    /* CART DRAWER */
-    .cart-overlay {
-      display: none; position: fixed; inset: 0; z-index: 300;
-      background: rgba(0,0,0,.45);
-    }
-    .cart-overlay.open { display: block; }
-    .cart-drawer {
-      position: fixed; right: 0; top: 0; bottom: 0; z-index: 301;
-      width: min(340px, 100vw);
-      background: white; box-shadow: -4px 0 40px rgba(0,0,0,.2);
-      transform: translateX(100%); transition: transform .3s ease;
-      display: flex; flex-direction: column;
-    }
-    .cart-drawer.open { transform: translateX(0); }
-    .cart-header {
+    .shop-bar {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 18px 20px; border-bottom: 1px solid var(--border);
+      padding: 10px 16px; background: white; border-bottom: 1px solid var(--grey-border);
     }
-    .cart-header h3 { font-size: 16px; font-weight: 700; color: var(--green-dark); }
-    .cart-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted); }
-    .cart-items { flex: 1; overflow-y: auto; padding: 16px 20px; }
-    .cart-item {
-      display: flex; gap: 12px; padding: 12px 0;
-      border-bottom: 1px solid var(--border);
+    .shop-bar span { font-size: 12px; color: var(--grey-text); }
+    .sort-sel {
+      font-size: 12px; font-weight: 700; color: var(--green);
+      background: none; border: none; cursor: pointer; font-family:'Nunito',sans-serif;
     }
-    .cart-item-img {
-      width: 54px; height: 54px; border-radius: 10px;
-      background: var(--green-pale); display: flex; align-items: center;
-      justify-content: center; font-size: 24px; flex-shrink: 0;
-    }
-    .cart-item-info { flex: 1; }
-    .cart-item-name { font-size: 13px; font-weight: 700; color: var(--green-dark); }
-    .cart-item-price { font-size: 12px; color: var(--green); font-weight: 700; margin: 2px 0; }
-    .qty-row { display: flex; align-items: center; gap: 8px; }
-    .qty-btn {
-      width: 24px; height: 24px; border-radius: 50%;
-      background: var(--green-pale); border: none; cursor: pointer;
-      font-size: 14px; font-weight: 700; color: var(--green);
-    }
-    .qty-num { font-size: 13px; font-weight: 700; min-width: 20px; text-align: center; }
-    .cart-remove { color: #e74c3c; background: none; border: none; cursor: pointer; font-size: 12px; }
-    .cart-empty {
-      text-align: center; padding: 40px 20px;
-      font-size: 14px; color: var(--text-muted);
-    }
-    .cart-empty span { display: block; font-size: 40px; margin-bottom: 12px; }
-    .cart-footer { padding: 16px 20px; border-top: 1px solid var(--border); }
-    .cart-total {
-      display: flex; justify-content: space-between; margin-bottom: 14px;
-    }
-    .cart-total span:first-child { font-size: 14px; color: var(--text-muted); }
-    .cart-total span:last-child { font-size: 16px; font-weight: 800; color: var(--green-dark); }
-    .checkout-btn {
-      width: 100%; height: 46px; background: var(--green); color: white;
-      border: none; border-radius: 100px; font-size: 15px; font-weight: 800;
-      cursor: pointer; font-family: 'Inter', sans-serif; transition: all .2s;
-    }
-    .checkout-btn:hover { background: var(--green-dark); }
 
-    /* ═══════════════════════════════════════════
-       PAGE 3 — BLOG
-    ═══════════════════════════════════════════ */
-
+    /* ══════════════════════════════════════
+       BLOG
+    ══════════════════════════════════════ */
     .blog-hero {
-      background: linear-gradient(135deg, #1a3c2e 0%, #2D6A4F 100%);
-      padding: 40px 20px 32px; text-align: center;
+      background: linear-gradient(110deg, var(--green-dark), var(--green));
+      padding: 26px 16px 22px;
     }
-    .blog-hero h1 {
-      font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 800;
-      color: white; margin-bottom: 8px;
-    }
-    .blog-hero p { font-size: 13px; color: rgba(255,255,255,.7); margin-bottom: 20px; }
-    .blog-search {
-      display: flex; max-width: 400px; margin: 0 auto;
-    }
-    .blog-search input {
-      flex: 1; height: 42px; padding: 0 16px;
-      border-radius: 100px 0 0 100px; border: none;
-      font-size: 13px; outline: none; font-family: 'Inter', sans-serif;
-    }
-    .blog-search button {
-      height: 42px; padding: 0 18px;
-      border-radius: 0 100px 100px 0; background: var(--gold);
-      color: var(--green-dark); font-weight: 700; font-size: 13px;
-      border: none; cursor: pointer;
-    }
+    .blog-hero h1 { font-size: 22px; font-weight: 900; color: white; margin-bottom: 4px; }
+    .blog-hero p  { font-size: 13px; color: rgba(255,255,255,.75); }
 
-    /* BLOG CATEGORIES */
-    .blog-cats {
-      display: flex; gap: 8px; overflow-x: auto; padding: 16px 20px 8px;
-      scrollbar-width: none;
+    .blog-tabs {
+      display: flex; gap: 6px; overflow-x: auto; padding: 12px 16px;
+      background: white; border-bottom: 1px solid var(--grey-border); scrollbar-width: none;
     }
-    .blog-cats::-webkit-scrollbar { display: none; }
-    .blog-cat {
-      flex-shrink: 0; padding: 6px 16px; border-radius: 100px;
-      font-size: 12px; font-weight: 600; cursor: pointer;
-      background: white; border: 1.5px solid var(--border); color: var(--text-muted);
-      transition: all .2s;
+    .blog-tabs::-webkit-scrollbar { display: none; }
+    .blog-tab {
+      flex-shrink: 0; padding: 5px 14px; border-radius: 20px;
+      font-size: 12px; font-weight: 700; cursor: pointer;
+      background: var(--grey-bg); border: 1.5px solid var(--grey-border);
+      color: var(--text); font-family:'Nunito',sans-serif; transition: all .2s;
     }
-    .blog-cat.active { background: var(--green); border-color: var(--green); color: white; }
+    .blog-tab.active { background: var(--green); border-color: var(--green); color: white; }
 
-    /* FEATURED ARTICLE */
-    .featured-article {
-      margin: 0 20px 20px;
-      background: white; border: 1px solid var(--border);
-      border-radius: 20px; overflow: hidden; box-shadow: var(--shadow);
-      cursor: pointer; transition: transform .2s;
+    .blog-featured {
+      background: white; border-radius: var(--radius);
+      border: 1px solid var(--grey-border); overflow: hidden;
+      box-shadow: var(--shadow); cursor: pointer; margin: 12px 16px;
+      transition: box-shadow .2s;
     }
-    .featured-article:hover { transform: translateY(-3px); }
-    .featured-img {
-      height: 180px; background: linear-gradient(135deg, #1a4731, #2D6A4F);
+    .blog-featured:hover { box-shadow: var(--shadow-lg); }
+    .blog-feat-img {
+      height: 155px;
+      background: linear-gradient(135deg, var(--green-dark), var(--green));
       display: flex; align-items: center; justify-content: center;
       font-size: 70px; position: relative;
     }
-    .featured-label {
-      position: absolute; top: 14px; left: 14px;
-      background: var(--gold); color: var(--green-dark);
-      padding: 4px 12px; border-radius: 100px;
-      font-size: 10px; font-weight: 800; text-transform: uppercase;
+    .feat-label {
+      position: absolute; top: 12px; left: 12px;
+      background: var(--orange); color: white;
+      font-size: 10px; font-weight: 800; font-family:'Nunito',sans-serif;
+      padding: 3px 10px; border-radius: 4px; text-transform: uppercase;
     }
-    .featured-body { padding: 18px; }
-    .article-meta { display: flex; gap: 12px; margin-bottom: 8px; }
-    .article-cat {
-      font-size: 10px; font-weight: 700; color: var(--green);
-      text-transform: uppercase; letter-spacing: .05em;
+    .blog-feat-body { padding: 16px; }
+    .blog-meta { display: flex; gap: 10px; margin-bottom: 6px; }
+    .blog-cat  { font-size: 11px; font-weight: 800; color: var(--green); font-family:'Nunito',sans-serif; text-transform: uppercase; }
+    .blog-date { font-size: 11px; color: var(--grey-text); }
+    .blog-feat-body h2 {
+      font-size: 17px; font-weight: 900; color: var(--dark);
+      margin-bottom: 7px; line-height: 1.35;
     }
-    .article-date { font-size: 10px; color: var(--text-muted); }
-    .featured-body h2 {
-      font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 800;
-      color: var(--green-dark); margin-bottom: 8px; line-height: 1.3;
-    }
-    .featured-body p { font-size: 13px; color: var(--text-muted); line-height: 1.65; margin-bottom: 14px; }
-    .read-more {
-      display: inline-flex; align-items: center; gap: 6px;
-      font-size: 13px; font-weight: 700; color: var(--green);
-      text-decoration: none; cursor: pointer;
-    }
+    .blog-feat-body p { font-size: 13px; color: #555; line-height: 1.6; margin-bottom: 12px; }
+    .read-more { font-size: 13px; font-weight: 800; color: var(--green); font-family:'Nunito',sans-serif; cursor: pointer; background: none; border: none; }
 
-    /* BLOG GRID */
-    .blog-grid {
-      display: flex; flex-direction: column; gap: 14px; padding: 0 20px 20px;
-    }
+    .blog-grid { display: flex; flex-direction: column; gap: 10px; padding: 0 16px 14px; }
     .blog-card {
-      background: white; border: 1px solid var(--border);
-      border-radius: var(--radius); overflow: hidden;
-      box-shadow: var(--shadow); cursor: pointer;
-      display: flex; gap: 0; transition: transform .2s;
+      background: white; border-radius: var(--radius);
+      border: 1px solid var(--grey-border); overflow: hidden;
+      box-shadow: var(--shadow-sm); cursor: pointer; display: flex; transition: box-shadow .2s;
     }
-    .blog-card:hover { transform: translateY(-2px); }
+    .blog-card:hover { box-shadow: var(--shadow); }
     .blog-card-img {
-      width: 90px; flex-shrink: 0;
-      background: linear-gradient(135deg, var(--green-pale), #b7e4c7);
-      display: flex; align-items: center; justify-content: center; font-size: 36px;
+      width: 85px; flex-shrink: 0; background: var(--green-pale);
+      display: flex; align-items: center; justify-content: center; font-size: 34px;
     }
-    .blog-card-body { padding: 14px; flex: 1; }
-    .blog-card-body .article-cat { margin-bottom: 4px; display: block; }
-    .blog-card-body h3 {
-      font-size: 14px; font-weight: 700; color: var(--green-dark);
-      margin-bottom: 5px; line-height: 1.35;
-    }
-    .blog-card-body p { font-size: 12px; color: var(--text-muted); line-height: 1.55; margin-bottom: 8px; }
-    .blog-card-footer { display: flex; align-items: center; justify-content: space-between; }
-    .blog-card-footer span { font-size: 10px; color: var(--text-muted); }
-    .blog-card-footer .read-time {
-      background: var(--green-pale); color: var(--green);
-      padding: 2px 8px; border-radius: 100px; font-weight: 700;
-    }
+    .blog-card-body { padding: 11px 11px 11px 10px; flex: 1; }
+    .blog-card-cat { font-size: 10px; font-weight: 800; color: var(--orange); font-family:'Nunito',sans-serif; text-transform: uppercase; margin-bottom: 4px; display: block; }
+    .blog-card-body h3 { font-size: 13px; font-weight: 700; color: var(--dark); margin-bottom: 3px; line-height: 1.35; }
+    .blog-card-body p  { font-size: 12px; color: #666; line-height: 1.5; margin-bottom: 6px; }
+    .blog-card-foot { display: flex; justify-content: space-between; align-items: center; }
+    .blog-card-foot .d { font-size: 10px; color: var(--grey-text); }
+    .read-tag { font-size: 10px; font-weight: 700; color: var(--green); font-family:'Nunito',sans-serif; background: var(--green-pale); padding: 2px 8px; border-radius: 20px; }
 
-    /* NEWSLETTER */
-    .newsletter {
-      background: linear-gradient(135deg, var(--green-dark), var(--green));
-      margin: 8px 20px 40px; border-radius: 20px; padding: 28px 20px; text-align: center;
+    .newsletter-box {
+      background: linear-gradient(110deg, var(--green-dark), var(--green));
+      margin: 8px 16px 28px; border-radius: 10px; padding: 22px 16px; text-align: center;
     }
-    .newsletter h3 {
-      font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 800;
-      color: white; margin-bottom: 8px;
-    }
-    .newsletter p { font-size: 13px; color: rgba(255,255,255,.75); margin-bottom: 18px; }
-    .newsletter-form { display: flex; flex-direction: column; gap: 10px; }
-    .newsletter-form input {
-      height: 44px; padding: 0 16px; border-radius: 100px;
-      border: none; font-size: 13px; text-align: center;
-      font-family: 'Inter', sans-serif; outline: none;
-    }
-    .newsletter-form button {
-      height: 44px; border-radius: 100px; background: var(--gold);
-      color: var(--green-dark); font-weight: 800; font-size: 14px;
-      border: none; cursor: pointer;
-    }
+    .newsletter-box h3 { font-size: 18px; font-weight: 900; color: white; margin-bottom: 6px; }
+    .newsletter-box p  { font-size: 13px; color: rgba(255,255,255,.75); margin-bottom: 16px; }
+    .news-form { display: flex; border-radius: 6px; overflow: hidden; }
+    .news-form input { flex: 1; height: 42px; padding: 0 14px; border: none; outline: none; font-size: 13px; font-family:'Lato',sans-serif; }
+    .news-form button { background: var(--orange); color: white; border: none; padding: 0 16px; font-size: 13px; font-weight: 800; cursor: pointer; font-family:'Nunito',sans-serif; }
 
-    /* ── FOOTER ──────────────────────────────── */
+    /* ══════════════════════════════════════
+       FOOTER
+    ══════════════════════════════════════ */
     footer {
-      background: var(--green-dark); padding: 30px 20px 40px;
+      background: var(--green-dark); color: rgba(255,255,255,.8);
+      padding: 26px 16px 36px;
     }
-    .footer-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
-    .footer-logo { display: flex; align-items: center; gap: 8px; }
-    .footer-logo-icon {
-      width: 30px; height: 30px; background: rgba(255,255,255,.1);
-      border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px;
+    .footer-logo-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+    .footer-logo-icon { width: 30px; height: 30px; background: rgba(255,255,255,.1); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+    .footer-logo-name { font-size: 18px; font-weight: 900; color: white; font-family:'Nunito',sans-serif; }
+    .footer-tagline { font-size: 12px; color: rgba(255,255,255,.45); margin-bottom: 16px; }
+    .footer-trust { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    .footer-badge {
+      background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15);
+      border-radius: 6px; padding: 5px 10px;
+      font-size: 11px; color: rgba(255,255,255,.7); font-weight: 700; font-family:'Nunito',sans-serif;
     }
-    .footer-logo-text { font-size: 17px; font-weight: 800; color: white; }
-    .footer-tagline { font-size: 11px; color: rgba(255,255,255,.4); margin-top: 4px; }
-    .footer-links { display: flex; flex-wrap: wrap; gap: 12px; }
-    .footer-links a { font-size: 12px; color: rgba(255,255,255,.5); text-decoration: none; cursor: pointer; }
+    .footer-links {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 7px 16px; margin-bottom: 16px;
+    }
+    .footer-links a { font-size: 12px; color: rgba(255,255,255,.6); cursor: pointer; text-decoration: none; }
     .footer-links a:hover { color: white; }
-    .footer-divider { border: none; border-top: 1px solid rgba(255,255,255,.1); margin: 16px 0; }
-    .footer-bottom { display: flex; justify-content: space-between; align-items: center; flex-wrap: gap; }
+    .footer-hr { border: none; border-top: 1px solid rgba(255,255,255,.1); margin: 12px 0; }
+    .footer-bottom { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
     .footer-copy { font-size: 11px; color: rgba(255,255,255,.3); }
-    .footer-socials { display: flex; gap: 10px; }
-    .social-icon {
-      width: 30px; height: 30px; background: rgba(255,255,255,.1);
-      border-radius: 50%; display: flex; align-items: center;
-      justify-content: center; font-size: 14px; cursor: pointer;
-      text-decoration: none;
-    }
+    .footer-socials { display: flex; gap: 8px; }
+    .social-btn { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,.1); display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; border: none; }
 
-    /* ── APP LOADER ──────────────────────────── */
+    /* ══════════════════════════════════════
+       CART DRAWER
+    ══════════════════════════════════════ */
+    .cart-overlay { display: none; position: fixed; inset: 0; z-index: 300; background: rgba(0,0,0,.5); }
+    .cart-overlay.open { display: block; }
+    .cart-drawer {
+      position: fixed; right: 0; top: 0; bottom: 0; z-index: 301;
+      width: min(340px,100vw); background: white;
+      box-shadow: -4px 0 40px rgba(0,0,0,.2);
+      transform: translateX(100%); transition: transform .3s; display: flex; flex-direction: column;
+    }
+    .cart-drawer.open { transform: translateX(0); }
+    .cart-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 13px 16px; border-bottom: 2px solid var(--green); background: var(--green-pale);
+    }
+    .cart-head h3 { font-size: 16px; font-weight: 900; color: var(--green-dark); font-family:'Nunito',sans-serif; }
+    .cart-x { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--grey-text); }
+    .cart-body { flex: 1; overflow-y: auto; padding: 12px 16px; }
+    .cart-empty { text-align: center; padding: 36px 16px; }
+    .cart-empty span { font-size: 46px; display: block; margin-bottom: 10px; }
+    .cart-empty p { font-size: 14px; color: var(--grey-text); font-family:'Nunito',sans-serif; font-weight: 700; }
+    .cart-item {
+      display: flex; gap: 10px; padding: 10px 0;
+      border-bottom: 1px solid var(--grey-border);
+    }
+    .cart-item-img { width: 50px; height: 50px; border-radius: 6px; background: var(--green-pale); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+    .cart-item-info { flex: 1; }
+    .cart-item-name  { font-size: 13px; font-weight: 700; color: var(--dark); font-family:'Nunito',sans-serif; }
+    .cart-item-price { font-size: 13px; font-weight: 900; color: var(--green); margin: 2px 0; font-family:'Nunito',sans-serif; }
+    .qty-row { display: flex; align-items: center; gap: 6px; }
+    .qty-btn { width: 22px; height: 22px; border-radius: 4px; background: var(--green-pale); border: none; cursor: pointer; font-size: 14px; font-weight: 800; color: var(--green); }
+    .qty-val { font-size: 13px; font-weight: 700; min-width: 18px; text-align: center; }
+    .cart-rm { font-size: 11px; color: #C62828; background: none; border: none; cursor: pointer; margin-left: 4px; }
+    .cart-foot { padding: 14px 16px; border-top: 1px solid var(--grey-border); }
+    .cart-total-row { display: flex; justify-content: space-between; margin-bottom: 12px; }
+    .cart-total-row span:first-child { font-size: 13px; color: var(--grey-text); }
+    .cart-total-row span:last-child { font-size: 17px; font-weight: 900; color: var(--dark); font-family:'Nunito',sans-serif; }
+    .checkout-btn {
+      width: 100%; height: 44px; background: var(--orange); color: white;
+      border: none; border-radius: 6px; font-size: 15px; font-weight: 900;
+      cursor: pointer; font-family:'Nunito',sans-serif; transition: background .2s;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .checkout-btn:hover { background: var(--orange-mid); }
+    .checkout-note { text-align: center; font-size: 11px; color: var(--grey-text); margin-top: 8px; }
+
+    /* ══════════════════════════════════════
+       TOAST / LOADER
+    ══════════════════════════════════════ */
     @keyframes spin { to { transform: rotate(360deg); } }
     .app-loader {
       display: none; position: fixed; inset: 0; z-index: 9999;
-      background: var(--cream);
-      align-items: center; justify-content: center; flex-direction: column; gap: 16px;
+      background: white; align-items: center; justify-content: center; flex-direction: column; gap: 14px;
     }
     .app-loader.active { display: flex; }
-    .spinner {
-      width: 40px; height: 40px; border-radius: 50%;
-      border: 3px solid var(--green-pale); border-top-color: var(--green);
-      animation: spin .8s linear infinite;
-    }
-    .app-loader p { font-size: 14px; color: var(--text-muted); font-weight: 500; }
-    #root { display: none; }
-
-    /* ── TOAST ───────────────────────────────── */
+    .app-loader .spin { width: 36px; height: 36px; border-radius: 50%; border: 3px solid var(--green-pale); border-top-color: var(--green); animation: spin .7s linear infinite; }
+    .app-loader p { font-size: 13px; color: var(--grey-text); font-family:'Nunito',sans-serif; font-weight: 700; }
     .toast {
-      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
-      background: var(--green-dark); color: white;
-      padding: 12px 20px; border-radius: 100px;
-      font-size: 13px; font-weight: 600;
-      box-shadow: 0 8px 32px rgba(0,0,0,.2);
-      z-index: 9998; transition: transform .3s ease;
-      white-space: nowrap;
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(80px);
+      background: var(--dark); color: white; padding: 10px 18px; border-radius: 6px;
+      font-size: 13px; font-weight: 700; font-family:'Nunito',sans-serif;
+      box-shadow: var(--shadow-lg); z-index: 9998; transition: transform .3s; white-space: nowrap;
     }
     .toast.show { transform: translateX(-50%) translateY(0); }
+    #root { display: none; }
   </style>
 </head>
 <body>
 
-<!-- ── STICKY NAV ─────────────────────────────────── -->
+<!-- TOP BAR -->
+<div class="top-bar">
+  <span>📞 Helpline: 0800 720 600 &nbsp;·&nbsp; Mon–Sat 7am–7pm</span>
+  <div class="top-bar-right">
+    <span>📦 Free delivery over KSh 2,000</span>
+    <span>💳 M-Pesa accepted</span>
+  </div>
+</div>
+
+<!-- NAV -->
 <nav>
-  <div class="nav-logo" onclick="showPage('home')">
-    <div class="nav-logo-icon">🌱</div>
-    <span class="nav-logo-text">SeedPro</span>
+  <div class="nav-top">
+    <div class="nav-logo" onclick="showPage('home')">
+      <div class="nav-logo-icon">🌱</div>
+      <div>
+        <div class="logo-text">SeedPro</div>
+        <div class="logo-tagline">Fresh From the Farm</div>
+      </div>
+    </div>
+    <div class="nav-search">
+      <input type="text" placeholder="Search tomatoes, maize, avocado…" id="globalSearch" onkeydown="if(event.key==='Enter')handleSearch()" />
+      <button onclick="handleSearch()">🔍</button>
+    </div>
+    <div class="nav-actions">
+      <button class="icon-btn" onclick="enterApp()">
+        <span class="icon">❤️</span>
+        <span class="label">Saved</span>
+      </button>
+      <button class="icon-btn" onclick="toggleCart()">
+        <span class="icon">🛒</span>
+        <span class="label">Cart</span>
+        <span class="badge" id="cartBadge">0</span>
+      </button>
+      <button class="btn-orange" onclick="enterApp()">Sign In</button>
+    </div>
   </div>
-
-  <div class="nav-links">
-    <button class="nav-link active" id="nav-home" onclick="showPage('home')">Home</button>
-    <button class="nav-link" id="nav-shop" onclick="showPage('shop')">Shop</button>
-    <button class="nav-link" id="nav-blog" onclick="showPage('blog')">Blog</button>
-  </div>
-
-  <div class="nav-actions">
-    <button class="cart-btn" onclick="toggleCart()" title="Cart">
-      🛒
-      <span class="cart-count" id="cartCount">0</span>
-    </button>
-    <button class="btn-ghost" onclick="enterApp()">Sign In</button>
-    <button class="btn-primary" onclick="enterApp()">Get Started</button>
+  <div class="nav-bottom">
+    <button class="nav-link active" id="nl-home" onclick="showPage('home')">🏠 Home</button>
+    <button class="nav-link" id="nl-shop" onclick="showPage('shop')">🛒 Shop</button>
+    <button class="nav-link" id="nl-blog" onclick="showPage('blog')">📰 Blog</button>
+    <button class="nav-link" onclick="enterApp()">📈 Live Prices</button>
+    <button class="nav-link" onclick="enterApp()">📸 Scan Plant</button>
+    <button class="nav-link" onclick="enterApp()">🌾 Sell Produce</button>
+    <button class="nav-link hot" onclick="showPage('shop')">🔥 Today's Deals</button>
   </div>
 </nav>
 
-<!-- ═══════════════════════════════════════════════════
-     PAGE: HOME
-═══════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════
+     HOME PAGE
+═══════════════════════════════════════ -->
 <div id="page-home" class="page active">
 
-  <!-- HERO -->
-  <div class="hero">
-    <div class="hero-floats">
-      <span class="float-item">🍅</span>
-      <span class="float-item">🌽</span>
-      <span class="float-item">☕</span>
-      <span class="float-item">🥑</span>
-      <span class="float-item">🧅</span>
-    </div>
-    <div class="hero-badge">🇰🇪 &nbsp;Kenya's #1 Farmer Platform</div>
-    <h1>Sell Your Harvest<br/><span>Directly to Buyers</span></h1>
-    <p>No middlemen. Better prices. Scan your crops to prove quality and connect with thousands of buyers across Kenya.</p>
-    <div class="hero-ctas">
-      <button class="btn-hero btn-hero-white" onclick="enterApp()">🌱 &nbsp;Start Selling Free</button>
-      <button class="btn-hero btn-hero-outline" onclick="showPage('shop')">Browse the Shop →</button>
-    </div>
-  </div>
-
-  <!-- STATS -->
-  <div class="stats">
-    <div class="stat"><div class="stat-value">2,400+</div><div class="stat-label">Farmers</div></div>
-    <div class="stat"><div class="stat-value">8,100+</div><div class="stat-label">Listings</div></div>
-    <div class="stat"><div class="stat-value">12</div><div class="stat-label">Counties</div></div>
-    <div class="stat"><div class="stat-value">KSh 50M+</div><div class="stat-label">Traded</div></div>
-  </div>
-
-  <!-- FEATURES -->
-  <div style="padding:40px 20px 24px">
-    <p class="section-label">Why Farmers Choose SeedPro</p>
-    <h2 class="section-title">Everything You Need to Sell More</h2>
-    <p class="section-sub">From scanning your plants to tracking live market prices — we handle it all.</p>
-  </div>
-  <div class="features-grid" style="padding-top:0">
-    <div class="feature-card">
-      <div class="feature-icon">📸</div>
-      <h3>Scan &amp; Verify Your Crop</h3>
-      <p>AI identifies your crop from a photo and adds a trusted <strong>Verified Badge</strong> — buyers order 3× more from verified listings.</p>
-      <span class="feature-tag">AI-Powered</span>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">🛒</div>
-      <h3>Post &amp; Sell in 60 Seconds</h3>
-      <p>Create a listing with crop, quantity, location and price. Buyers across Kenya find you directly — zero commission.</p>
-      <span class="feature-tag">Zero Commission</span>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">📈</div>
-      <h3>Live Market Prices</h3>
-      <p>Track real-time prices across 12 Kenyan counties. Know exactly when to sell for maximum profit.</p>
-      <span class="feature-tag">Real-Time Data</span>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">🤖</div>
-      <h3>Expert Crop Advisory</h3>
-      <p>Personalised planting calendars, spray schedules and AI disease diagnosis — available 24/7.</p>
-      <span class="feature-tag">Always Available</span>
-    </div>
-  </div>
-
-  <!-- SCAN SPOTLIGHT -->
-  <div class="scan-section">
-    <div class="scan-badge-pill">📷 &nbsp;New Feature</div>
-    <h2>Plant Scan Verification</h2>
-    <p>Buyers are 3× more likely to order from a verified listing. One photo is all it takes.</p>
-    <div class="scan-steps">
-      <div class="scan-step"><div class="scan-step-icon">📱</div><span>Open your camera and point at the crop</span></div>
-      <div class="scan-step"><div class="scan-step-icon">🔍</div><span>AI scans and identifies the plant species</span></div>
-      <div class="scan-step"><div class="scan-step-icon">✅</div><span>Your listing gets a green Verified badge</span></div>
-    </div>
-    <button class="btn-scan" onclick="enterApp()">📸 &nbsp;Try Plant Scan</button>
-  </div>
-
-  <!-- HOW IT WORKS -->
-  <div style="padding:36px 20px 16px">
-    <p class="section-label">Simple Process</p>
-    <h2 class="section-title">Sell in 3 Steps</h2>
-  </div>
-  <div class="steps">
-    <div class="step">
-      <div class="step-num">📸</div>
-      <div class="step-content">
-        <p>Step 1</p><h3>Scan Your Crop</h3>
-        <p>Take a photo of your plant. AI verifies it's real and adds a trusted badge to your listing.</p>
+  <div class="hero-banner">
+    <div class="hero-content">
+      <div class="hero-tag">🇰🇪 Kenya's #1 Farm Marketplace</div>
+      <h1>Fresh Produce,<br/><em>Direct From Farmers</em></h1>
+      <p>Order verified farm produce straight from Kenyan farmers. No middlemen. Pay with M-Pesa. Delivered to your door.</p>
+      <div class="hero-btns">
+        <button class="btn-hero-white" onclick="showPage('shop')">🛒 Shop Now</button>
+        <button class="btn-hero-outline" onclick="enterApp()">Post Your Produce</button>
       </div>
-    </div>
-    <div class="step">
-      <div class="step-num">📋</div>
-      <div class="step-content">
-        <p>Step 2</p><h3>Post Your Listing</h3>
-        <p>Add crop type, quantity, location and price. Goes live instantly in under 60 seconds.</p>
-      </div>
-    </div>
-    <div class="step">
-      <div class="step-num">💰</div>
-      <div class="step-content">
-        <p>Step 3</p><h3>Get Paid Directly</h3>
-        <p>Buyers contact you directly. You keep 100% of the sale — no broker, no commission.</p>
+      <div class="hero-trust">
+        <div class="trust-item"><span>✅</span> Verified Farmers</div>
+        <div class="trust-item"><span>💳</span> M-Pesa Pay</div>
+        <div class="trust-item"><span>🚚</span> Next-Day Delivery</div>
+        <div class="trust-item"><span>📦</span> Free over KSh 2K</div>
       </div>
     </div>
   </div>
 
-  <!-- TESTIMONIALS -->
-  <div style="padding:36px 20px 16px">
-    <p class="section-label">Farmer Stories</p>
-    <h2 class="section-title">What Our Farmers Say</h2>
-  </div>
-  <div class="testimonials">
-    <div class="testimonial">
-      <div class="testimonial-header">
-        <div class="farmer-info">
-          <div class="farmer-avatar">👩🏾‍🌾</div>
-          <div><div class="farmer-name">Grace Achieng</div><div class="farmer-role">Maize Farmer, Kisumu</div></div>
-        </div>
-        <div class="stars">★★★★★</div>
-      </div>
-      <blockquote>"I sold 3 tonnes in one week after posting my verified listing. My income doubled this season."</blockquote>
-    </div>
-    <div class="testimonial">
-      <div class="testimonial-header">
-        <div class="farmer-info">
-          <div class="farmer-avatar">👨🏿‍🌾</div>
-          <div><div class="farmer-name">James Mwangi</div><div class="farmer-role">Tomato Farmer, Nakuru</div></div>
-        </div>
-        <div class="stars">★★★★★</div>
-      </div>
-      <blockquote>"Before SeedPro I drove 2 hours to find buyers. Now buyers come to me. I've tripled my income in 3 months."</blockquote>
-    </div>
-    <div class="testimonial">
-      <div class="testimonial-header">
-        <div class="farmer-info">
-          <div class="farmer-avatar">👩🏽‍🌾</div>
-          <div><div class="farmer-name">Mary Wanjiku</div><div class="farmer-role">Coffee Farmer, Thika</div></div>
-        </div>
-        <div class="stars">★★★★★</div>
-      </div>
-      <blockquote>"The price tracker told me when to hold and when to sell. I got 22% more than my neighbours this season."</blockquote>
-    </div>
+  <div class="stats-strip">
+    <div class="stat-item"><div class="stat-num">2,400+</div><div class="stat-lbl">Farmers</div></div>
+    <div class="stat-item"><div class="stat-num">8,100+</div><div class="stat-lbl">Listings</div></div>
+    <div class="stat-item"><div class="stat-num">12</div><div class="stat-lbl">Counties</div></div>
+    <div class="stat-item"><div class="stat-num">50M+</div><div class="stat-lbl">KSh Traded</div></div>
   </div>
 
-  <!-- HOME CTA -->
-  <div class="home-cta">
-    <h2>Start Earning More Today</h2>
-    <p>Join 2,400 Kenyan farmers selling directly to buyers — no middlemen, no commission.</p>
-    <button class="btn-hero btn-hero-white" onclick="enterApp()">🌱 &nbsp;Join Free — It's Simple</button>
-    <p class="cta-note">No registration fee · No commission · Works on any phone</p>
-  </div>
-
-  <footer>
-    <div class="footer-top">
-      <div>
-        <div class="footer-logo">
-          <div class="footer-logo-icon">🌱</div>
-          <span class="footer-logo-text">SeedPro</span>
-        </div>
-        <div class="footer-tagline">Kenya's Farmer Marketplace</div>
-      </div>
-      <div class="footer-socials">
-        <a class="social-icon" title="WhatsApp">💬</a>
-        <a class="social-icon" title="Facebook">📘</a>
-        <a class="social-icon" title="Twitter">🐦</a>
-      </div>
+  <!-- PROMO BANNERS -->
+  <div class="promo-row">
+    <div class="promo-card promo-green" onclick="enterApp()">
+      <h3>Scan &amp; Verify</h3>
+      <p>AI verifies your crop — get a trusted badge &amp; sell faster</p>
+      <button class="promo-btn">Try Free</button>
+      <span class="bg-emoji">📸</span>
     </div>
-    <div class="footer-links">
-      <a onclick="showPage('home')">Home</a>
-      <a onclick="showPage('shop')">Shop</a>
-      <a onclick="showPage('blog')">Blog</a>
-      <a onclick="enterApp()">Marketplace</a>
-      <a onclick="enterApp()">Plant Scan</a>
-      <a onclick="enterApp()">Prices</a>
+    <div class="promo-card promo-orange" onclick="showPage('shop')">
+      <h3>Flash Sale</h3>
+      <p>Up to 30% off fresh produce today only</p>
+      <button class="promo-btn">Shop Now</button>
+      <span class="bg-emoji">🔥</span>
     </div>
-    <hr class="footer-divider"/>
-    <div class="footer-copy">© 2026 SeedPro Kenya · Empowering Farmers</div>
-  </footer>
-</div><!-- /home -->
-
-<!-- ═══════════════════════════════════════════════════
-     PAGE: SHOP (E-COMMERCE)
-═══════════════════════════════════════════════════ -->
-<div id="page-shop" class="page">
-
-  <!-- SHOP HERO -->
-  <div class="shop-hero">
-    <h1>Fresh Farm Shop</h1>
-    <p>Order verified produce directly from Kenyan farmers</p>
-    <div class="shop-search">
-      <input type="text" placeholder="Search tomatoes, maize, coffee…" id="shopSearch" oninput="filterProducts()"/>
-      <button onclick="filterProducts()">Search</button>
-    </div>
-  </div>
-
-  <!-- DEALS BANNER -->
-  <div class="deals-banner">
-    <div>
-      <h3>🔥 Flash Harvest Deal</h3>
-      <p>Up to 30% off verified produce</p>
-      <div class="countdown">
-        <div class="countdown-box"><div class="num" id="hrs">04</div><div class="lbl">HRS</div></div>
-        <div class="countdown-box"><div class="num" id="min">27</div><div class="lbl">MIN</div></div>
-        <div class="countdown-box"><div class="num" id="sec">00</div><div class="lbl">SEC</div></div>
-      </div>
-    </div>
-    <span>🌽</span>
   </div>
 
   <!-- CATEGORIES -->
-  <div class="cat-scroll" id="catScroll">
-    <div class="cat-pill active" onclick="filterCat('all',this)">
-      <div class="cat-icon">🌿</div><span>All</span>
+  <div style="background:white;padding:12px 16px 2px;border-bottom:none">
+    <div class="section-head" style="margin-bottom:8px">
+      <div class="section-title">Shop by Category</div>
+      <button class="see-all" onclick="showPage('shop')">See All →</button>
     </div>
-    <div class="cat-pill" onclick="filterCat('vegetables',this)">
-      <div class="cat-icon">🍅</div><span>Veggies</span>
-    </div>
-    <div class="cat-pill" onclick="filterCat('grains',this)">
-      <div class="cat-icon">🌽</div><span>Grains</span>
-    </div>
-    <div class="cat-pill" onclick="filterCat('cash',this)">
-      <div class="cat-icon">☕</div><span>Cash Crops</span>
-    </div>
-    <div class="cat-pill" onclick="filterCat('fruits',this)">
-      <div class="cat-icon">🥑</div><span>Fruits</span>
-    </div>
-    <div class="cat-pill" onclick="filterCat('legumes',this)">
-      <div class="cat-icon">🫘</div><span>Legumes</span>
+  </div>
+  <div class="cats-scroll">
+    <button class="cat-card" onclick="showPage('shop')">
+      <div class="cat-icon-circle">🌿</div><span>All Fresh</span>
+    </button>
+    <button class="cat-card" onclick="shopCat('vegetables')">
+      <div class="cat-icon-circle">🍅</div><span>Vegetables</span>
+    </button>
+    <button class="cat-card" onclick="shopCat('grains')">
+      <div class="cat-icon-circle">🌽</div><span>Grains</span>
+    </button>
+    <button class="cat-card" onclick="shopCat('fruits')">
+      <div class="cat-icon-circle">🥑</div><span>Fruits</span>
+    </button>
+    <button class="cat-card" onclick="shopCat('cash')">
+      <div class="cat-icon-circle">☕</div><span>Cash Crops</span>
+    </button>
+    <button class="cat-card" onclick="shopCat('legumes')">
+      <div class="cat-icon-circle">🫘</div><span>Legumes</span>
+    </button>
+    <button class="cat-card" onclick="shopCat('vegetables')">
+      <div class="cat-icon-circle">🥬</div><span>Leafy Greens</span>
+    </button>
+    <button class="cat-card" onclick="shopCat('grains')">
+      <div class="cat-icon-circle">🍚</div><span>Rice</span>
+    </button>
+  </div>
+
+  <!-- DEAL OF THE DAY -->
+  <div class="section">
+    <div class="deal-card">
+      <div class="deal-head">
+        <h3>🔥 Deal of the Day</h3>
+        <div class="deal-countdown">
+          <div class="deal-box"><div class="n" id="dh">04</div><div class="l">HRS</div></div>
+          <div class="deal-box"><div class="n" id="dm">27</div><div class="l">MIN</div></div>
+          <div class="deal-box"><div class="n" id="ds">00</div><div class="l">SEC</div></div>
+        </div>
+      </div>
+      <div class="deal-body">
+        <div class="deal-emoji">🍅</div>
+        <div class="deal-info">
+          <h4>Premium Tomatoes</h4>
+          <div class="deal-county">📍 Kirinyaga · James Mwangi Farm</div>
+          <div class="deal-prices">
+            <div class="deal-now">KSh 65<span style="font-size:12px;font-weight:400;color:var(--grey-text)">/kg</span></div>
+            <div class="deal-was">KSh 95</div>
+            <div class="deal-pct">-32%</div>
+          </div>
+          <div class="deal-btns">
+            <button class="btn-primary" onclick="quickAdd(1)" style="font-size:13px;padding:9px 16px">🛒 Add to Cart</button>
+            <button class="btn-whatsapp" onclick="openWA('Tomatoes')">💬 WhatsApp</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- TOOLBAR -->
-  <div class="shop-toolbar">
-    <span id="productCount">12 products found</span>
-    <select class="sort-select" onchange="sortProducts(this.value)">
-      <option value="default">Sort: Featured</option>
-      <option value="price-asc">Price: Low to High</option>
-      <option value="price-desc">Price: High to Low</option>
+  <!-- FRESH TODAY -->
+  <div class="section" style="padding-top:0">
+    <div class="section-head">
+      <div class="section-title">Fresh Today</div>
+      <button class="see-all" onclick="showPage('shop')">View All →</button>
+    </div>
+    <div class="products-grid" id="homeGrid"></div>
+  </div>
+
+  <!-- VERIFIED FARMERS -->
+  <div class="section" style="background:white;padding:20px 16px">
+    <div class="section-head">
+      <div class="section-title">Verified Farmers</div>
+      <button class="see-all" onclick="enterApp()">All Farmers →</button>
+    </div>
+    <div class="farmer-row">
+      <div class="farmer-card" onclick="enterApp()">
+        <div class="farmer-av">👩🏾‍🌾</div>
+        <div class="farmer-name">Grace Achieng</div>
+        <div class="farmer-loc">📍 Kisumu</div>
+        <div class="farmer-stars">★★★★★ 4.9</div>
+        <div class="farmer-count">28 Listings</div>
+      </div>
+      <div class="farmer-card" onclick="enterApp()">
+        <div class="farmer-av">👨🏿‍🌾</div>
+        <div class="farmer-name">James Mwangi</div>
+        <div class="farmer-loc">📍 Nakuru</div>
+        <div class="farmer-stars">★★★★★ 4.8</div>
+        <div class="farmer-count">45 Listings</div>
+      </div>
+      <div class="farmer-card" onclick="enterApp()">
+        <div class="farmer-av">👩🏽‍🌾</div>
+        <div class="farmer-name">Mary Wanjiku</div>
+        <div class="farmer-loc">📍 Thika</div>
+        <div class="farmer-stars">★★★★★ 5.0</div>
+        <div class="farmer-count">19 Listings</div>
+      </div>
+      <div class="farmer-card" onclick="enterApp()">
+        <div class="farmer-av">👨🏾‍🌾</div>
+        <div class="farmer-name">Peter Njoroge</div>
+        <div class="farmer-loc">📍 Muranga</div>
+        <div class="farmer-stars">★★★★☆ 4.6</div>
+        <div class="farmer-count">33 Listings</div>
+      </div>
+      <div class="farmer-card" onclick="enterApp()">
+        <div class="farmer-av">👩🏿‍🌾</div>
+        <div class="farmer-name">Aisha Omar</div>
+        <div class="farmer-loc">📍 Naivasha</div>
+        <div class="farmer-stars">★★★★★ 4.7</div>
+        <div class="farmer-count">22 Listings</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIVE PRICES -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">Live Market Prices</div>
+      <button class="see-all" onclick="enterApp()">Full Chart →</button>
+    </div>
+    <div class="prices-table">
+      <div class="price-head"><span>Crop</span><span>KSh/kg</span><span>Trend</span></div>
+      <div class="price-row-item"><div class="price-crop">🍅 Tomato</div><div class="price-val">95</div><div class="trend-up">▲ 12%</div></div>
+      <div class="price-row-item"><div class="price-crop">🌽 Maize</div><div class="price-val">42</div><div class="trend-down">▼ 3%</div></div>
+      <div class="price-row-item"><div class="price-crop">🥑 Avocado</div><div class="price-val">85</div><div class="trend-up">▲ 8%</div></div>
+      <div class="price-row-item"><div class="price-crop">☕ Coffee AA</div><div class="price-val">320</div><div class="trend-up">▲ 5%</div></div>
+      <div class="price-row-item"><div class="price-crop">🧅 Onion</div><div class="price-val">110</div><div class="trend-up">▲ 15%</div></div>
+      <div class="price-row-item"><div class="price-crop">🍚 Pishori Rice</div><div class="price-val">185</div><div class="trend-down">▼ 2%</div></div>
+    </div>
+  </div>
+
+  <!-- REVIEWS -->
+  <div class="section" style="padding-top:0">
+    <div class="section-head"><div class="section-title">What Farmers Say</div></div>
+    <div class="review-list">
+      <div class="review-card">
+        <div class="review-top">
+          <div class="review-av">👩🏾‍🌾</div>
+          <div>
+            <div class="review-stars">★★★★★</div>
+            <div class="review-name">Grace Achieng</div>
+            <div class="review-role">Maize Farmer · Kisumu</div>
+          </div>
+        </div>
+        <div class="review-text">"I sold 3 tonnes in one week after posting my verified listing. My income doubled this season. SeedPro is the best thing to happen to small farmers in Kenya."</div>
+        <div class="review-tag">✅ Verified Purchase · Maize 2,000 kg</div>
+      </div>
+      <div class="review-card">
+        <div class="review-top">
+          <div class="review-av">👨🏿‍🌾</div>
+          <div>
+            <div class="review-stars">★★★★★</div>
+            <div class="review-name">James Mwangi</div>
+            <div class="review-role">Tomato Farmer · Nakuru</div>
+          </div>
+        </div>
+        <div class="review-text">"Before SeedPro I drove 2 hours to Wakulima to find buyers. Now buyers find me. I tripled my income in 3 months. The WhatsApp button alone saved me."</div>
+        <div class="review-tag">✅ Verified Purchase · Tomatoes 500 kg</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="home-cta">
+    <h2>Start Selling Your Harvest Today</h2>
+    <p>Join 2,400 Kenyan farmers selling directly to buyers — zero commission, M-Pesa payments, verified badges.</p>
+    <button class="btn-orange" onclick="enterApp()" style="padding:13px 28px;font-size:15px">🌱 Register Free — Takes 60 Seconds</button>
+    <div class="mpesa">💳 M-Pesa · Airtel Money · Bank Transfer · Cash on Delivery</div>
+  </div>
+
+  <footer>
+    <div class="footer-logo-row"><div class="footer-logo-icon">🌱</div><div class="footer-logo-name">SeedPro</div></div>
+    <div class="footer-tagline">Kenya's Fresh Farm Marketplace · Empowering Farmers Since 2024</div>
+    <div class="footer-trust">
+      <div class="footer-badge">✅ Verified Farmers</div>
+      <div class="footer-badge">💳 M-Pesa</div>
+      <div class="footer-badge">🚚 Fast Delivery</div>
+      <div class="footer-badge">🔒 Secure Payments</div>
+    </div>
+    <div class="footer-links">
+      <a onclick="showPage('home')">🏠 Home</a>
+      <a onclick="showPage('shop')">🛒 Shop</a>
+      <a onclick="showPage('blog')">📰 Blog</a>
+      <a onclick="enterApp()">📈 Live Prices</a>
+      <a onclick="enterApp()">📸 Scan Plant</a>
+      <a onclick="enterApp()">🌾 Post Listing</a>
+      <a onclick="enterApp()">About Us</a>
+      <a onclick="enterApp()">Contact</a>
+    </div>
+    <hr class="footer-hr"/>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2026 SeedPro Kenya · All Rights Reserved</div>
+      <div class="footer-socials">
+        <button class="social-btn">💬</button>
+        <button class="social-btn">📘</button>
+        <button class="social-btn">🐦</button>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SHOP PAGE
+═══════════════════════════════════════ -->
+<div id="page-shop" class="page">
+
+  <div class="shop-hero">
+    <h1>🛒 Fresh Farm Shop</h1>
+    <p>Order directly from verified Kenyan farmers · M-Pesa accepted</p>
+    <div class="shop-search">
+      <input type="text" placeholder="Search fresh produce…" id="shopSearch" oninput="filterProds()" />
+      <button onclick="filterProds()">Search</button>
+    </div>
+  </div>
+
+  <div class="flash-strip">
+    <div class="flash-strip-txt">🔥 Flash Deal <span>Up to 30% off verified produce</span></div>
+    <div class="flash-timer">
+      <div class="flash-box" id="fh">04</div>
+      <span style="color:white;font-weight:900;align-self:center">:</span>
+      <div class="flash-box" id="fm">27</div>
+      <span style="color:white;font-weight:900;align-self:center">:</span>
+      <div class="flash-box" id="fs">00</div>
+    </div>
+  </div>
+
+  <div class="cats-scroll" style="border-bottom:1px solid var(--grey-border)">
+    <button class="cat-card active" id="sc-all" onclick="setCat('all',this)">
+      <div class="cat-icon-circle">🌿</div><span>All</span>
+    </button>
+    <button class="cat-card" id="sc-vegetables" onclick="setCat('vegetables',this)">
+      <div class="cat-icon-circle">🍅</div><span>Vegetables</span>
+    </button>
+    <button class="cat-card" id="sc-grains" onclick="setCat('grains',this)">
+      <div class="cat-icon-circle">🌽</div><span>Grains</span>
+    </button>
+    <button class="cat-card" id="sc-fruits" onclick="setCat('fruits',this)">
+      <div class="cat-icon-circle">🥑</div><span>Fruits</span>
+    </button>
+    <button class="cat-card" id="sc-cash" onclick="setCat('cash',this)">
+      <div class="cat-icon-circle">☕</div><span>Cash Crops</span>
+    </button>
+    <button class="cat-card" id="sc-legumes" onclick="setCat('legumes',this)">
+      <div class="cat-icon-circle">🫘</div><span>Legumes</span>
+    </button>
+  </div>
+
+  <div class="shop-bar">
+    <span id="prodCount">12 products</span>
+    <select class="sort-sel" onchange="sortProds(this.value)">
+      <option value="default">Featured</option>
+      <option value="price-asc">Price: Low → High</option>
+      <option value="price-desc">Price: High → Low</option>
       <option value="rating">Top Rated</option>
     </select>
   </div>
 
-  <!-- PRODUCTS -->
-  <div class="products-grid" id="productsGrid"></div>
+  <div style="padding:12px 16px">
+    <div class="products-grid" id="shopGrid"></div>
+  </div>
 
-  <div style="text-align:center;padding:8px 20px 32px">
-    <button class="btn-primary" style="padding:12px 28px;font-size:14px" onclick="enterApp()">
-      View All Listings in App →
-    </button>
+  <div style="text-align:center;padding:8px 16px 28px">
+    <button class="btn-primary" onclick="enterApp()">View All Listings in App →</button>
   </div>
 
   <footer>
-    <div class="footer-top">
-      <div>
-        <div class="footer-logo">
-          <div class="footer-logo-icon">🌱</div>
-          <span class="footer-logo-text">SeedPro</span>
-        </div>
-        <div class="footer-tagline">Kenya's Farmer Marketplace</div>
-      </div>
-    </div>
+    <div class="footer-logo-row"><div class="footer-logo-icon">🌱</div><div class="footer-logo-name">SeedPro</div></div>
+    <div class="footer-tagline">Kenya's Fresh Farm Marketplace</div>
     <div class="footer-links">
       <a onclick="showPage('home')">Home</a>
       <a onclick="showPage('shop')">Shop</a>
       <a onclick="showPage('blog')">Blog</a>
       <a onclick="enterApp()">Full App</a>
     </div>
-    <hr class="footer-divider"/>
-    <div class="footer-copy">© 2026 SeedPro Kenya</div>
+    <hr class="footer-hr"/><div class="footer-copy">© 2026 SeedPro Kenya</div>
   </footer>
-</div><!-- /shop -->
+</div>
 
-<!-- ═══════════════════════════════════════════════════
-     PAGE: BLOG
-═══════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════
+     BLOG PAGE
+═══════════════════════════════════════ -->
 <div id="page-blog" class="page">
 
-  <!-- BLOG HERO -->
   <div class="blog-hero">
-    <h1>SeedPro Farming Blog</h1>
-    <p>Expert tips, market insights and success stories from Kenyan farmers</p>
-    <div class="blog-search">
-      <input type="text" placeholder="Search articles…" />
-      <button>Search</button>
-    </div>
+    <h1>📰 SeedPro Farming Blog</h1>
+    <p>Market insights, crop tips and success stories from Kenyan farmers</p>
   </div>
 
-  <!-- CATEGORIES -->
-  <div class="blog-cats">
-    <button class="blog-cat active" onclick="activateBlogCat(this)">All Articles</button>
-    <button class="blog-cat" onclick="activateBlogCat(this)">Market Prices</button>
-    <button class="blog-cat" onclick="activateBlogCat(this)">Crop Tips</button>
-    <button class="blog-cat" onclick="activateBlogCat(this)">Disease &amp; Pests</button>
-    <button class="blog-cat" onclick="activateBlogCat(this)">Success Stories</button>
-    <button class="blog-cat" onclick="activateBlogCat(this)">Weather &amp; Seasons</button>
+  <div class="blog-tabs">
+    <button class="blog-tab active" onclick="setBlogTab(this)">All Articles</button>
+    <button class="blog-tab" onclick="setBlogTab(this)">Market Prices</button>
+    <button class="blog-tab" onclick="setBlogTab(this)">Crop Tips</button>
+    <button class="blog-tab" onclick="setBlogTab(this)">Disease &amp; Pests</button>
+    <button class="blog-tab" onclick="setBlogTab(this)">Success Stories</button>
+    <button class="blog-tab" onclick="setBlogTab(this)">Weather</button>
   </div>
 
-  <!-- FEATURED ARTICLE -->
-  <div class="featured-article" onclick="openArticle('tomato-prices')">
-    <div class="featured-img">
+  <div class="blog-featured" onclick="openBlog()">
+    <div class="blog-feat-img">
       🍅
-      <div class="featured-label">⭐ Featured</div>
+      <div class="feat-label">⭐ Featured</div>
     </div>
-    <div class="featured-body">
-      <div class="article-meta">
-        <span class="article-cat">Market Prices</span>
-        <span class="article-date">June 24, 2026</span>
+    <div class="blog-feat-body">
+      <div class="blog-meta">
+        <span class="blog-cat">Market Prices</span>
+        <span class="blog-date">June 24, 2026</span>
       </div>
-      <h2>Tomato Prices Hit a 3-Year High — Here's Why and How to Cash In</h2>
-      <p>Nairobi wholesale prices jumped 34% in June due to dry spells in Kirinyaga. We break down what's driving the surge and the best time to sell your harvest for maximum returns.</p>
-      <span class="read-more">Read Full Article →</span>
+      <h2>Tomato Prices Hit a 3-Year High — Here's How to Cash In</h2>
+      <p>Nairobi wholesale prices jumped 34% in June due to dry spells in Kirinyaga. We break down what's driving the surge and the best time to sell your harvest for maximum returns this season.</p>
+      <button class="read-more">Read Full Article →</button>
     </div>
   </div>
 
-  <!-- BLOG GRID -->
-  <div style="padding:0 20px 12px">
-    <p class="section-label">Latest Articles</p>
-  </div>
+  <div style="padding:4px 16px 10px"><div class="section-title">Latest Articles</div></div>
   <div class="blog-grid">
-
-    <div class="blog-card" onclick="openArticle('scan-verified')">
+    <div class="blog-card" onclick="openBlog()">
       <div class="blog-card-img">📸</div>
       <div class="blog-card-body">
-        <span class="article-cat">Tip</span>
+        <span class="blog-card-cat">Farmer Tips</span>
         <h3>How the Plant Scan Verified Badge Doubled One Farmer's Sales</h3>
-        <p>James Mwangi from Nakuru shares how getting his tomato listing verified tripled his buyer enquiries in one week.</p>
-        <div class="blog-card-footer">
-          <span>June 20, 2026</span>
-          <span class="read-time">4 min</span>
-        </div>
+        <p>James Mwangi from Nakuru shares how a verified listing tripled his buyer enquiries in one week.</p>
+        <div class="blog-card-foot"><span class="d">June 20, 2026</span><span class="read-tag">4 min</span></div>
       </div>
     </div>
-
-    <div class="blog-card" onclick="openArticle('maize-season')">
+    <div class="blog-card" onclick="openBlog()">
       <div class="blog-card-img">🌽</div>
       <div class="blog-card-body">
-        <span class="article-cat">Crop Tips</span>
-        <h3>The Long Rains Maize Planting Calendar for Western Kenya 2026</h3>
-        <p>Optimal planting dates, variety selection and fertiliser timing for Kisumu, Kakamega and Bungoma counties.</p>
-        <div class="blog-card-footer">
-          <span>June 18, 2026</span>
-          <span class="read-time">6 min</span>
-        </div>
+        <span class="blog-card-cat">Crop Tips</span>
+        <h3>Long Rains Maize Planting Calendar for Western Kenya 2026</h3>
+        <p>Optimal planting dates, variety selection and fertiliser timing for Kisumu and Kakamega.</p>
+        <div class="blog-card-foot"><span class="d">June 18, 2026</span><span class="read-tag">6 min</span></div>
       </div>
     </div>
-
-    <div class="blog-card" onclick="openArticle('avocado-export')">
+    <div class="blog-card" onclick="openBlog()">
       <div class="blog-card-img">🥑</div>
       <div class="blog-card-body">
-        <span class="article-cat">Market</span>
+        <span class="blog-card-cat">Market</span>
         <h3>Avocado Export Prices: How Kenyan Farmers Can Access European Markets</h3>
-        <p>A step-by-step guide to GlobalGAP certification, export logistics and pricing your Hass avocados for EU buyers.</p>
-        <div class="blog-card-footer">
-          <span>June 15, 2026</span>
-          <span class="read-time">8 min</span>
-        </div>
+        <p>Step-by-step guide to GlobalGAP certification and pricing your Hass avocados for EU buyers.</p>
+        <div class="blog-card-foot"><span class="d">June 15, 2026</span><span class="read-tag">8 min</span></div>
       </div>
     </div>
-
-    <div class="blog-card" onclick="openArticle('late-blight')">
+    <div class="blog-card" onclick="openBlog()">
       <div class="blog-card-img">🥔</div>
       <div class="blog-card-body">
-        <span class="article-cat">Disease &amp; Pests</span>
-        <h3>Identifying and Controlling Late Blight on Potatoes in the Kenya Highlands</h3>
-        <p>With wetter seasons ahead, potato blight is surging in Nyandarua and Meru. Here's how to spot it early and save your crop.</p>
-        <div class="blog-card-footer">
-          <span>June 12, 2026</span>
-          <span class="read-time">5 min</span>
-        </div>
+        <span class="blog-card-cat">Disease &amp; Pests</span>
+        <h3>Identifying and Controlling Late Blight on Potatoes in the Highlands</h3>
+        <p>With wetter seasons ahead, potato blight is surging in Nyandarua and Meru. Spot it early.</p>
+        <div class="blog-card-foot"><span class="d">June 12, 2026</span><span class="read-tag">5 min</span></div>
       </div>
     </div>
-
-    <div class="blog-card" onclick="openArticle('coffee-story')">
+    <div class="blog-card" onclick="openBlog()">
       <div class="blog-card-img">☕</div>
       <div class="blog-card-body">
-        <span class="article-cat">Success Story</span>
-        <h3>From 2 Acres to 20: How Mary Wanjiku Built a Coffee Empire Using SeedPro</h3>
-        <p>Mary started with 200 kg of AA coffee and a phone. Two years later she supplies three Nairobi roasters directly — no middlemen.</p>
-        <div class="blog-card-footer">
-          <span>June 10, 2026</span>
-          <span class="read-time">7 min</span>
-        </div>
+        <span class="blog-card-cat">Success Story</span>
+        <h3>From 2 Acres to 20: How Mary Wanjiku Built a Coffee Empire on SeedPro</h3>
+        <p>Mary started with 200 kg of AA coffee and a phone. Today she supplies three Nairobi roasters.</p>
+        <div class="blog-card-foot"><span class="d">June 10, 2026</span><span class="read-tag">7 min</span></div>
       </div>
     </div>
-
-    <div class="blog-card" onclick="openArticle('irrigation')">
-      <div class="blog-card-img">💧</div>
-      <div class="blog-card-body">
-        <span class="article-cat">Crop Tips</span>
-        <h3>Low-Cost Drip Irrigation: A Practical Guide for Small-Scale Kenyan Farmers</h3>
-        <p>How to set up a drip system for under KSh 15,000 using locally available materials — and cut your water bill by 60%.</p>
-        <div class="blog-card-footer">
-          <span>June 8, 2026</span>
-          <span class="read-time">6 min</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="blog-card" onclick="openArticle('weather-alert')">
+    <div class="blog-card" onclick="openBlog()">
       <div class="blog-card-img">🌦️</div>
       <div class="blog-card-body">
-        <span class="article-cat">Weather &amp; Seasons</span>
-        <h3>El Niño 2026 Advisory: What Kenyan Farmers Must Do Now to Protect Their Crops</h3>
-        <p>The Kenya Met Department warns of above-normal rainfall in July. Here's your county-by-county action plan.</p>
-        <div class="blog-card-footer">
-          <span>June 5, 2026</span>
-          <span class="read-time">5 min</span>
-        </div>
+        <span class="blog-card-cat">Weather</span>
+        <h3>El Niño 2026 Advisory: What Kenyan Farmers Must Do Now</h3>
+        <p>Kenya Met warns of above-normal July rainfall. Your county-by-county crop protection plan.</p>
+        <div class="blog-card-foot"><span class="d">June 5, 2026</span><span class="read-tag">5 min</span></div>
       </div>
     </div>
-
-    <div class="blog-card" onclick="openArticle('onion-market')">
+    <div class="blog-card" onclick="openBlog()">
+      <div class="blog-card-img">💧</div>
+      <div class="blog-card-body">
+        <span class="blog-card-cat">Crop Tips</span>
+        <h3>Low-Cost Drip Irrigation Guide for Small-Scale Kenyan Farmers</h3>
+        <p>Set up a drip system for under KSh 15,000 and cut your water bill by 60%.</p>
+        <div class="blog-card-foot"><span class="d">June 8, 2026</span><span class="read-tag">6 min</span></div>
+      </div>
+    </div>
+    <div class="blog-card" onclick="openBlog()">
       <div class="blog-card-img">🧅</div>
       <div class="blog-card-body">
-        <span class="article-cat">Market Prices</span>
-        <h3>Onion Prices Up 15% — Naivasha Farmers Who Listed Early Are Winning Big</h3>
-        <p>Demand from Tanzania is pushing Kenyan onion prices to season highs. We show you how to price and time your listing.</p>
-        <div class="blog-card-footer">
-          <span>June 3, 2026</span>
-          <span class="read-time">3 min</span>
-        </div>
+        <span class="blog-card-cat">Market Prices</span>
+        <h3>Onion Prices Up 15% — Naivasha Farmers Who Listed Early Are Winning</h3>
+        <p>Demand from Tanzania is pushing Kenyan onion prices to season highs. How to time your listing.</p>
+        <div class="blog-card-foot"><span class="d">June 3, 2026</span><span class="read-tag">3 min</span></div>
       </div>
     </div>
-
   </div>
 
-  <!-- NEWSLETTER -->
-  <div class="newsletter">
-    <h3>Get Weekly Market Alerts</h3>
-    <p>Price updates, crop advisories and farming tips delivered to your phone every Monday morning.</p>
-    <div class="newsletter-form">
-      <input type="tel" placeholder="Enter your phone number" />
-      <button onclick="subscribeNewsletter()">Subscribe Free →</button>
+  <div class="newsletter-box">
+    <h3>📲 Get Weekly Market Alerts</h3>
+    <p>Price updates, crop advisories and farming tips every Monday — straight to your phone.</p>
+    <div class="news-form">
+      <input type="tel" placeholder="Your phone e.g. 0712 345 678" />
+      <button onclick="showToast('✅ Subscribed! Weekly alerts on the way')">Subscribe →</button>
     </div>
   </div>
 
   <footer>
-    <div class="footer-top">
-      <div>
-        <div class="footer-logo">
-          <div class="footer-logo-icon">🌱</div>
-          <span class="footer-logo-text">SeedPro</span>
-        </div>
-        <div class="footer-tagline">Kenya's Farmer Marketplace</div>
-      </div>
-      <div class="footer-socials">
-        <a class="social-icon">💬</a>
-        <a class="social-icon">📘</a>
-        <a class="social-icon">🐦</a>
-      </div>
-    </div>
+    <div class="footer-logo-row"><div class="footer-logo-icon">🌱</div><div class="footer-logo-name">SeedPro</div></div>
+    <div class="footer-tagline">Kenya's Fresh Farm Marketplace</div>
     <div class="footer-links">
       <a onclick="showPage('home')">Home</a>
       <a onclick="showPage('shop')">Shop</a>
       <a onclick="showPage('blog')">Blog</a>
       <a onclick="enterApp()">Full App</a>
+      <a onclick="enterApp()">Contact</a>
+      <a onclick="enterApp()">About</a>
     </div>
-    <hr class="footer-divider"/>
-    <div class="footer-copy">© 2026 SeedPro Kenya · Empowering Farmers</div>
+    <hr class="footer-hr"/><div class="footer-copy">© 2026 SeedPro Kenya</div>
   </footer>
-</div><!-- /blog -->
+</div>
 
 <!-- CART DRAWER -->
 <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
 <div class="cart-drawer" id="cartDrawer">
-  <div class="cart-header">
-    <h3>🛒 Your Cart</h3>
-    <button class="cart-close" onclick="toggleCart()">✕</button>
+  <div class="cart-head">
+    <h3>🛒 My Cart</h3>
+    <button class="cart-x" onclick="toggleCart()">✕</button>
   </div>
-  <div class="cart-items" id="cartItems">
-    <div class="cart-empty"><span>🌿</span>Your cart is empty<br/><small style="margin-top:6px;display:block;color:#aaa">Add some fresh produce to get started</small></div>
+  <div class="cart-body" id="cartBody">
+    <div class="cart-empty"><span>🌿</span><p>Your cart is empty</p></div>
   </div>
-  <div class="cart-footer">
-    <div class="cart-total">
-      <span>Total</span>
-      <span id="cartTotal">KSh 0</span>
-    </div>
-    <button class="checkout-btn" onclick="checkout()">Proceed to Checkout →</button>
+  <div class="cart-foot">
+    <div class="cart-total-row"><span>Order Total</span><span id="cartTotal">KSh 0</span></div>
+    <button class="checkout-btn" onclick="checkout()">💳 Pay with M-Pesa</button>
+    <div class="checkout-note">🔒 Secure · M-Pesa · Airtel Money · Card</div>
   </div>
 </div>
 
-<!-- APP LOADER -->
+<!-- LOADER -->
 <div class="app-loader" id="appLoader">
-  <div class="spinner"></div>
+  <div class="spin"></div>
   <p>Loading SeedPro App…</p>
 </div>
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<!-- REACT APP -->
+<!-- REACT SPA -->
 <div id="root"></div>
 
 <script>
-/* ─── PAGE NAV ─────────────────────────── */
-function showPage(id) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-  document.getElementById('page-' + id).classList.add('active');
-  document.getElementById('nav-' + id).classList.add('active');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-  if (id === 'shop') renderProducts();
-}
-
-/* ─── ENTER APP ────────────────────────── */
-function enterApp() {
-  document.getElementById('appLoader').classList.add('active');
-  setTimeout(function() {
-    document.getElementById('landing') && (document.getElementById('landing').style.display = 'none');
-    document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-    document.getElementById('root').style.display = 'block';
-    document.getElementById('appLoader').classList.remove('active');
-  }, 600);
-}
-
-/* ─── TOAST ────────────────────────────── */
-function showToast(msg) {
-  var t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(function() { t.classList.remove('show'); }, 2500);
-}
-
-/* ─── COUNTDOWN ────────────────────────── */
-(function() {
-  var end = Date.now() + 4 * 3600000 + 27 * 60000;
-  function tick() {
-    var diff = Math.max(0, end - Date.now());
-    var h = Math.floor(diff / 3600000);
-    var m = Math.floor((diff % 3600000) / 60000);
-    var s = Math.floor((diff % 60000) / 1000);
-    var hEl = document.getElementById('hrs');
-    var mEl = document.getElementById('min');
-    var sEl = document.getElementById('sec');
-    if (hEl) hEl.textContent = String(h).padStart(2,'0');
-    if (mEl) mEl.textContent = String(m).padStart(2,'0');
-    if (sEl) sEl.textContent = String(s).padStart(2,'0');
-  }
-  tick();
-  setInterval(tick, 1000);
-})();
-
-/* ─── PRODUCTS DATA ────────────────────── */
+/* ── DATA ── */
 var PRODUCTS = [
-  { id:1,  name:'Tomato',        emoji:'🍅', cat:'vegetables', price:95,  unit:'kg',  farmer:'James M.',   county:'Nakuru',  rating:4.9, qty:500,  verified:true,  badge:'HOT' },
-  { id:2,  name:'Maize',         emoji:'🌽', cat:'grains',     price:42,  unit:'kg',  farmer:'Grace A.',   county:'Kisumu',  rating:4.7, qty:2000, verified:true,  badge:null  },
-  { id:3,  name:'Coffee AA',     emoji:'☕', cat:'cash',       price:320, unit:'kg',  farmer:'Mary W.',    county:'Thika',   rating:5.0, qty:200,  verified:true,  badge:'PREMIUM' },
-  { id:4,  name:'Avocado Hass',  emoji:'🥑', cat:'fruits',     price:85,  unit:'kg',  farmer:'Peter N.',   county:'Muranga', rating:4.8, qty:300,  verified:true,  badge:null  },
-  { id:5,  name:'Onion',         emoji:'🧅', cat:'vegetables', price:110, unit:'kg',  farmer:'Aisha O.',   county:'Naivasha',rating:4.6, qty:800,  verified:false, badge:'HOT' },
-  { id:6,  name:'Beans',         emoji:'🫘', cat:'legumes',    price:135, unit:'kg',  farmer:'Simon K.',   county:'Meru',    rating:4.5, qty:400,  verified:true,  badge:null  },
-  { id:7,  name:'Cabbage',       emoji:'🥬', cat:'vegetables', price:35,  unit:'kg',  farmer:'Faith M.',   county:'Kiambu',  rating:4.4, qty:600,  verified:false, badge:null  },
-  { id:8,  name:'Sweet Potato',  emoji:'🍠', cat:'vegetables', price:55,  unit:'kg',  farmer:'David O.',   county:'Kakamega',rating:4.7, qty:1000, verified:true,  badge:null  },
-  { id:9,  name:'Banana',        emoji:'🍌', cat:'fruits',     price:48,  unit:'bunch',farmer:'Ruth A.',   county:'Kisii',   rating:4.8, qty:500,  verified:true,  badge:null  },
-  { id:10, name:'Rice Pishori',  emoji:'🍚', cat:'grains',     price:185, unit:'kg',  farmer:'Hassan M.',  county:'Mwea',    rating:4.9, qty:300,  verified:true,  badge:'PREMIUM' },
-  { id:11, name:'Tea KTDA',      emoji:'🍵', cat:'cash',       price:280, unit:'kg',  farmer:'CTC Factory',county:'Kericho', rating:4.6, qty:500,  verified:true,  badge:null  },
-  { id:12, name:'French Beans',  emoji:'🫛', cat:'vegetables', price:145, unit:'kg',  farmer:'Esther K.',  county:'Meru',    rating:4.8, qty:200,  verified:true,  badge:'EXPORT' },
+  {id:1,  name:'Tomatoes',      emoji:'🍅', cat:'vegetables', price:95,  old:120, unit:'kg',    farmer:'James M.', county:'Nakuru',   rating:4.9, ok:true,  disc:'-21%'},
+  {id:2,  name:'Maize',         emoji:'🌽', cat:'grains',     price:42,  old:null,unit:'kg',    farmer:'Grace A.', county:'Kisumu',   rating:4.7, ok:true,  disc:null },
+  {id:3,  name:'Coffee AA',     emoji:'☕', cat:'cash',       price:320, old:null,unit:'kg',    farmer:'Mary W.',  county:'Thika',    rating:5.0, ok:true,  disc:null },
+  {id:4,  name:'Avocado Hass',  emoji:'🥑', cat:'fruits',     price:85,  old:110, unit:'kg',    farmer:'Peter N.', county:'Muranga',  rating:4.8, ok:true,  disc:'-23%'},
+  {id:5,  name:'Onions',        emoji:'🧅', cat:'vegetables', price:110, old:null,unit:'kg',    farmer:'Aisha O.', county:'Naivasha', rating:4.6, ok:false, disc:null },
+  {id:6,  name:'Beans',         emoji:'🫘', cat:'legumes',    price:135, old:null,unit:'kg',    farmer:'Simon K.', county:'Meru',     rating:4.5, ok:true,  disc:null },
+  {id:7,  name:'Sukuma Wiki',   emoji:'🥬', cat:'vegetables', price:35,  old:null,unit:'bunch', farmer:'Faith M.', county:'Kiambu',   rating:4.4, ok:false, disc:null },
+  {id:8,  name:'Sweet Potato',  emoji:'🍠', cat:'vegetables', price:55,  old:null,unit:'kg',    farmer:'David O.', county:'Kakamega', rating:4.7, ok:true,  disc:null },
+  {id:9,  name:'Bananas',       emoji:'🍌', cat:'fruits',     price:48,  old:null,unit:'bunch', farmer:'Ruth A.',  county:'Kisii',    rating:4.8, ok:true,  disc:null },
+  {id:10, name:'Pishori Rice',  emoji:'🍚', cat:'grains',     price:185, old:220, unit:'kg',    farmer:'Hassan M.',county:'Mwea',     rating:4.9, ok:true,  disc:'-16%'},
+  {id:11, name:'Tea KTDA',      emoji:'🍵', cat:'cash',       price:280, old:null,unit:'kg',    farmer:'CTC Farm', county:'Kericho',  rating:4.6, ok:true,  disc:null },
+  {id:12, name:'French Beans',  emoji:'🫛', cat:'vegetables', price:145, old:null,unit:'kg',    farmer:'Esther K.',county:'Meru',     rating:4.8, ok:true,  disc:null },
 ];
 
-var cart = [];
-var activeCat = 'all';
-var searchQ = '';
+var cart = [], activeCat = 'all', searchQ = '';
 
-function renderProducts() {
-  var filtered = PRODUCTS.filter(function(p) {
-    var catMatch = activeCat === 'all' || p.cat === activeCat;
-    var qMatch = !searchQ || p.name.toLowerCase().includes(searchQ.toLowerCase()) || p.county.toLowerCase().includes(searchQ.toLowerCase());
-    return catMatch && qMatch;
-  });
-  document.getElementById('productCount').textContent = filtered.length + ' products found';
-  var html = filtered.map(function(p) {
-    var inCart = cart.find(function(c) { return c.id === p.id; });
-    return '<div class="product-card" onclick="handleProductClick(' + p.id + ')">' +
-      '<div class="product-img">' + p.emoji +
-        (p.verified ? '<div class="product-verified">✓</div>' : '') +
-        (p.badge ? '<div class="product-badge">' + p.badge + '</div>' : '') +
+function cardHTML(p) {
+  var inCart = cart.find(function(c){return c.id===p.id;});
+  return '<div class="prod-card">' +
+    '<div class="prod-img">' + p.emoji +
+      (p.disc ? '<div class="prod-discount">' + p.disc + '</div>' : '') +
+      (p.ok   ? '<div class="prod-check">✓</div>' : '') +
+      '<button class="prod-fav" onclick="event.stopPropagation();showToast(\'❤️ Saved!\')">♡</button>' +
+    '</div>' +
+    '<div class="prod-body">' +
+      '<div class="prod-name">' + p.name + '</div>' +
+      '<div class="prod-meta">📍 ' + p.county + ' · <span class="prod-rating">★ ' + p.rating + '</span></div>' +
+      '<div class="prod-price-row">' +
+        '<div class="prod-price">KSh ' + p.price + '</div>' +
+        '<div class="prod-unit">/' + p.unit + '</div>' +
+        (p.old ? '<div class="prod-old">KSh ' + p.old + '</div>' : '') +
       '</div>' +
-      '<div class="product-body">' +
-        '<div class="product-name">' + p.name + '</div>' +
-        '<div class="product-farmer">📍 ' + p.county + ' · ' + p.farmer + '</div>' +
-        '<div class="product-footer">' +
-          '<div class="product-price">KSh ' + p.price + '<span>/' + p.unit + '</span></div>' +
-          '<div class="product-rating">★ ' + p.rating + '</div>' +
-        '</div>' +
-        '<button class="add-btn' + (inCart ? ' added' : '') + '" onclick="addToCart(event,' + p.id + ')">' +
-          (inCart ? '✓ Added' : '+ Add to Cart') +
+      '<div class="prod-actions">' +
+        '<button class="prod-add' + (inCart ? ' added' : '') + '" onclick="addToCart(event,' + p.id + ')">' +
+          (inCart ? '✓ Added' : '+ Cart') +
         '</button>' +
+        '<button class="prod-wa" onclick="event.stopPropagation();openWA(\'' + p.name + '\')">💬</button>' +
       '</div>' +
-    '</div>';
-  }).join('');
-  document.getElementById('productsGrid').innerHTML = html || '<p style="padding:20px;color:var(--text-muted);text-align:center;grid-column:span 2">No products found</p>';
+    '</div>' +
+  '</div>';
 }
 
-function handleProductClick(id) { /* future: product detail page */ }
+function filtered() {
+  return PRODUCTS.filter(function(p){
+    return (activeCat==='all'||p.cat===activeCat) &&
+           (!searchQ||p.name.toLowerCase().includes(searchQ.toLowerCase())||p.county.toLowerCase().includes(searchQ.toLowerCase()));
+  });
+}
+
+function renderHomeGrid() {
+  var el = document.getElementById('homeGrid'); if (!el) return;
+  el.innerHTML = PRODUCTS.slice(0,6).map(cardHTML).join('');
+}
+
+function renderShopGrid() {
+  var f = filtered(), el = document.getElementById('shopGrid'); if (!el) return;
+  el.innerHTML = f.length ? f.map(cardHTML).join('') :
+    '<p style="grid-column:span 2;text-align:center;padding:24px;color:var(--grey-text)">No products found</p>';
+  var c = document.getElementById('prodCount');
+  if (c) c.textContent = f.length + ' product' + (f.length!==1?'s':'');
+}
 
 function addToCart(e, id) {
   e.stopPropagation();
-  var p = PRODUCTS.find(function(x) { return x.id === id; });
-  var existing = cart.find(function(c) { return c.id === id; });
-  if (existing) {
-    existing.qty++;
-  } else {
-    cart.push({ id: p.id, name: p.name, emoji: p.emoji, price: p.price, unit: p.unit, qty: 1 });
-  }
-  updateCartUI();
-  renderProducts();
+  var p = PRODUCTS.find(function(x){return x.id===id;});
+  var ex = cart.find(function(c){return c.id===id;});
+  if (ex) ex.qty++; else cart.push({id:p.id,name:p.name,emoji:p.emoji,price:p.price,unit:p.unit,qty:1});
+  updateCart(); renderHomeGrid(); renderShopGrid();
   showToast('✓ ' + p.name + ' added to cart');
 }
 
-function updateCartUI() {
-  var total = cart.reduce(function(s, c) { return s + c.price * c.qty; }, 0);
-  var count = cart.reduce(function(s, c) { return s + c.qty; }, 0);
-  document.getElementById('cartCount').textContent = count;
-  document.getElementById('cartTotal').textContent = 'KSh ' + total.toLocaleString();
+function quickAdd(id) { addToCart({stopPropagation:function(){}}, id); }
 
-  if (cart.length === 0) {
-    document.getElementById('cartItems').innerHTML =
-      '<div class="cart-empty"><span>🌿</span>Your cart is empty<br/><small style="margin-top:6px;display:block;color:#aaa">Add some fresh produce to get started</small></div>';
-    return;
-  }
-  document.getElementById('cartItems').innerHTML = cart.map(function(c) {
+function changeQty(id, d) {
+  var item = cart.find(function(c){return c.id===id;}); if (!item) return;
+  item.qty += d;
+  if (item.qty <= 0) cart = cart.filter(function(c){return c.id!==id;});
+  updateCart(); renderHomeGrid(); renderShopGrid();
+}
+
+function removeItem(id) {
+  cart = cart.filter(function(c){return c.id!==id;});
+  updateCart(); renderHomeGrid(); renderShopGrid();
+}
+
+function updateCart() {
+  var count = cart.reduce(function(s,c){return s+c.qty;},0);
+  var total = cart.reduce(function(s,c){return s+c.price*c.qty;},0);
+  document.getElementById('cartBadge').textContent = count;
+  document.getElementById('cartTotal').textContent = 'KSh ' + total.toLocaleString();
+  var body = document.getElementById('cartBody');
+  if (!cart.length) { body.innerHTML = '<div class="cart-empty"><span>🌿</span><p>Your cart is empty</p></div>'; return; }
+  body.innerHTML = cart.map(function(c){
     return '<div class="cart-item">' +
       '<div class="cart-item-img">' + c.emoji + '</div>' +
       '<div class="cart-item-info">' +
         '<div class="cart-item-name">' + c.name + '</div>' +
-        '<div class="cart-item-price">KSh ' + (c.price * c.qty).toLocaleString() + '</div>' +
+        '<div class="cart-item-price">KSh ' + (c.price*c.qty).toLocaleString() + '</div>' +
         '<div class="qty-row">' +
           '<button class="qty-btn" onclick="changeQty(' + c.id + ',-1)">−</button>' +
-          '<span class="qty-num">' + c.qty + '</span>' +
+          '<span class="qty-val">' + c.qty + '</span>' +
           '<button class="qty-btn" onclick="changeQty(' + c.id + ',1)">+</button>' +
-          '<button class="cart-remove" onclick="removeFromCart(' + c.id + ')">Remove</button>' +
+          '<button class="cart-rm" onclick="removeItem(' + c.id + ')">Remove</button>' +
         '</div>' +
       '</div>' +
     '</div>';
   }).join('');
 }
 
-function changeQty(id, delta) {
-  var item = cart.find(function(c) { return c.id === id; });
-  if (!item) return;
-  item.qty += delta;
-  if (item.qty <= 0) cart = cart.filter(function(c) { return c.id !== id; });
-  updateCartUI();
-  renderProducts();
+function setCat(cat, el) {
+  activeCat = cat;
+  document.querySelectorAll('.cat-card').forEach(function(c){c.classList.remove('active');});
+  el.classList.add('active');
+  renderShopGrid();
 }
 
-function removeFromCart(id) {
-  cart = cart.filter(function(c) { return c.id !== id; });
-  updateCartUI();
-  renderProducts();
+function filterProds() {
+  searchQ = (document.getElementById('shopSearch')||{}).value || '';
+  renderShopGrid();
+}
+
+function sortProds(v) {
+  if (v==='price-asc')  PRODUCTS.sort(function(a,b){return a.price-b.price;});
+  if (v==='price-desc') PRODUCTS.sort(function(a,b){return b.price-a.price;});
+  if (v==='rating')     PRODUCTS.sort(function(a,b){return b.rating-a.rating;});
+  if (v==='default')    PRODUCTS.sort(function(a,b){return a.id-b.id;});
+  renderShopGrid();
+}
+
+function shopCat(cat) { activeCat = cat; showPage('shop'); }
+
+/* ── NAV ── */
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.nav-link[id^="nl-"]').forEach(function(l){l.classList.remove('active');});
+  document.getElementById('page-'+id).classList.add('active');
+  var nl = document.getElementById('nl-'+id); if (nl) nl.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+  if (id==='shop') renderShopGrid();
+}
+
+function handleSearch() {
+  var q = (document.getElementById('globalSearch')||{}).value||'';
+  if (q.trim()) { searchQ = q.trim(); showPage('shop'); }
 }
 
 function toggleCart() {
@@ -1351,49 +1380,52 @@ function toggleCart() {
 }
 
 function checkout() {
-  if (cart.length === 0) { showToast('Your cart is empty'); return; }
-  toggleCart();
-  enterApp();
+  if (!cart.length) { showToast('Your cart is empty'); return; }
+  toggleCart(); enterApp();
 }
 
-function filterCat(cat, el) {
-  activeCat = cat;
-  document.querySelectorAll('.cat-pill').forEach(function(p) { p.classList.remove('active'); });
-  el.classList.add('active');
-  renderProducts();
-}
-
-function filterProducts() {
-  searchQ = document.getElementById('shopSearch').value;
-  renderProducts();
-}
-
-function sortProducts(val) {
-  if (val === 'price-asc')  PRODUCTS.sort(function(a,b) { return a.price - b.price; });
-  if (val === 'price-desc') PRODUCTS.sort(function(a,b) { return b.price - a.price; });
-  if (val === 'rating')     PRODUCTS.sort(function(a,b) { return b.rating - a.rating; });
-  if (val === 'default')    PRODUCTS.sort(function(a,b) { return a.id - b.id; });
-  renderProducts();
-}
-
-/* ─── BLOG ─────────────────────────────── */
-function activateBlogCat(el) {
-  document.querySelectorAll('.blog-cat').forEach(function(b) { b.classList.remove('active'); });
+function openWA(name) { showToast('💬 Opening WhatsApp for ' + name + '…'); }
+function openBlog() { showToast('📖 Opening article…'); setTimeout(enterApp, 800); }
+function setBlogTab(el) {
+  document.querySelectorAll('.blog-tab').forEach(function(b){b.classList.remove('active');});
   el.classList.add('active');
 }
 
-function openArticle(slug) {
-  showToast('📖 Opening article…');
-  setTimeout(function() { enterApp(); }, 800);
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');}, 2600);
 }
 
-function subscribeNewsletter() {
-  showToast('✓ Subscribed! Weekly alerts coming your way');
+function enterApp() {
+  document.getElementById('appLoader').classList.add('active');
+  setTimeout(function(){
+    document.querySelectorAll('.page').forEach(function(p){p.style.display='none';});
+    document.querySelector('nav').style.display='none';
+    document.querySelector('.top-bar').style.display='none';
+    document.getElementById('root').style.display='block';
+    document.getElementById('appLoader').classList.remove('active');
+  }, 600);
 }
 
-/* ─── INIT ─────────────────────────────── */
-renderProducts();
-window.__reactReady = function() {};
+/* ── COUNTDOWN ── */
+(function(){
+  var end = Date.now() + 4*3600000 + 27*60000;
+  function tick(){
+    var d = Math.max(0,end-Date.now());
+    var h = String(Math.floor(d/3600000)).padStart(2,'0');
+    var m = String(Math.floor((d%3600000)/60000)).padStart(2,'0');
+    var s = String(Math.floor((d%60000)/1000)).padStart(2,'0');
+    ['dh','fh'].forEach(function(id){var e=document.getElementById(id);if(e)e.textContent=h;});
+    ['dm','fm'].forEach(function(id){var e=document.getElementById(id);if(e)e.textContent=m;});
+    ['ds','fs'].forEach(function(id){var e=document.getElementById(id);if(e)e.textContent=s;});
+  }
+  tick(); setInterval(tick,1000);
+})();
+
+/* ── INIT ── */
+renderHomeGrid();
+window.__reactReady = function(){};
 </script>
 <script type="module" src="/src/main.tsx"></script>
 </body>
