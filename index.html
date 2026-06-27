@@ -1087,7 +1087,10 @@ function setMktTab(btn) {
   btn.classList.add('active');
 }
 
+var VALID_PAGES = ['home','shop','blog','prices','scan','sell'];
+
 function showPage(name) {
+  if (VALID_PAGES.indexOf(name) < 0) name = 'home';
   document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
   var pg = document.getElementById('page-' + name);
   if (pg) { pg.classList.add('active'); window.scrollTo(0,0); }
@@ -1099,9 +1102,21 @@ function showPage(name) {
   document.querySelectorAll('.mob-nav-btn').forEach(function(b){ b.classList.remove('active'); });
   var mn = document.getElementById('mn-' + name);
   if (mn) mn.classList.add('active');
+  // Keep URL hash in sync so the page is deep-linkable and back/forward works
+  if (('#' + name) !== location.hash) {
+    try { history.replaceState(null, '', '#' + name); } catch (e) { location.hash = name; }
+  }
   // Lazy render shop grid
   if (name === 'shop') { renderShopGrid(); }
 }
+
+function pageFromHash() {
+  var h = (location.hash || '').replace(/^#/, '');
+  return VALID_PAGES.indexOf(h) >= 0 ? h : 'home';
+}
+
+// Respond to back/forward and manual hash edits
+window.addEventListener('hashchange', function() { showPage(pageFromHash()); });
 
 function shopCat(cat) {
   showPage('shop');
@@ -1207,10 +1222,10 @@ function resetForm() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-  var initPage = sessionStorage.getItem('seedpro_page');
-  if (initPage) { sessionStorage.removeItem('seedpro_page'); showPage(initPage); }
   renderHomeGrid();
   updateCart();
+  // Open the page named in the URL hash (e.g. index.html#prices), default home
+  showPage(pageFromHash());
 });
 </script>
 </body>
