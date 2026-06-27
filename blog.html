@@ -53,9 +53,14 @@
 </nav>
 
 <!-- BLOG HERO -->
-<div class="blog-hero">
+<div class="blog-hero" style="position:relative;overflow:hidden">
   <h1>📰 SeedPro Farming Blog</h1>
   <p>Market insights, crop tips and success stories from Kenyan farmers</p>
+  <div class="page-hero-floats">
+    <div class="phf-item">📊</div>
+    <div class="phf-item">🌿</div>
+    <div class="phf-item">💡</div>
+  </div>
 </div>
 
 <!-- TABS -->
@@ -173,19 +178,45 @@
 </div>
 
 <!-- FOOTER -->
-<footer>
+<footer class="footer-rich">
   <div class="footer-logo-row"><div class="footer-logo-icon">🌱</div><div class="footer-logo-name">SeedPro</div></div>
-  <div class="footer-tagline">Kenya's Fresh Farm Marketplace</div>
-  <div class="footer-links">
-    <a href="/">Home</a>
-    <a href="shop.html">Shop</a>
-    <a href="blog.html">Blog</a>
-    <a href="prices.html">Live Prices</a>
-    <a href="scan.html">Scan Plant</a>
-    <a href="sell.html">Sell Produce</a>
+  <div class="footer-tagline">Kenya's Fresh Farm Marketplace · Empowering Farmers Since 2024</div>
+  <div class="footer-mpesa-badge">💳 M-Pesa Accepted &nbsp;·&nbsp; 🔒 Secure Checkout</div>
+  <div class="footer-trust">
+    <div class="footer-badge">✅ Verified Farmers</div>
+    <div class="footer-badge">🚚 Next-Day Delivery</div>
+    <div class="footer-badge">🌾 Farm-Direct Prices</div>
+    <div class="footer-badge">📞 24/7 Support</div>
   </div>
-  <hr class="footer-hr"/><div class="footer-copy">© 2026 SeedPro Kenya</div>
+  <div class="footer-links">
+    <a href="/">🏠 Home</a>
+    <a href="shop.html">🛒 Shop</a>
+    <a href="blog.html">📰 Blog</a>
+    <a href="prices.html">📈 Live Prices</a>
+    <a href="scan.html">📸 Scan Plant</a>
+    <a href="sell.html">🌾 Sell Produce</a>
+    <a onclick="enterApp()">About Us</a>
+    <a onclick="enterApp()">Contact</a>
+  </div>
+  <hr class="footer-hr"/>
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2026 SeedPro Kenya · All Rights Reserved</div>
+    <div class="footer-socials">
+      <button class="social-btn" onclick="showToast('💬 WhatsApp: +254 800 720 600')">💬</button>
+      <button class="social-btn" onclick="showToast('📘 Follow @SeedProKenya')">📘</button>
+      <button class="social-btn" onclick="showToast('🐦 Follow @SeedProKE')">🐦</button>
+    </div>
+  </div>
 </footer>
+
+<!-- MOBILE NAV -->
+<div class="mob-nav">
+  <a class="mob-nav-btn" href="/"><span class="mn-icon">🏠</span>Home</a>
+  <a class="mob-nav-btn" href="shop.html"><span class="mn-icon">🛒</span>Shop</a>
+  <a class="mob-nav-btn" href="prices.html"><span class="mn-icon">📈</span>Prices</a>
+  <a class="mob-nav-btn" href="scan.html"><span class="mn-icon">📸</span>Scan</a>
+  <a class="mob-nav-btn" href="sell.html"><span class="mn-icon">🌾</span>Sell</a>
+</div>
 
 <!-- CART DRAWER -->
 <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
@@ -202,8 +233,5 @@
 <div class="toast" id="toast"></div>
 
 <script src="/site.js"></script>
-<script>
-function enterApp() { window.location.href = '/'; }
-</script>
 </body>
 </html>

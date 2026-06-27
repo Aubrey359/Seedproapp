@@ -17,7 +17,7 @@
     .scan-hero::before { content:''; position:absolute; right:-40px; top:-40px; width:160px; height:160px; border-radius:50%; background:rgba(255,255,255,.06); }
     .scan-hero::after  { content:''; position:absolute; left:-30px; bottom:-40px; width:120px; height:120px; border-radius:50%; background:rgba(255,255,255,.04); }
     .scan-hero h1 { font-size:24px; font-weight:900; color:white; margin-bottom:8px; position:relative; z-index:1; }
-    .scan-hero p  { font-size:13px; color:rgba(255,255,255,.78); line-height:1.65; max-width:340px; margin:0 auto; position:relative; z-index:1; }
+    .scan-hero p  { font-size:13px; color:rgba(255,255,255,.78); line-height:1.65; max-width:280px; margin:0 auto 12px; position:relative; z-index:1; }
 
     .how-it-works { padding:20px 20px 10px; }
     .steps { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:14px; }
@@ -154,17 +154,38 @@
 
 <!-- HERO -->
 <div class="scan-hero">
+  <div class="scan-hero-badge">🤖 AI-Powered · Free for Farmers</div>
   <h1>📸 AI Plant Scan</h1>
-  <p>Take a photo of your produce to get a verified badge, health score and buyers' trust — instantly. 100% free for Kenyan farmers.</p>
+  <p>Snap a photo to get a verified badge, health score and buyers' trust — instantly.</p>
+  <div class="page-hero-floats">
+    <div class="phf-item">🍅</div>
+    <div class="phf-item">🔬</div>
+    <div class="phf-item">✅</div>
+  </div>
 </div>
 
 <!-- HOW IT WORKS -->
 <div class="how-it-works">
   <div class="section-title">How It Works</div>
   <div class="steps">
-    <div class="step"><div class="step-num">1</div><div class="step-icon">🌱</div><h4>Select Crop</h4><p>Choose what produce you are scanning</p></div>
-    <div class="step"><div class="step-num">2</div><div class="step-icon">📸</div><h4>Take Photo</h4><p>Point your camera at the produce</p></div>
-    <div class="step"><div class="step-num">3</div><div class="step-icon">✅</div><h4>Get Verified</h4><p>Post listing with verified badge</p></div>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-icon">🌱</div>
+      <h4>Select Crop</h4>
+      <p>Choose what produce you are scanning</p>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-icon">📸</div>
+      <h4>Take Photo</h4>
+      <p>Point your camera at the produce</p>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-icon">✅</div>
+      <h4>Get Verified</h4>
+      <p>Post listing with trusted badge</p>
+    </div>
   </div>
 </div>
 
@@ -242,16 +263,45 @@
 </div>
 
 <!-- FOOTER -->
-<footer>
+<footer class="footer-rich">
   <div class="footer-logo-row"><div class="footer-logo-icon">🌱</div><div class="footer-logo-name">SeedPro</div></div>
-  <div class="footer-tagline">Kenya's Fresh Farm Marketplace</div>
-  <div class="footer-links">
-    <a href="/">Home</a><a href="shop.html">Shop</a>
-    <a href="blog.html">Blog</a><a href="prices.html">Live Prices</a>
-    <a href="scan.html">Scan Plant</a><a href="sell.html">Sell Produce</a>
+  <div class="footer-tagline">Kenya's Fresh Farm Marketplace · Empowering Farmers Since 2024</div>
+  <div class="footer-mpesa-badge">💳 M-Pesa Accepted &nbsp;·&nbsp; 🔒 Secure Checkout</div>
+  <div class="footer-trust">
+    <div class="footer-badge">✅ Verified Farmers</div>
+    <div class="footer-badge">🚚 Next-Day Delivery</div>
+    <div class="footer-badge">🌾 Farm-Direct Prices</div>
+    <div class="footer-badge">📞 24/7 Support</div>
   </div>
-  <hr class="footer-hr"/><div class="footer-copy">© 2026 SeedPro Kenya</div>
+  <div class="footer-links">
+    <a href="/">🏠 Home</a>
+    <a href="shop.html">🛒 Shop</a>
+    <a href="blog.html">📰 Blog</a>
+    <a href="prices.html">📈 Live Prices</a>
+    <a href="scan.html">📸 Scan Plant</a>
+    <a href="sell.html">🌾 Sell Produce</a>
+    <a onclick="enterApp()">About Us</a>
+    <a onclick="enterApp()">Contact</a>
+  </div>
+  <hr class="footer-hr"/>
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2026 SeedPro Kenya · All Rights Reserved</div>
+    <div class="footer-socials">
+      <button class="social-btn" onclick="showToast('💬 WhatsApp: +254 800 720 600')">💬</button>
+      <button class="social-btn" onclick="showToast('📘 Follow @SeedProKenya')">📘</button>
+      <button class="social-btn" onclick="showToast('🐦 Follow @SeedProKE')">🐦</button>
+    </div>
+  </div>
 </footer>
+
+<!-- MOBILE NAV -->
+<div class="mob-nav">
+  <a class="mob-nav-btn" href="/"><span class="mn-icon">🏠</span>Home</a>
+  <a class="mob-nav-btn" href="shop.html"><span class="mn-icon">🛒</span>Shop</a>
+  <a class="mob-nav-btn" href="prices.html"><span class="mn-icon">📈</span>Prices</a>
+  <a class="mob-nav-btn active" href="scan.html"><span class="mn-icon">📸</span>Scan</a>
+  <a class="mob-nav-btn" href="sell.html"><span class="mn-icon">🌾</span>Sell</a>
+</div>
 
 <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
 <div class="cart-drawer" id="cartDrawer">
@@ -267,8 +317,6 @@
 
 <script src="/site.js"></script>
 <script>
-function enterApp() { window.location.href = '/'; }
-
 var SCAN_DATA = {
   'Tomato':      { conf:95, health:'Healthy', grade:'Grade A', notes:'Fresh cherry tomatoes detected. Good colour and firmity. Recommend listing within 48 hours.' },
   'Maize':       { conf:92, health:'Healthy', grade:'Grade A', notes:'Dry shelled maize confirmed. Moisture appears below 14%. Ready for milling or storage.' },

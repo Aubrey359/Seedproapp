@@ -1,19 +1,29 @@
-import "dotenv/config";
+import { createRequire } from "module";
 
-function required(name: string): string {
-  const value = process.env[name];
-  if (!value && process.env.NODE_ENV === "production") {
-    throw new Error(`Missing required environment variable: ${name}`);
-  }
-  return value ?? "";
+// Load .env relative to process.cwd() (the project root)
+const require = createRequire(process.cwd() + "/package.json");
+const dotenv  = require("dotenv");
+dotenv.config(); // reads .env from cwd by default
+
+function optional(name: string): string {
+  return process.env[name] ?? "";
 }
 
 export const env = {
-  appId: required("APP_ID"),
-  appSecret: required("APP_SECRET"),
+  appId:        optional("APP_ID")     || "seedpro-kenya",
+  appSecret:    optional("APP_SECRET") || "seedpro-dev-secret",
   isProduction: process.env.NODE_ENV === "production",
-  databaseUrl: required("DATABASE_URL"),
-  kimiAuthUrl: required("KIMI_AUTH_URL"),
-  kimiOpenUrl: required("KIMI_OPEN_URL"),
-  ownerUnionId: process.env.OWNER_UNION_ID ?? "",
+  kimiAuthUrl:  optional("KIMI_AUTH_URL"),
+  kimiOpenUrl:  optional("KIMI_OPEN_URL"),
+  ownerUnionId: optional("OWNER_UNION_ID"),
+
+  // M-Pesa Daraja
+  mpesa: {
+    consumerKey:    optional("MPESA_CONSUMER_KEY"),
+    consumerSecret: optional("MPESA_CONSUMER_SECRET"),
+    shortcode:      optional("MPESA_SHORTCODE")    || "174379",
+    passkey:        optional("MPESA_PASSKEY")      || "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919",
+    callbackUrl:    optional("MPESA_CALLBACK_URL") || "https://seedpro.ke/api/mpesa/callback",
+    env:            (optional("MPESA_ENV") || "sandbox") as "sandbox" | "production",
+  },
 };

@@ -93,6 +93,11 @@
   <div class="hero-banner">
     <div class="hero-orb" style="width:220px;height:220px;right:-50px;top:-50px"></div>
     <div class="hero-orb" style="width:140px;height:140px;right:60px;bottom:-60px"></div>
+    <div class="hero-float">
+      <div class="hero-float-item">🍅</div>
+      <div class="hero-float-item">🌽</div>
+      <div class="hero-float-item">🥑</div>
+    </div>
     <div class="hero-content">
       <div class="hero-tag">🌿 Kenya's #1 Farm Marketplace</div>
       <h1>Fresh Produce,<br/><em>Direct From Farmers</em></h1>
@@ -113,18 +118,22 @@
   <!-- STATS -->
   <div class="stats-strip">
     <div class="stat-item">
+      <div class="stat-icon">🌾</div>
       <div class="stat-num">2,400+</div>
       <div class="stat-lbl">Farmers</div>
     </div>
     <div class="stat-item">
+      <div class="stat-icon">📦</div>
       <div class="stat-num">8,100+</div>
       <div class="stat-lbl">Listings</div>
     </div>
     <div class="stat-item">
+      <div class="stat-icon">📍</div>
       <div class="stat-num">12</div>
       <div class="stat-lbl">Counties</div>
     </div>
     <div class="stat-item">
+      <div class="stat-icon">💳</div>
       <div class="stat-num">50M+</div>
       <div class="stat-lbl">KSh Traded</div>
     </div>
@@ -157,25 +166,25 @@
     <button class="cat-card" onclick="window.location.href='shop.html'">
       <div class="cat-icon-circle">🌿</div><span>All Fresh</span>
     </button>
-    <button class="cat-card" onclick="window.location.href='shop.html'">
+    <button class="cat-card" onclick="window.location.href='shop.html?cat=vegetables'">
       <div class="cat-icon-circle">🍅</div><span>Vegetables</span>
     </button>
-    <button class="cat-card" onclick="window.location.href='shop.html'">
+    <button class="cat-card" onclick="window.location.href='shop.html?cat=grains'">
       <div class="cat-icon-circle">🌽</div><span>Grains</span>
     </button>
-    <button class="cat-card" onclick="window.location.href='shop.html'">
+    <button class="cat-card" onclick="window.location.href='shop.html?cat=fruits'">
       <div class="cat-icon-circle">🥑</div><span>Fruits</span>
     </button>
-    <button class="cat-card" onclick="window.location.href='shop.html'">
+    <button class="cat-card" onclick="window.location.href='shop.html?cat=cash'">
       <div class="cat-icon-circle">☕</div><span>Cash Crops</span>
     </button>
-    <button class="cat-card" onclick="window.location.href='shop.html'">
+    <button class="cat-card" onclick="window.location.href='shop.html?cat=legumes'">
       <div class="cat-icon-circle">🫘</div><span>Legumes</span>
     </button>
-    <button class="cat-card" onclick="window.location.href='shop.html'">
+    <button class="cat-card" onclick="window.location.href='shop.html?cat=vegetables'">
       <div class="cat-icon-circle">🥬</div><span>Leafy Greens</span>
     </button>
-    <button class="cat-card" onclick="window.location.href='shop.html'">
+    <button class="cat-card" onclick="window.location.href='shop.html?cat=grains'">
       <div class="cat-icon-circle">🍚</div><span>Rice</span>
     </button>
   </div>
@@ -320,9 +329,10 @@
     <div class="mpesa">💳 M-Pesa · Airtel Money · Bank Transfer · Cash on Delivery</div>
   </div>
 
-  <footer>
+  <footer class="footer-rich">
     <div class="footer-logo-row"><div class="footer-logo-icon">🌱</div><div class="footer-logo-name">SeedPro</div></div>
     <div class="footer-tagline">Kenya's Fresh Farm Marketplace · Empowering Farmers Since 2024</div>
+    <div class="footer-mpesa-badge">💳 M-Pesa Accepted &nbsp;·&nbsp; 🔒 Secure Checkout</div>
     <div class="footer-trust">
       <div class="footer-badge">✅ Verified Farmers</div>
       <div class="footer-badge">💳 M-Pesa</div>
@@ -343,12 +353,21 @@
     <div class="footer-bottom">
       <div class="footer-copy">© 2026 SeedPro Kenya · All Rights Reserved</div>
       <div class="footer-socials">
-        <button class="social-btn">💬</button>
-        <button class="social-btn">📘</button>
-        <button class="social-btn">🐦</button>
+        <button class="social-btn" onclick="showToast('💬 WhatsApp: +254 800 720 600')">💬</button>
+        <button class="social-btn" onclick="showToast('📘 Follow us on Facebook @SeedProKenya')">📘</button>
+        <button class="social-btn" onclick="showToast('🐦 Follow us on X @SeedProKE')">🐦</button>
       </div>
     </div>
   </footer>
+</div>
+
+<!-- MOBILE NAV -->
+<div class="mob-nav">
+  <a class="mob-nav-btn active" href="/"><span class="mn-icon">🏠</span>Home</a>
+  <a class="mob-nav-btn" href="shop.html"><span class="mn-icon">🛒</span>Shop</a>
+  <a class="mob-nav-btn" href="prices.html"><span class="mn-icon">📈</span>Prices</a>
+  <a class="mob-nav-btn" href="scan.html"><span class="mn-icon">📸</span>Scan</a>
+  <a class="mob-nav-btn" href="sell.html"><span class="mn-icon">🌾</span>Sell</a>
 </div>
 
 <!-- CART DRAWER -->
@@ -370,28 +389,6 @@
 
 <script src="/site.js" onerror="var s=document.createElement('script');s.src='public/site.js';document.head.appendChild(s)"></script>
 <script>
-function enterApp() {
-  var loader = document.getElementById('appLoader');
-  loader.classList.add('active');
-  setTimeout(function() {
-    document.getElementById('root').style.display = 'block';
-    document.querySelectorAll('.page').forEach(function(p){ p.style.display = 'none'; });
-    document.querySelector('nav').style.display = 'none';
-    document.querySelector('.top-bar').style.display = 'none';
-    document.querySelector('.cart-overlay').style.display = 'none';
-    document.querySelector('.cart-drawer').style.display = 'none';
-    loader.classList.remove('active');
-    import('/src/main.tsx').catch(function(){
-      loader.classList.remove('active');
-      document.getElementById('root').innerHTML = '';
-      document.querySelectorAll('.page').forEach(function(p){ p.style.display = ''; });
-      document.querySelector('nav').style.display = '';
-      document.querySelector('.top-bar').style.display = '';
-      window.location.href = '/';
-    });
-  }, 400);
-}
-
 function showPage(name) {
   document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
   var pg = document.getElementById('page-' + name);

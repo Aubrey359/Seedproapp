@@ -1,216 +1,229 @@
 import {
-  mysqlTable,
-  mysqlEnum,
-  serial,
-  varchar,
+  sqliteTable,
   text,
-  timestamp,
-  int,
-  decimal,
-  bigint,
-  json,
-  boolean,
-  date,
-} from "drizzle-orm/mysql-core";
+  integer,
+  real,
+} from "drizzle-orm/sqlite-core";
+import { sql } from "drizzle-orm";
 
 // ─── Users ───
-export const users = mysqlTable("users", {
-  id: serial("id").primaryKey(),
-  unionId: varchar("unionId", { length: 255 }).notNull().unique(),
-  name: varchar("name", { length: 255 }),
-  email: varchar("email", { length: 320 }),
-  avatar: text("avatar"),
-  role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
-  // SeedPro-specific fields
-  userType: mysqlEnum("userType", ["farmer", "buyer", "aggregator"]).default("farmer").notNull(),
-  phone: varchar("phone", { length: 20 }),
-  location: varchar("location", { length: 255 }),
-  bio: text("bio"),
-  verified: boolean("verified").default(false),
-  rating: decimal("rating", { precision: 2, scale: 1 }).default("0.0"),
-  reviewCount: int("reviewCount").default(0),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().notNull().$onUpdate(() => new Date()),
-  lastSignInAt: timestamp("lastSignInAt").defaultNow().notNull(),
+export const users = sqliteTable("users", {
+  id:          integer("id").primaryKey({ autoIncrement: true }),
+  unionId:     text("unionId").notNull().unique(),
+  name:        text("name"),
+  email:       text("email"),
+  avatar:      text("avatar"),
+  role:        text("role", { enum: ["user", "admin"] }).default("user").notNull(),
+  userType:    text("userType", { enum: ["farmer", "buyer", "aggregator"] }).default("farmer").notNull(),
+  phone:       text("phone"),
+  location:    text("location"),
+  bio:         text("bio"),
+  verified:    integer("verified", { mode: "boolean" }).default(false),
+  rating:      real("rating").default(0.0),
+  reviewCount: integer("reviewCount").default(0),
+  createdAt:   text("createdAt").default(sql`(datetime('now'))`).notNull(),
+  updatedAt:   text("updatedAt").default(sql`(datetime('now'))`).notNull(),
+  lastSignInAt:text("lastSignInAt").default(sql`(datetime('now'))`).notNull(),
 });
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
 // ─── Crops ───
-export const crops = mysqlTable("crops", {
-  id: serial("id").primaryKey(),
-  name: varchar("name", { length: 100 }).notNull(),
-  category: mysqlEnum("category", ["vegetables", "grains", "cash_crops", "fruits", "legumes"]).notNull(),
-  icon: varchar("icon", { length: 50 }),
-  image: text("image"),
-  description: text("description"),
-  growingPeriod: int("growingPeriod"), // days
-  typicalYield: varchar("typicalYield", { length: 50 }),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
+export const crops = sqliteTable("crops", {
+  id:            integer("id").primaryKey({ autoIncrement: true }),
+  name:          text("name").notNull(),
+  category:      text("category", { enum: ["vegetables", "grains", "cash_crops", "fruits", "legumes"] }).notNull(),
+  icon:          text("icon"),
+  image:         text("image"),
+  description:   text("description"),
+  growingPeriod: integer("growingPeriod"),
+  typicalYield:  text("typicalYield"),
+  createdAt:     text("createdAt").default(sql`(datetime('now'))`).notNull(),
 });
 
 export type Crop = typeof crops.$inferSelect;
 
-// ─── Listings (Crop Postings) ───
-export const listings = mysqlTable("listings", {
-  id: serial("id").primaryKey(),
-  farmerId: bigint("farmerId", { mode: "number", unsigned: true }).notNull(),
-  cropId: bigint("cropId", { mode: "number", unsigned: true }).notNull(),
-  cropName: varchar("cropName", { length: 100 }).notNull(),
-  quantity: int("quantity").notNull(), // kg
-  quantityUnit: varchar("quantityUnit", { length: 20 }).default("kg"),
-  location: varchar("location", { length: 255 }).notNull(),
-  harvestDate: date("harvestDate"),
-  expectedPrice: decimal("expectedPrice", { precision: 10, scale: 2 }).notNull(),
-  currency: varchar("currency", { length: 10 }).default("KES"),
-  description: text("description"),
-  images: json("images").$type<string[]>(),
-  status: mysqlEnum("status", ["active", "sold", "reserved", "expired"]).default("active").notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().notNull().$onUpdate(() => new Date()),
+// ─── Listings ───
+export const listings = sqliteTable("listings", {
+  id:           integer("id").primaryKey({ autoIncrement: true }),
+  farmerId:     integer("farmerId").notNull(),
+  cropId:       integer("cropId").notNull(),
+  cropName:     text("cropName").notNull(),
+  quantity:     integer("quantity").notNull(),
+  quantityUnit: text("quantityUnit").default("kg"),
+  location:     text("location").notNull(),
+  harvestDate:  text("harvestDate"),
+  expectedPrice:real("expectedPrice").notNull(),
+  currency:     text("currency").default("KES"),
+  description:  text("description"),
+  images:       text("images", { mode: "json" }).$type<string[]>(),
+  status:       text("status", { enum: ["active", "sold", "reserved", "expired"] }).default("active").notNull(),
+  createdAt:    text("createdAt").default(sql`(datetime('now'))`).notNull(),
+  updatedAt:    text("updatedAt").default(sql`(datetime('now'))`).notNull(),
 });
 
 export type Listing = typeof listings.$inferSelect;
 
 // ─── Orders ───
-export const orders = mysqlTable("orders", {
-  id: serial("id").primaryKey(),
-  listingId: bigint("listingId", { mode: "number", unsigned: true }).notNull(),
-  buyerId: bigint("buyerId", { mode: "number", unsigned: true }).notNull(),
-  farmerId: bigint("farmerId", { mode: "number", unsigned: true }).notNull(),
-  quantity: int("quantity").notNull(),
-  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
-  totalAmount: decimal("totalAmount", { precision: 10, scale: 2 }).notNull(),
-  deliveryMethod: mysqlEnum("deliveryMethod", ["pickup", "delivery"]).default("pickup"),
-  notes: text("notes"),
-  status: mysqlEnum("status", ["pending", "confirmed", "in_transit", "delivered", "cancelled"]).default("pending").notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().notNull().$onUpdate(() => new Date()),
+export const orders = sqliteTable("orders", {
+  id:             integer("id").primaryKey({ autoIncrement: true }),
+  listingId:      integer("listingId").notNull(),
+  buyerId:        integer("buyerId").notNull(),
+  farmerId:       integer("farmerId").notNull(),
+  quantity:       integer("quantity").notNull(),
+  price:          real("price").notNull(),
+  totalAmount:    real("totalAmount").notNull(),
+  deliveryMethod: text("deliveryMethod", { enum: ["pickup", "delivery"] }).default("pickup"),
+  notes:          text("notes"),
+  status:         text("status", { enum: ["pending", "confirmed", "in_transit", "delivered", "cancelled"] }).default("pending").notNull(),
+  createdAt:      text("createdAt").default(sql`(datetime('now'))`).notNull(),
+  updatedAt:      text("updatedAt").default(sql`(datetime('now'))`).notNull(),
 });
 
 export type Order = typeof orders.$inferSelect;
 
 // ─── Market Prices ───
-export const marketPrices = mysqlTable("market_prices", {
-  id: serial("id").primaryKey(),
-  cropId: bigint("cropId", { mode: "number", unsigned: true }).notNull(),
-  cropName: varchar("cropName", { length: 100 }).notNull(),
-  town: varchar("town", { length: 100 }).notNull(),
-  wholesalePrice: decimal("wholesalePrice", { precision: 10, scale: 2 }).notNull(),
-  retailPrice: decimal("retailPrice", { precision: 10, scale: 2 }).notNull(),
-  currency: varchar("currency", { length: 10 }).default("KES"),
-  trend: mysqlEnum("trend", ["up", "down", "stable"]).default("stable"),
-  trendPercent: decimal("trendPercent", { precision: 5, scale: 2 }).default("0.00"),
-  priceDate: date("priceDate").notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
+export const marketPrices = sqliteTable("market_prices", {
+  id:             integer("id").primaryKey({ autoIncrement: true }),
+  cropId:         integer("cropId").notNull(),
+  cropName:       text("cropName").notNull(),
+  town:           text("town").notNull(),
+  wholesalePrice: real("wholesalePrice").notNull(),
+  retailPrice:    real("retailPrice").notNull(),
+  currency:       text("currency").default("KES"),
+  trend:          text("trend", { enum: ["up", "down", "stable"] }).default("stable"),
+  trendPercent:   real("trendPercent").default(0),
+  priceDate:      text("priceDate").notNull(),
+  createdAt:      text("createdAt").default(sql`(datetime('now'))`).notNull(),
 });
 
 export type MarketPrice = typeof marketPrices.$inferSelect;
 
 // ─── Ratings ───
-export const ratings = mysqlTable("ratings", {
-  id: serial("id").primaryKey(),
-  reviewerId: bigint("reviewerId", { mode: "number", unsigned: true }).notNull(),
-  revieweeId: bigint("revieweeId", { mode: "number", unsigned: true }).notNull(),
-  orderId: bigint("orderId", { mode: "number", unsigned: true }),
-  rating: int("rating").notNull(), // 1-5
-  review: text("review"),
-  tags: json("tags").$type<string[]>(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
+export const ratings = sqliteTable("ratings", {
+  id:         integer("id").primaryKey({ autoIncrement: true }),
+  reviewerId: integer("reviewerId").notNull(),
+  revieweeId: integer("revieweeId").notNull(),
+  orderId:    integer("orderId"),
+  rating:     integer("rating").notNull(),
+  review:     text("review"),
+  tags:       text("tags", { mode: "json" }).$type<string[]>(),
+  createdAt:  text("createdAt").default(sql`(datetime('now'))`).notNull(),
 });
 
 export type Rating = typeof ratings.$inferSelect;
 
-// ─── Crop Guides (Step-by-step advisory) ───
-export const cropGuides = mysqlTable("cropGuides", {
-  id: serial("id").primaryKey(),
-  cropId: bigint("cropId", { mode: "number", unsigned: true }).notNull(),
-  stage: mysqlEnum("stage", ["nursery", "vegetative", "flowering", "fruiting", "harvest", "post_harvest", "bulbing", "tasseling", "berry_development", "pruning", "tuber_initiation", "tuber_bulking"]).notNull(),
-  stageOrder: int("stageOrder").notNull(),
-  title: varchar("title", { length: 255 }).notNull(),
+// ─── Crop Guides ───
+export const cropGuides = sqliteTable("cropGuides", {
+  id:          integer("id").primaryKey({ autoIncrement: true }),
+  cropId:      integer("cropId").notNull(),
+  stage:       text("stage").notNull(),
+  stageOrder:  integer("stageOrder").notNull(),
+  title:       text("title").notNull(),
   description: text("description").notNull(),
-  tasks: json("tasks").$type<string[]>(),
-  tips: json("tips").$type<string[]>(),
-  warnings: json("warnings").$type<string[]>(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  tasks:       text("tasks", { mode: "json" }).$type<string[]>(),
+  tips:        text("tips", { mode: "json" }).$type<string[]>(),
+  warnings:    text("warnings", { mode: "json" }).$type<string[]>(),
+  createdAt:   text("createdAt").default(sql`(datetime('now'))`).notNull(),
 });
 
 export type CropGuide = typeof cropGuides.$inferSelect;
 
 // ─── Spray Schedules ───
-export const spraySchedules = mysqlTable("spraySchedules", {
-  id: serial("id").primaryKey(),
-  cropId: bigint("cropId", { mode: "number", unsigned: true }).notNull(),
-  stage: varchar("stage", { length: 50 }).notNull(),
-  dayFrom: int("dayFrom").notNull(),
-  dayTo: int("dayTo"),
-  activityType: mysqlEnum("activityType", ["fertilizer", "pesticide", "fungicide", "herbicide", "irrigation", "pruning", "harvest"]).notNull(),
-  productName: varchar("productName", { length: 255 }),
-  dosage: varchar("dosage", { length: 100 }),
+export const spraySchedules = sqliteTable("spraySchedules", {
+  id:           integer("id").primaryKey({ autoIncrement: true }),
+  cropId:       integer("cropId").notNull(),
+  stage:        text("stage").notNull(),
+  dayFrom:      integer("dayFrom").notNull(),
+  dayTo:        integer("dayTo"),
+  activityType: text("activityType", { enum: ["fertilizer", "pesticide", "fungicide", "herbicide", "irrigation", "pruning", "harvest"] }).notNull(),
+  productName:  text("productName"),
+  dosage:       text("dosage"),
   instructions: text("instructions"),
-  reminderSent: boolean("reminderSent").default(false),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  reminderSent: integer("reminderSent", { mode: "boolean" }).default(false),
+  createdAt:    text("createdAt").default(sql`(datetime('now'))`).notNull(),
 });
 
 export type SpraySchedule = typeof spraySchedules.$inferSelect;
 
-// ─── Diagnoses (Crop problem uploads) ───
-export const diagnoses = mysqlTable("diagnoses", {
-  id: serial("id").primaryKey(),
-  farmerId: bigint("farmerId", { mode: "number", unsigned: true }).notNull(),
-  cropId: bigint("cropId", { mode: "number", unsigned: true }),
-  cropName: varchar("cropName", { length: 100 }),
-  photoUrl: text("photoUrl").notNull(),
+// ─── Diagnoses ───
+export const diagnoses = sqliteTable("diagnoses", {
+  id:          integer("id").primaryKey({ autoIncrement: true }),
+  farmerId:    integer("farmerId").notNull(),
+  cropId:      integer("cropId"),
+  cropName:    text("cropName"),
+  photoUrl:    text("photoUrl").notNull(),
   description: text("description"),
-  diagnosis: text("diagnosis"),
-  treatment: text("treatment"),
-  status: mysqlEnum("status", ["pending", "diagnosed", "resolved"]).default("pending"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().notNull().$onUpdate(() => new Date()),
+  diagnosis:   text("diagnosis"),
+  treatment:   text("treatment"),
+  status:      text("status", { enum: ["pending", "diagnosed", "resolved"] }).default("pending"),
+  createdAt:   text("createdAt").default(sql`(datetime('now'))`).notNull(),
+  updatedAt:   text("updatedAt").default(sql`(datetime('now'))`).notNull(),
 });
 
 export type Diagnosis = typeof diagnoses.$inferSelect;
 
 // ─── Advisory Messages ───
-export const advisoryMessages = mysqlTable("advisoryMessages", {
-  id: serial("id").primaryKey(),
-  userId: bigint("userId", { mode: "number", unsigned: true }).notNull(),
-  cropId: bigint("cropId", { mode: "number", unsigned: true }),
-  direction: mysqlEnum("direction", ["incoming", "outgoing"]).notNull(),
-  content: text("content").notNull(),
-  messageType: mysqlEnum("messageType", ["text", "image", "quick_reply", "product_card", "guide"]).default("text"),
-  metadata: json("metadata"), // quick reply options, product info, etc.
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
+export const advisoryMessages = sqliteTable("advisoryMessages", {
+  id:          integer("id").primaryKey({ autoIncrement: true }),
+  userId:      integer("userId").notNull(),
+  cropId:      integer("cropId"),
+  direction:   text("direction", { enum: ["incoming", "outgoing"] }).notNull(),
+  content:     text("content").notNull(),
+  messageType: text("messageType", { enum: ["text", "image", "quick_reply", "product_card", "guide"] }).default("text"),
+  metadata:    text("metadata", { mode: "json" }),
+  createdAt:   text("createdAt").default(sql`(datetime('now'))`).notNull(),
 });
 
 export type AdvisoryMessage = typeof advisoryMessages.$inferSelect;
 
-// ─── Zones (Aggregator collection zones) ───
-export const zones = mysqlTable("zones", {
-  id: serial("id").primaryKey(),
-  name: varchar("name", { length: 255 }).notNull(),
-  aggregatorId: bigint("aggregatorId", { mode: "number", unsigned: true }).notNull(),
-  towns: json("towns").$type<string[]>(),
-  description: text("description"),
-  active: boolean("active").default(true),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
+// ─── Zones ───
+export const zones = sqliteTable("zones", {
+  id:           integer("id").primaryKey({ autoIncrement: true }),
+  name:         text("name").notNull(),
+  aggregatorId: integer("aggregatorId").notNull(),
+  towns:        text("towns", { mode: "json" }).$type<string[]>(),
+  description:  text("description"),
+  active:       integer("active", { mode: "boolean" }).default(true),
+  createdAt:    text("createdAt").default(sql`(datetime('now'))`).notNull(),
 });
 
 export type Zone = typeof zones.$inferSelect;
 
 // ─── Price Alerts ───
-export const priceAlerts = mysqlTable("priceAlerts", {
-  id: serial("id").primaryKey(),
-  userId: bigint("userId", { mode: "number", unsigned: true }).notNull(),
-  cropName: varchar("cropName", { length: 100 }).notNull(),
-  town: varchar("town", { length: 100 }),
-  condition: mysqlEnum("condition", ["above", "below"]).notNull(),
-  targetPrice: decimal("targetPrice", { precision: 10, scale: 2 }).notNull(),
-  notificationMethod: mysqlEnum("notificationMethod", ["whatsapp", "sms", "in_app"]).default("in_app"),
-  active: boolean("active").default(true),
-  triggered: boolean("triggered").default(false),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
+export const priceAlerts = sqliteTable("priceAlerts", {
+  id:                 integer("id").primaryKey({ autoIncrement: true }),
+  userId:             integer("userId").notNull(),
+  cropName:           text("cropName").notNull(),
+  town:               text("town"),
+  condition:          text("condition", { enum: ["above", "below"] }).notNull(),
+  targetPrice:        real("targetPrice").notNull(),
+  notificationMethod: text("notificationMethod", { enum: ["whatsapp", "sms", "in_app"] }).default("in_app"),
+  active:             integer("active", { mode: "boolean" }).default(true),
+  triggered:          integer("triggered", { mode: "boolean" }).default(false),
+  createdAt:          text("createdAt").default(sql`(datetime('now'))`).notNull(),
 });
 
 export type PriceAlert = typeof priceAlerts.$inferSelect;
+
+// ─── M-Pesa Payments ───
+export const mpesaPayments = sqliteTable("mpesa_payments", {
+  id:                integer("id").primaryKey({ autoIncrement: true }),
+  orderId:           integer("orderId"),
+  checkoutRequestId: text("checkoutRequestId").unique(),
+  merchantRequestId: text("merchantRequestId"),
+  phone:             text("phone").notNull(),
+  amount:            real("amount").notNull(),
+  accountRef:        text("accountRef"),
+  status:            text("status", { enum: ["pending", "completed", "failed", "cancelled"] }).default("pending").notNull(),
+  mpesaReceiptNumber:text("mpesaReceiptNumber"),
+  transactionDate:   text("transactionDate"),
+  resultCode:        integer("resultCode"),
+  resultDesc:        text("resultDesc"),
+  rawCallback:       text("rawCallback", { mode: "json" }),
+  createdAt:         text("createdAt").default(sql`(datetime('now'))`).notNull(),
+  updatedAt:         text("updatedAt").default(sql`(datetime('now'))`).notNull(),
+});
+
+export type MpesaPayment = typeof mpesaPayments.$inferSelect;

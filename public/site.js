@@ -148,7 +148,17 @@ function shopCat(cat) { activeCat = cat; window.location.href = 'shop.html'; }
 /* ── NAV / UI ── */
 function handleSearch() {
   var q = (document.getElementById('globalSearch')||{}).value||'';
-  if (q.trim()) { window.location.href = 'shop.html'; }
+  if (!q.trim()) return;
+  // If already on shop page, filter inline
+  var shopInput = document.getElementById('shopSearch');
+  if (shopInput) {
+    shopInput.value = q;
+    searchQ = q;
+    renderShopGrid();
+    shopInput.scrollIntoView({behavior:'smooth', block:'center'});
+  } else {
+    window.location.href = 'shop.html?q=' + encodeURIComponent(q);
+  }
 }
 
 function toggleCart() {
@@ -157,8 +167,233 @@ function toggleCart() {
 }
 
 function checkout() {
-  if (!cart.length) { showToast('Your cart is empty'); return; }
-  toggleCart(); enterApp();
+  if (!cart.length) { showToast('🛒 Your cart is empty'); return; }
+  toggleCart();
+  openMpesaPayment();
+}
+
+/* ── M-PESA PAYMENT MODAL ── */
+function openMpesaPayment() {
+  var total = cart.reduce(function(s,c){return s+c.price*c.qty;},0);
+  var existing = document.getElementById('mpesaModal');
+  if (existing) existing.remove();
+
+  var modal = document.createElement('div');
+  modal.id = 'mpesaModal';
+  modal.innerHTML = [
+    '<div class="mpesa-overlay" onclick="closeMpesa()"></div>',
+    '<div class="mpesa-sheet">',
+      '<button class="auth-close" onclick="closeMpesa()">✕</button>',
+      '<div class="mpesa-logo">💳</div>',
+      '<h2 class="auth-title">Lipa na M-Pesa</h2>',
+      '<p class="auth-sub">You will receive a prompt on your phone</p>',
+      '<div class="mpesa-amount">KSh <strong>' + total.toLocaleString() + '</strong></div>',
+      '<div class="mpesa-items">' + cart.map(function(c){ return '<span>' + c.emoji + ' ' + c.name + ' ×' + c.qty + '</span>'; }).join('') + '</div>',
+      '<div class="auth-field" style="margin-top:16px"><label>M-Pesa Phone Number</label>',
+        '<input type="tel" id="mpesaPhone" placeholder="e.g. 0712 345 678" />',
+      '</div>',
+      '<button class="auth-submit mpesa-pay-btn" onclick="initiateMpesa(' + total + ')">',
+        '📲 Send M-Pesa Request',
+      '</button>',
+      '<p style="text-align:center;font-size:11px;color:var(--grey-text);margin-top:10px">Powered by Safaricom Daraja · Secure · Instant</p>',
+      '<div id="mpesaStatus" style="display:none"></div>',
+    '</div>'
+  ].join('');
+  document.body.appendChild(modal);
+  requestAnimationFrame(function(){ modal.classList.add('open'); });
+}
+
+function closeMpesa() {
+  var m = document.getElementById('mpesaModal');
+  if (m) m.remove();
+}
+
+function initiateMpesa(amount) {
+  var phone = (document.getElementById('mpesaPhone')||{}).value||'';
+  if (!phone.trim()) { showToast('⚠️ Please enter your M-Pesa phone number'); return; }
+
+  var btn = document.querySelector('.mpesa-pay-btn');
+  btn.textContent = '⏳ Sending request…';
+  btn.disabled = true;
+
+  var statusEl = document.getElementById('mpesaStatus');
+  statusEl.style.display = 'block';
+  statusEl.className = 'mpesa-status pending';
+  statusEl.innerHTML = '📲 <strong>Check your phone</strong><br>Enter your M-Pesa PIN when prompted.';
+
+  // Call the tRPC STK Push endpoint
+  fetch('/api/trpc/mpesa.stkPush', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      json: {
+        phone:       phone,
+        amount:      amount,
+        accountRef:  'SeedPro',
+        description: 'Farm Produce'
+      }
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data) {
+    if (data.error) throw new Error(data.error.message || 'STK Push failed');
+    var result = data.result && data.result.data ? data.result.data : data.result;
+    var checkoutId = result.checkoutRequestId;
+    showToast('📲 M-Pesa prompt sent! Check your phone.');
+    pollMpesaStatus(checkoutId, 0);
+  })
+  .catch(function(err) {
+    btn.textContent = '📲 Send M-Pesa Request';
+    btn.disabled = false;
+    statusEl.className = 'mpesa-status failed';
+    statusEl.innerHTML = '❌ <strong>Request failed:</strong> ' + (err.message || 'Please try again.');
+    console.error('M-Pesa error:', err);
+  });
+}
+
+function pollMpesaStatus(checkoutId, attempts) {
+  if (attempts > 12) { // poll for max ~60 seconds
+    var statusEl = document.getElementById('mpesaStatus');
+    if (statusEl) {
+      statusEl.className = 'mpesa-status failed';
+      statusEl.innerHTML = '⏱ <strong>Timed out.</strong> Check your phone and try again.';
+    }
+    return;
+  }
+  setTimeout(function() {
+    fetch('/api/trpc/mpesa.checkStatus?batch=1&input=' + encodeURIComponent(JSON.stringify({0:{json:{checkoutRequestId:checkoutId}}})))
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      var result = Array.isArray(data) ? data[0] : data;
+      var status = result && result.result && result.result.data ? result.result.data.status : (result && result.result ? result.result.status : 'pending');
+      var statusEl = document.getElementById('mpesaStatus');
+      if (!statusEl) return;
+
+      if (status === 'completed') {
+        statusEl.className = 'mpesa-status completed';
+        statusEl.innerHTML = '✅ <strong>Payment confirmed!</strong><br>Your order has been placed. Thank you!';
+        cart = []; saveCart(); updateCart(); renderHomeGrid(); renderShopGrid();
+        showToast('✅ Payment received! Order confirmed.');
+        setTimeout(closeMpesa, 3000);
+      } else if (status === 'failed') {
+        statusEl.className = 'mpesa-status failed';
+        statusEl.innerHTML = '❌ <strong>Payment failed.</strong> Please try again.';
+        var btn = document.querySelector('.mpesa-pay-btn');
+        if (btn) { btn.textContent = '📲 Send M-Pesa Request'; btn.disabled = false; }
+      } else if (status === 'cancelled') {
+        statusEl.className = 'mpesa-status failed';
+        statusEl.innerHTML = '🚫 <strong>Cancelled.</strong> You cancelled the M-Pesa prompt.';
+        var btn = document.querySelector('.mpesa-pay-btn');
+        if (btn) { btn.textContent = '📲 Send M-Pesa Request'; btn.disabled = false; }
+      } else {
+        pollMpesaStatus(checkoutId, attempts + 1);
+      }
+    })
+    .catch(function(){ pollMpesaStatus(checkoutId, attempts + 1); });
+  }, 5000);
+}
+
+/* ── SIGN-IN MODAL ── */
+function enterApp() {
+  var existing = document.getElementById('authModal');
+  if (existing) { existing.classList.add('open'); return; }
+
+  var modal = document.createElement('div');
+  modal.id = 'authModal';
+  modal.innerHTML = [
+    '<div class="auth-overlay" onclick="closeAuth()"></div>',
+    '<div class="auth-sheet">',
+      '<button class="auth-close" onclick="closeAuth()">✕</button>',
+      '<div class="auth-logo"><span>🌱</span></div>',
+      '<h2 class="auth-title">Welcome to SeedPro</h2>',
+      '<p class="auth-sub">Kenya\'s #1 Farm Marketplace</p>',
+      '<div class="auth-tabs">',
+        '<button class="auth-tab active" id="atab-login" onclick="switchAuthTab(\'login\')">Sign In</button>',
+        '<button class="auth-tab" id="atab-register" onclick="switchAuthTab(\'register\')">Register Free</button>',
+      '</div>',
+      /* LOGIN */
+      '<div id="auth-login">',
+        '<div class="auth-field"><label>Phone Number</label><input type="tel" id="authPhone" placeholder="e.g. 0712 345 678" /></div>',
+        '<div class="auth-field"><label>Password</label><div class="auth-pwd-wrap"><input type="password" id="authPass" placeholder="Your password" /><button class="pwd-eye" onclick="togglePwd()">👁</button></div></div>',
+        '<button class="auth-submit" onclick="doLogin()">🔐 Sign In</button>',
+        '<div class="auth-or"><span>or</span></div>',
+        '<button class="auth-mpesa" onclick="doMpesaLogin()">💳 Sign in with M-Pesa</button>',
+        '<div class="auth-forgot" onclick="showToast(\'📲 OTP sent to your phone\')">Forgot password?</div>',
+      '</div>',
+      /* REGISTER */
+      '<div id="auth-register" style="display:none">',
+        '<div class="auth-field"><label>Full Name</label><input type="text" id="regName" placeholder="e.g. James Mwangi" /></div>',
+        '<div class="auth-field"><label>Phone Number</label><input type="tel" id="regPhone" placeholder="e.g. 0712 345 678" /></div>',
+        '<div class="auth-field"><label>County</label><select id="regCounty"><option value="">Select county…</option><option>Nairobi</option><option>Nakuru</option><option>Kisumu</option><option>Mombasa</option><option>Muranga</option><option>Thika</option><option>Meru</option><option>Kericho</option><option>Kakamega</option><option>Eldoret</option><option>Naivasha</option><option>Nyeri</option><option>Kisii</option><option>Kiambu</option><option>Embu</option><option>Mwea</option></select></div>',
+        '<div class="auth-field"><label>I am a…</label><div class="auth-role-row"><button class="role-btn active" id="role-farmer" onclick="setRole(\'farmer\')">🌾 Farmer</button><button class="role-btn" id="role-buyer" onclick="setRole(\'buyer\')">🛒 Buyer</button></div></div>',
+        '<div class="auth-field"><label>Password</label><input type="password" id="regPass" placeholder="Create a password" /></div>',
+        '<button class="auth-submit" onclick="doRegister()">🌱 Create Free Account</button>',
+        '<p class="auth-terms">By registering you agree to our <span onclick="showToast(\'Terms opening soon…\')">Terms</span> &amp; <span onclick="showToast(\'Privacy policy opening soon…\')">Privacy Policy</span></p>',
+      '</div>',
+    '</div>'
+  ].join('');
+  document.body.appendChild(modal);
+  requestAnimationFrame(function(){ modal.classList.add('open'); });
+}
+
+function closeAuth() {
+  var m = document.getElementById('authModal');
+  if (m) m.classList.remove('open');
+}
+
+function switchAuthTab(tab) {
+  document.getElementById('auth-login').style.display    = tab === 'login'    ? '' : 'none';
+  document.getElementById('auth-register').style.display = tab === 'register' ? '' : 'none';
+  document.getElementById('atab-login').classList.toggle('active',    tab === 'login');
+  document.getElementById('atab-register').classList.toggle('active', tab === 'register');
+}
+
+var _authRole = 'farmer';
+function setRole(r) {
+  _authRole = r;
+  document.getElementById('role-farmer').classList.toggle('active', r === 'farmer');
+  document.getElementById('role-buyer').classList.toggle('active',  r === 'buyer');
+}
+
+function togglePwd() {
+  var inp = document.getElementById('authPass');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function doLogin() {
+  var phone = (document.getElementById('authPhone')||{}).value||'';
+  var pass  = (document.getElementById('authPass')||{}).value||'';
+  if (!phone.trim()) { showToast('⚠️ Please enter your phone number'); return; }
+  if (!pass.trim())  { showToast('⚠️ Please enter your password'); return; }
+  var btn = document.querySelector('#auth-login .auth-submit');
+  btn.textContent = '⏳ Signing in…'; btn.disabled = true;
+  setTimeout(function() {
+    btn.textContent = '🔐 Sign In'; btn.disabled = false;
+    closeAuth();
+    showToast('✅ Welcome back! Full app coming soon.');
+  }, 1200);
+}
+
+function doMpesaLogin() {
+  showToast('📲 M-Pesa OTP sent — enter the code to continue');
+}
+
+function doRegister() {
+  var name  = (document.getElementById('regName')||{}).value||'';
+  var phone = (document.getElementById('regPhone')||{}).value||'';
+  var county= (document.getElementById('regCounty')||{}).value||'';
+  var pass  = (document.getElementById('regPass')||{}).value||'';
+  if (!name.trim())   { showToast('⚠️ Please enter your name');     return; }
+  if (!phone.trim())  { showToast('⚠️ Please enter your phone');    return; }
+  if (!county)        { showToast('⚠️ Please select your county');  return; }
+  if (!pass.trim())   { showToast('⚠️ Please create a password');   return; }
+  var btn = document.querySelector('#auth-register .auth-submit');
+  btn.textContent = '⏳ Creating account…'; btn.disabled = true;
+  setTimeout(function() {
+    btn.textContent = '🌱 Create Free Account'; btn.disabled = false;
+    closeAuth();
+    showToast('🎉 Account created! Welcome to SeedPro, ' + name.split(' ')[0] + '!');
+  }, 1400);
 }
 
 function openWA(name) { showToast('💬 Opening WhatsApp for ' + name + '…'); }
