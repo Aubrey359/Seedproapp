@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Lato:wght@400;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/site.css" />
+  <link rel="stylesheet" href="public/site.css" />
   <style>
     /* page system — home only */
     .page { display: none; }
@@ -367,7 +368,7 @@
 <div class="toast" id="toast"></div>
 <div id="root"></div>
 
-<script src="/site.js"></script>
+<script src="/site.js" onerror="var s=document.createElement('script');s.src='public/site.js';document.head.appendChild(s)"></script>
 <script>
 function enterApp() {
   var loader = document.getElementById('appLoader');
