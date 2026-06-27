@@ -1082,6 +1082,12 @@
 
 <script src="/site.js" onerror="var s=document.createElement('script');s.src='public/site.js';document.head.appendChild(s)"></script>
 <script>
+// @ts-nocheck — browser glue. Shared helpers (renderHomeGrid, renderShopGrid, setCat,
+// showToast, updateCart, enterApp, toggleCart, checkout, etc.) are defined globally in
+// /site.js, which is loaded by the <script src> tag just above. The editor checks this
+// file in isolation and can't see that external file, so without this it falsely reports
+// "Cannot find name 'X'". They exist at runtime — verified working.
+/* global renderHomeGrid, renderShopGrid, setCat, showToast, updateCart, checkout, enterApp, filterProds, handleSearch, openWA, quickAdd, setBlogTab, sortProds, toggleCart */
 function setMktTab(btn) {
   document.querySelectorAll('.mkt-tab').forEach(function(t){ t.classList.remove('active'); });
   btn.classList.add('active');
@@ -1141,8 +1147,16 @@ var SCAN_DATA = {
 function handleCapture(input) {
   var file = input.files && input.files[0];
   if (!file) return;
-  var crop = document.getElementById('cropSelect').value || 'Produce';
-  if (!crop || crop === '') { showToast('⚠️ Please select a crop first'); return; }
+  var crop = document.getElementById('cropSelect').value;
+  if (!crop) {
+    showToast('⚠️ Please select a crop first');
+    input.value = '';
+    var sel = document.getElementById('cropSelect');
+    sel.focus();
+    sel.classList.add('needs-pick');
+    setTimeout(function(){ sel.classList.remove('needs-pick'); }, 1600);
+    return;
+  }
   var reader = new FileReader();
   reader.onload = function(ev) { startScan(ev.target.result, crop); };
   reader.readAsDataURL(file);

@@ -1018,3 +1018,109 @@ body { padding-bottom: 62px; }
 .ph-name   { font-size:11px; font-weight:700; color:var(--grey-text); margin-bottom:3px; }
 .ph-price  { font-size:18px; font-weight:900; color:var(--dark); font-family:'Nunito',sans-serif; }
 .ph-trend  { font-size:10px; margin-top:3px; font-weight:700; }
+
+/* ════════════════════════════════════════════
+   SCAN PLANT — full flow styling
+   ════════════════════════════════════════════ */
+@keyframes scanSweep { 0%{top:0} 100%{top:100%} }
+@keyframes pickPulse { 0%,100%{box-shadow:0 0 0 0 rgba(230,81,0,.35)} 50%{box-shadow:0 0 0 6px rgba(230,81,0,0)} }
+
+/* Hero */
+.scan-hero {
+  background: var(--g-hero); padding: 26px 20px 24px;
+  position: relative; overflow: hidden;
+}
+.scan-hero::before { content:''; position:absolute; right:-40px; top:-40px; width:170px; height:170px; border-radius:50%; background:rgba(255,255,255,.06); }
+.scan-hero::after  { content:''; position:absolute; left:-30px; bottom:-50px; width:120px; height:120px; border-radius:50%; background:rgba(255,255,255,.04); }
+.scan-hero h1 { font-size:24px; font-weight:900; color:white; margin-bottom:6px; position:relative; z-index:1; }
+.scan-hero p  { font-size:13px; color:rgba(255,255,255,.82); position:relative; z-index:1; max-width:74%; line-height:1.55; }
+
+/* How it works */
+.how-it-works { padding:18px 20px 6px; }
+.steps { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:12px; }
+.step {
+  background:white; border:1.5px solid var(--grey-border); border-radius:var(--radius-lg);
+  padding:18px 10px 14px; text-align:center; position:relative;
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  box-shadow:var(--shadow-xs);
+}
+.step-num {
+  position:absolute; top:-12px; left:50%; transform:translateX(-50%);
+  width:26px; height:26px; border-radius:50%; background:var(--g-green); color:white;
+  font-size:13px; font-weight:900; font-family:'Nunito',sans-serif;
+  display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow-sm);
+}
+.step-icon { font-size:32px; margin-top:6px; line-height:1; }
+.step h4 { font-size:13px; font-weight:800; color:var(--dark); font-family:'Nunito',sans-serif; }
+.step p  { font-size:11px; color:var(--grey-text); line-height:1.45; }
+
+/* Crop selector */
+.crop-select-wrap { padding:16px 20px 6px; }
+.crop-select-wrap label { display:block; font-size:13px; font-weight:800; color:var(--dark); font-family:'Nunito',sans-serif; margin-bottom:8px; }
+.crop-select-wrap select {
+  width:100%; height:50px; padding:0 16px; font-size:14px; font-family:'Lato',sans-serif;
+  border:1.5px solid var(--grey-border); border-radius:var(--radius); background:white; color:var(--text);
+  outline:none; cursor:pointer; transition:border-color .2s, box-shadow .2s;
+}
+.crop-select-wrap select:focus { border-color:var(--green); box-shadow:0 0 0 3px var(--green-pale); }
+.crop-select-wrap select.needs-pick { border-color:var(--orange); animation:pickPulse 1s ease 2; }
+
+/* Upload box */
+.scan-box {
+  margin:14px 20px; padding:30px 22px; text-align:center;
+  background:linear-gradient(180deg,var(--green-bg),#FFFFFF);
+  border:2px dashed var(--green-light); border-radius:var(--radius-xl);
+}
+.scan-icon { font-size:48px; line-height:1; margin-bottom:12px; }
+.scan-box h2 { font-size:18px; font-weight:900; color:var(--dark); font-family:'Nunito',sans-serif; margin-bottom:6px; }
+.scan-box p  { font-size:12.5px; color:var(--grey-text); line-height:1.55; max-width:300px; margin:0 auto 18px; }
+.scan-btns { display:flex; gap:10px; justify-content:center; }
+.scan-btn-camera, .scan-btn-gallery {
+  flex:1; max-width:170px; height:48px; border-radius:100px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  font-size:13.5px; font-weight:800; font-family:'Nunito',sans-serif; transition:all .2s;
+}
+.scan-btn-camera { background:var(--g-green); color:white; box-shadow:var(--shadow-green); border:none; }
+.scan-btn-camera:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(46,125,50,.35); }
+.scan-btn-gallery { background:white; color:var(--green); border:2px solid var(--green); }
+.scan-btn-gallery:hover { background:var(--green-pale); }
+
+/* Progress — hidden until .active */
+.scan-progress { display:none; margin:14px 20px; padding:22px; background:white; border:1px solid var(--grey-border); border-radius:var(--radius-xl); box-shadow:var(--shadow-sm); text-align:center; }
+.scan-progress.active { display:block; }
+.scan-preview { position:relative; width:170px; height:170px; margin:0 auto 16px; border-radius:var(--radius-lg); overflow:hidden; background:var(--grey-bg); box-shadow:var(--shadow); }
+.scan-preview img { width:100%; height:100%; object-fit:cover; display:block; }
+.scan-sweep { position:absolute; left:0; right:0; top:0; height:3px; background:linear-gradient(90deg,transparent,#66BB6A,transparent); box-shadow:0 0 12px 3px rgba(102,187,106,.7); animation:scanSweep 1.3s linear infinite; }
+.scan-pct { font-size:34px; font-weight:900; color:var(--green-dark); font-family:'Nunito',sans-serif; line-height:1; }
+.scan-bar-wrap { height:10px; background:var(--grey-bg); border-radius:100px; overflow:hidden; margin:12px 0 10px; }
+.scan-bar-fill { height:100%; width:0; background:var(--g-green); border-radius:100px; transition:width .15s linear; }
+.scan-status { font-size:12.5px; font-weight:700; color:var(--grey-text); font-family:'Nunito',sans-serif; }
+
+/* Result — hidden until .active */
+.scan-result { display:none; }
+.scan-result.active { display:block; animation:fadeUp .4s ease both; }
+.result-card { margin:14px 20px; border-radius:var(--radius-xl); overflow:hidden; box-shadow:var(--shadow-md); }
+.result-head { background:var(--g-green); padding:18px 20px; display:flex; align-items:center; gap:14px; color:white; }
+.result-head .check { width:48px; height:48px; border-radius:50%; background:rgba(255,255,255,.18); display:flex; align-items:center; justify-content:center; font-size:26px; flex-shrink:0; }
+.result-head h3 { font-size:18px; font-weight:900; font-family:'Nunito',sans-serif; margin-bottom:3px; }
+.result-head p  { font-size:12px; opacity:.85; }
+.result-body { background:white; padding:18px 20px; }
+.result-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px; }
+.result-stat { text-align:center; background:var(--green-bg); border:1px solid var(--green-pale); border-radius:var(--radius); padding:12px 6px; }
+.result-stat .val { font-size:18px; font-weight:900; color:var(--green-dark); font-family:'Nunito',sans-serif; }
+.result-stat .lbl { font-size:9px; color:var(--grey-text); font-weight:700; text-transform:uppercase; letter-spacing:.04em; margin-top:3px; }
+.result-notes { font-size:12.5px; color:var(--text); line-height:1.6; background:var(--grey-bg); border-radius:var(--radius); padding:12px 14px; margin-bottom:16px; }
+.result-actions { display:flex; flex-direction:column; gap:10px; }
+.btn-sell, .btn-retry { height:48px; border-radius:100px; font-size:14px; font-weight:800; font-family:'Nunito',sans-serif; cursor:pointer; transition:all .2s; }
+.btn-sell { background:var(--g-orange); color:white; border:none; box-shadow:var(--shadow-orange); }
+.btn-sell:hover { transform:translateY(-2px); }
+.btn-retry { background:white; color:var(--grey-text); border:1.5px solid var(--grey-border); }
+.btn-retry:hover { background:var(--grey-bg); }
+
+/* Benefits */
+.benefits { padding:20px 20px 8px; }
+.benefit-list { display:flex; flex-direction:column; gap:12px; margin-top:12px; }
+.benefit-item { display:flex; align-items:flex-start; gap:13px; background:white; border:1px solid var(--grey-border); border-radius:var(--radius-lg); padding:14px 16px; box-shadow:var(--shadow-xs); }
+.benefit-icon { width:44px; height:44px; flex-shrink:0; border-radius:14px; background:var(--green-bg); display:flex; align-items:center; justify-content:center; font-size:22px; }
+.benefit-item h4 { font-size:13.5px; font-weight:800; color:var(--dark); font-family:'Nunito',sans-serif; margin-bottom:3px; }
+.benefit-item p  { font-size:12px; color:var(--grey-text); line-height:1.5; }
