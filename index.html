@@ -11,7 +11,6 @@
   <link rel="stylesheet" href="/site.css" />
   <link rel="stylesheet" href="public/site.css" />
   <style>
-    /* page system — home only */
     .page { display: none; }
     .page.active { display: block; }
     #root { display: none; }
@@ -27,8 +26,8 @@
       animation: spin .7s linear infinite;
     }
     .app-loader p { font-size: 13px; color: var(--grey-text); font-family:'Nunito',sans-serif; font-weight: 700; }
-    /* keep home-page nav-link button style same as site.css nav-link */
     button.nav-link { font-family:'Nunito',sans-serif; }
+    button.mob-nav-btn { font-family:'Nunito',sans-serif; background:none; border:none; cursor:pointer; }
   </style>
 </head>
 <body>
@@ -77,12 +76,12 @@
   </div>
   <div class="nav-bottom">
     <button class="nav-link active" id="nl-home" onclick="showPage('home')">🏠 Home</button>
-    <a class="nav-link" id="nl-shop" href="shop.html">🛒 Shop</a>
-    <a class="nav-link" id="nl-blog" href="blog.html">📰 Blog</a>
-    <a class="nav-link" href="prices.html">📈 Live Prices</a>
-    <a class="nav-link" href="scan.html">📸 Scan Plant</a>
-    <a class="nav-link" href="sell.html">🌾 Sell Produce</a>
-    <a class="nav-link hot" href="shop.html">🔥 Today's Deals</a>
+    <button class="nav-link" id="nl-shop" onclick="showPage('shop')">🛒 Shop</button>
+    <button class="nav-link" id="nl-blog" onclick="showPage('blog')">📰 Blog</button>
+    <button class="nav-link" id="nl-prices" onclick="showPage('prices')">📈 Live Prices</button>
+    <button class="nav-link" id="nl-scan" onclick="showPage('scan')">📸 Scan Plant</button>
+    <button class="nav-link" id="nl-sell" onclick="showPage('sell')">🌾 Sell Produce</button>
+    <button class="nav-link hot" onclick="showPage('shop')">🔥 Today's Deals</button>
   </div>
 </nav>
 
@@ -103,8 +102,8 @@
       <h1>Fresh Produce,<br/><em>Direct From Farmers</em></h1>
       <p>Order verified farm produce straight from Kenyan farmers. No middlemen. Pay with M-Pesa. Delivered to your door.</p>
       <div class="hero-btns">
-        <button class="btn-hero-white" onclick="window.location.href='shop.html'">🛒 Shop Now</button>
-        <button class="btn-hero-outline" onclick="enterApp()">Post Your Produce</button>
+        <button class="btn-hero-white" onclick="showPage('shop')">🛒 Shop Now</button>
+        <button class="btn-hero-outline" onclick="showPage('sell')">Post Your Produce</button>
       </div>
       <div class="hero-trust">
         <div class="trust-item">✅ Verified Farmers</div>
@@ -141,13 +140,13 @@
 
   <!-- PROMO BANNERS -->
   <div class="promo-row">
-    <div class="promo-card promo-green" onclick="window.location.href='scan.html'">
+    <div class="promo-card promo-green" onclick="showPage('scan')">
       <h3>Scan &amp; Verify</h3>
       <p>AI verifies your crop — get a trusted badge &amp; sell faster</p>
       <button class="promo-btn">Try Free →</button>
       <span class="bg-emoji">📸</span>
     </div>
-    <div class="promo-card promo-orange" onclick="window.location.href='shop.html'">
+    <div class="promo-card promo-orange" onclick="showPage('shop')">
       <h3>Flash Sale 🔥</h3>
       <p>Up to 30% off fresh produce today only</p>
       <button class="promo-btn">Shop Now →</button>
@@ -159,32 +158,32 @@
   <div style="background:white;padding:14px 20px 4px">
     <div class="section-head" style="margin-bottom:10px">
       <div class="section-title">Shop by Category</div>
-      <button class="see-all" onclick="window.location.href='shop.html'">See All →</button>
+      <button class="see-all" onclick="showPage('shop')">See All →</button>
     </div>
   </div>
   <div class="cats-scroll">
-    <button class="cat-card" onclick="window.location.href='shop.html'">
+    <button class="cat-card" onclick="showPage('shop')">
       <div class="cat-icon-circle">🌿</div><span>All Fresh</span>
     </button>
-    <button class="cat-card" onclick="window.location.href='shop.html?cat=vegetables'">
+    <button class="cat-card" onclick="shopCat('vegetables')">
       <div class="cat-icon-circle">🍅</div><span>Vegetables</span>
     </button>
-    <button class="cat-card" onclick="window.location.href='shop.html?cat=grains'">
+    <button class="cat-card" onclick="shopCat('grains')">
       <div class="cat-icon-circle">🌽</div><span>Grains</span>
     </button>
-    <button class="cat-card" onclick="window.location.href='shop.html?cat=fruits'">
+    <button class="cat-card" onclick="shopCat('fruits')">
       <div class="cat-icon-circle">🥑</div><span>Fruits</span>
     </button>
-    <button class="cat-card" onclick="window.location.href='shop.html?cat=cash'">
+    <button class="cat-card" onclick="shopCat('cash_crops')">
       <div class="cat-icon-circle">☕</div><span>Cash Crops</span>
     </button>
-    <button class="cat-card" onclick="window.location.href='shop.html?cat=legumes'">
+    <button class="cat-card" onclick="shopCat('legumes')">
       <div class="cat-icon-circle">🫘</div><span>Legumes</span>
     </button>
-    <button class="cat-card" onclick="window.location.href='shop.html?cat=vegetables'">
+    <button class="cat-card" onclick="shopCat('vegetables')">
       <div class="cat-icon-circle">🥬</div><span>Leafy Greens</span>
     </button>
-    <button class="cat-card" onclick="window.location.href='shop.html?cat=grains'">
+    <button class="cat-card" onclick="shopCat('grains')">
       <div class="cat-icon-circle">🍚</div><span>Rice</span>
     </button>
   </div>
@@ -223,7 +222,7 @@
   <div class="section" style="padding-top:0">
     <div class="section-head">
       <div class="section-title">Fresh Today</div>
-      <button class="see-all" onclick="window.location.href='shop.html'">View All →</button>
+      <button class="see-all" onclick="showPage('shop')">View All →</button>
     </div>
     <div class="products-grid" id="homeGrid"></div>
   </div>
@@ -277,7 +276,7 @@
   <div class="section">
     <div class="section-head">
       <div class="section-title">Live Market Prices</div>
-      <button class="see-all" onclick="window.location.href='prices.html'">Full Chart →</button>
+      <button class="see-all" onclick="showPage('prices')">Full Chart →</button>
     </div>
     <div class="prices-table">
       <div class="price-head"><span>Crop</span><span>KSh/kg</span><span>Trend</span></div>
@@ -325,7 +324,7 @@
   <div class="home-cta">
     <h2>Start Selling Your Harvest Today</h2>
     <p>Join 2,400 Kenyan farmers selling directly to buyers — zero commission, M-Pesa payments, verified badges.</p>
-    <button class="btn-hero-white" onclick="enterApp()">🌱 Register Free — Takes 60 Seconds</button>
+    <button class="btn-hero-white" onclick="showPage('sell')">🌱 Register Free — Takes 60 Seconds</button>
     <div class="mpesa">💳 M-Pesa · Airtel Money · Bank Transfer · Cash on Delivery</div>
   </div>
 
@@ -341,11 +340,11 @@
     </div>
     <div class="footer-links">
       <a onclick="showPage('home')" href="#">🏠 Home</a>
-      <a href="shop.html">🛒 Shop</a>
-      <a href="blog.html">📰 Blog</a>
-      <a href="prices.html">📈 Live Prices</a>
-      <a href="scan.html">📸 Scan Plant</a>
-      <a href="sell.html">🌾 Post Listing</a>
+      <a onclick="showPage('shop')" href="#">🛒 Shop</a>
+      <a onclick="showPage('blog')" href="#">📰 Blog</a>
+      <a onclick="showPage('prices')" href="#">📈 Live Prices</a>
+      <a onclick="showPage('scan')" href="#">📸 Scan Plant</a>
+      <a onclick="showPage('sell')" href="#">🌾 Post Listing</a>
       <a onclick="enterApp()" href="#">About Us</a>
       <a onclick="enterApp()" href="#">Contact</a>
     </div>
@@ -361,13 +360,707 @@
   </footer>
 </div>
 
+<!-- ═══════════════════ SHOP PAGE ═══════════════════ -->
+<div id="page-shop" class="page">
+  <!-- SHOP HERO -->
+  <div class="shop-hero">
+    <h1>🛒 Fresh Farm Shop</h1>
+    <p>Order directly from verified Kenyan farmers · M-Pesa accepted</p>
+    <div class="shop-search">
+      <input type="text" placeholder="Search fresh produce…" id="shopSearch" oninput="filterProds()" />
+      <button onclick="filterProds()">Search</button>
+    </div>
+    <div class="page-hero-floats">
+      <div class="phf-item">🍅</div>
+      <div class="phf-item">🥑</div>
+      <div class="phf-item">🌽</div>
+    </div>
+  </div>
+
+  <!-- FLASH DEAL STRIP -->
+  <div class="flash-strip">
+    <div class="flash-strip-txt">🔥 Flash Deal <span>Up to 30% off verified produce</span></div>
+    <div class="flash-timer">
+      <div class="flash-box" id="fh">04</div>
+      <span style="color:white;font-weight:900;align-self:center">:</span>
+      <div class="flash-box" id="fm">27</div>
+      <span style="color:white;font-weight:900;align-self:center">:</span>
+      <div class="flash-box" id="fs">00</div>
+    </div>
+  </div>
+
+  <!-- CATEGORY FILTER -->
+  <div class="cats-scroll" style="border-bottom:1px solid var(--grey-border)">
+    <button class="cat-card active" id="sc-all" onclick="setCat('all',this)">
+      <div class="cat-icon-circle">🌿</div><span>All</span>
+    </button>
+    <button class="cat-card" id="sc-vegetables" onclick="setCat('vegetables',this)">
+      <div class="cat-icon-circle">🍅</div><span>Vegetables</span>
+    </button>
+    <button class="cat-card" id="sc-grains" onclick="setCat('grains',this)">
+      <div class="cat-icon-circle">🌽</div><span>Grains</span>
+    </button>
+    <button class="cat-card" id="sc-fruits" onclick="setCat('fruits',this)">
+      <div class="cat-icon-circle">🥑</div><span>Fruits</span>
+    </button>
+    <button class="cat-card" id="sc-cash_crops" onclick="setCat('cash_crops',this)">
+      <div class="cat-icon-circle">☕</div><span>Cash Crops</span>
+    </button>
+    <button class="cat-card" id="sc-legumes" onclick="setCat('legumes',this)">
+      <div class="cat-icon-circle">🫘</div><span>Legumes</span>
+    </button>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="shop-bar">
+    <span id="prodCount">12 products</span>
+    <select class="sort-sel" onchange="sortProds(this.value)">
+      <option value="default">Featured</option>
+      <option value="price-asc">Price: Low → High</option>
+      <option value="price-desc">Price: High → Low</option>
+      <option value="rating">Top Rated</option>
+    </select>
+  </div>
+
+  <!-- PRODUCT GRID -->
+  <div style="padding:12px 16px">
+    <div class="products-grid" id="shopGrid"></div>
+  </div>
+
+  <div style="text-align:center;padding:8px 16px 28px">
+    <button class="btn-primary" onclick="enterApp()">View All Listings in App →</button>
+  </div>
+
+  <footer class="footer-rich">
+    <div class="footer-logo-row"><div class="footer-logo-icon">🌱</div><div class="footer-logo-name">SeedPro</div></div>
+    <div class="footer-tagline">Kenya's Fresh Farm Marketplace · Empowering Farmers Since 2024</div>
+    <div class="footer-mpesa-badge">💳 M-Pesa Accepted &nbsp;·&nbsp; 🔒 Secure Checkout</div>
+    <div class="footer-trust">
+      <div class="footer-badge">✅ Verified Farmers</div>
+      <div class="footer-badge">🚚 Next-Day Delivery</div>
+      <div class="footer-badge">🌾 Farm-Direct Prices</div>
+      <div class="footer-badge">📞 24/7 Support</div>
+    </div>
+    <div class="footer-links">
+      <a onclick="showPage('home')" href="#">🏠 Home</a>
+      <a onclick="showPage('shop')" href="#">🛒 Shop</a>
+      <a onclick="showPage('blog')" href="#">📰 Blog</a>
+      <a onclick="showPage('prices')" href="#">📈 Live Prices</a>
+      <a onclick="showPage('scan')" href="#">📸 Scan Plant</a>
+      <a onclick="showPage('sell')" href="#">🌾 Post Listing</a>
+    </div>
+    <hr class="footer-hr"/>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2026 SeedPro Kenya · All Rights Reserved</div>
+      <div class="footer-socials">
+        <button class="social-btn" onclick="showToast('💬 WhatsApp: +254 800 720 600')">💬</button>
+        <button class="social-btn" onclick="showToast('📘 Follow @SeedProKenya')">📘</button>
+        <button class="social-btn" onclick="showToast('🐦 Follow @SeedProKE')">🐦</button>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ═══════════════════ BLOG PAGE ═══════════════════ -->
+<div id="page-blog" class="page">
+  <!-- BLOG HERO -->
+  <div class="blog-hero" style="position:relative;overflow:hidden">
+    <h1>📰 SeedPro Farming Blog</h1>
+    <p>Market insights, crop tips and success stories from Kenyan farmers</p>
+    <div class="page-hero-floats">
+      <div class="phf-item">📊</div>
+      <div class="phf-item">🌿</div>
+      <div class="phf-item">💡</div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="blog-tabs">
+    <button class="blog-tab active" onclick="setBlogTab(this)">All Articles</button>
+    <button class="blog-tab" onclick="setBlogTab(this)">Market Prices</button>
+    <button class="blog-tab" onclick="setBlogTab(this)">Crop Tips</button>
+    <button class="blog-tab" onclick="setBlogTab(this)">Disease &amp; Pests</button>
+    <button class="blog-tab" onclick="setBlogTab(this)">Success Stories</button>
+    <button class="blog-tab" onclick="setBlogTab(this)">Weather</button>
+  </div>
+
+  <!-- FEATURED ARTICLE -->
+  <div class="blog-featured" onclick="enterApp()">
+    <div class="blog-feat-img">
+      🍅
+      <div class="feat-label">⭐ Featured</div>
+    </div>
+    <div class="blog-feat-body">
+      <div class="blog-meta">
+        <span class="blog-cat">Market Prices</span>
+        <span class="blog-date">June 24, 2026</span>
+      </div>
+      <h2>Tomato Prices Hit a 3-Year High — Here's How to Cash In</h2>
+      <p>Nairobi wholesale prices jumped 34% in June due to dry spells in Kirinyaga. We break down what's driving the surge and the best time to sell your harvest for maximum returns this season.</p>
+      <button class="read-more">Read Full Article →</button>
+    </div>
+  </div>
+
+  <!-- ARTICLES -->
+  <div style="padding:4px 16px 10px"><div class="section-title">Latest Articles</div></div>
+  <div class="blog-grid">
+    <div class="blog-card" onclick="enterApp()">
+      <div class="blog-card-img">📸</div>
+      <div class="blog-card-body">
+        <span class="blog-card-cat">Farmer Tips</span>
+        <h3>How the Plant Scan Verified Badge Doubled One Farmer's Sales</h3>
+        <p>James Mwangi from Nakuru shares how a verified listing tripled his buyer enquiries in one week.</p>
+        <div class="blog-card-foot"><span class="d">June 20, 2026</span><span class="read-tag">4 min</span></div>
+      </div>
+    </div>
+    <div class="blog-card" onclick="enterApp()">
+      <div class="blog-card-img">🌽</div>
+      <div class="blog-card-body">
+        <span class="blog-card-cat">Crop Tips</span>
+        <h3>Long Rains Maize Planting Calendar for Western Kenya 2026</h3>
+        <p>Optimal planting dates, variety selection and fertiliser timing for Kisumu and Kakamega.</p>
+        <div class="blog-card-foot"><span class="d">June 18, 2026</span><span class="read-tag">6 min</span></div>
+      </div>
+    </div>
+    <div class="blog-card" onclick="enterApp()">
+      <div class="blog-card-img">🥑</div>
+      <div class="blog-card-body">
+        <span class="blog-card-cat">Market</span>
+        <h3>Avocado Export Prices: How Kenyan Farmers Can Access European Markets</h3>
+        <p>Step-by-step guide to GlobalGAP certification and pricing your Hass avocados for EU buyers.</p>
+        <div class="blog-card-foot"><span class="d">June 15, 2026</span><span class="read-tag">8 min</span></div>
+      </div>
+    </div>
+    <div class="blog-card" onclick="enterApp()">
+      <div class="blog-card-img">🥔</div>
+      <div class="blog-card-body">
+        <span class="blog-card-cat">Disease &amp; Pests</span>
+        <h3>Identifying and Controlling Late Blight on Potatoes in the Highlands</h3>
+        <p>With wetter seasons ahead, potato blight is surging in Nyandarua and Meru. Spot it early.</p>
+        <div class="blog-card-foot"><span class="d">June 12, 2026</span><span class="read-tag">5 min</span></div>
+      </div>
+    </div>
+    <div class="blog-card" onclick="enterApp()">
+      <div class="blog-card-img">☕</div>
+      <div class="blog-card-body">
+        <span class="blog-card-cat">Success Story</span>
+        <h3>From 2 Acres to 20: How Mary Wanjiku Built a Coffee Empire on SeedPro</h3>
+        <p>Mary started with 200 kg of AA coffee and a phone. Today she supplies three Nairobi roasters.</p>
+        <div class="blog-card-foot"><span class="d">June 10, 2026</span><span class="read-tag">7 min</span></div>
+      </div>
+    </div>
+    <div class="blog-card" onclick="enterApp()">
+      <div class="blog-card-img">🌦️</div>
+      <div class="blog-card-body">
+        <span class="blog-card-cat">Weather</span>
+        <h3>El Niño 2026 Advisory: What Kenyan Farmers Must Do Now</h3>
+        <p>Kenya Met warns of above-normal July rainfall. Your county-by-county crop protection plan.</p>
+        <div class="blog-card-foot"><span class="d">June 5, 2026</span><span class="read-tag">5 min</span></div>
+      </div>
+    </div>
+    <div class="blog-card" onclick="enterApp()">
+      <div class="blog-card-img">💧</div>
+      <div class="blog-card-body">
+        <span class="blog-card-cat">Crop Tips</span>
+        <h3>Low-Cost Drip Irrigation Guide for Small-Scale Kenyan Farmers</h3>
+        <p>Set up a drip system for under KSh 15,000 and cut your water bill by 60%.</p>
+        <div class="blog-card-foot"><span class="d">June 8, 2026</span><span class="read-tag">6 min</span></div>
+      </div>
+    </div>
+    <div class="blog-card" onclick="enterApp()">
+      <div class="blog-card-img">🧅</div>
+      <div class="blog-card-body">
+        <span class="blog-card-cat">Market Prices</span>
+        <h3>Onion Prices Up 15% — Naivasha Farmers Who Listed Early Are Winning</h3>
+        <p>Demand from Tanzania is pushing Kenyan onion prices to season highs. How to time your listing.</p>
+        <div class="blog-card-foot"><span class="d">June 3, 2026</span><span class="read-tag">3 min</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEWSLETTER -->
+  <div class="newsletter-box">
+    <h3>📲 Get Weekly Market Alerts</h3>
+    <p>Price updates, crop advisories and farming tips every Monday — straight to your phone.</p>
+    <div class="news-form">
+      <input type="tel" placeholder="Your phone e.g. 0712 345 678" />
+      <button onclick="showToast('✅ Subscribed! Weekly alerts on the way')">Subscribe →</button>
+    </div>
+  </div>
+
+  <footer class="footer-rich">
+    <div class="footer-logo-row"><div class="footer-logo-icon">🌱</div><div class="footer-logo-name">SeedPro</div></div>
+    <div class="footer-tagline">Kenya's Fresh Farm Marketplace · Empowering Farmers Since 2024</div>
+    <div class="footer-mpesa-badge">💳 M-Pesa Accepted &nbsp;·&nbsp; 🔒 Secure Checkout</div>
+    <div class="footer-trust">
+      <div class="footer-badge">✅ Verified Farmers</div>
+      <div class="footer-badge">🚚 Next-Day Delivery</div>
+      <div class="footer-badge">🌾 Farm-Direct Prices</div>
+      <div class="footer-badge">📞 24/7 Support</div>
+    </div>
+    <div class="footer-links">
+      <a onclick="showPage('home')" href="#">🏠 Home</a>
+      <a onclick="showPage('shop')" href="#">🛒 Shop</a>
+      <a onclick="showPage('blog')" href="#">📰 Blog</a>
+      <a onclick="showPage('prices')" href="#">📈 Live Prices</a>
+      <a onclick="showPage('scan')" href="#">📸 Scan Plant</a>
+      <a onclick="showPage('sell')" href="#">🌾 Post Listing</a>
+    </div>
+    <hr class="footer-hr"/>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2026 SeedPro Kenya · All Rights Reserved</div>
+      <div class="footer-socials">
+        <button class="social-btn" onclick="showToast('💬 WhatsApp: +254 800 720 600')">💬</button>
+        <button class="social-btn" onclick="showToast('📘 Follow @SeedProKenya')">📘</button>
+        <button class="social-btn" onclick="showToast('🐦 Follow @SeedProKE')">🐦</button>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ═══════════════════ PRICES PAGE ═══════════════════ -->
+<div id="page-prices" class="page">
+  <!-- PRICES HERO -->
+  <div class="prices-hero">
+    <h1>📈 Live Market Prices</h1>
+    <p>Wholesale &amp; retail prices from major Kenyan markets</p>
+    <div class="prices-updated">
+      <div class="live-dot"></div>
+      <span>Last updated: Today, 6:00 AM · Nairobi Wakulima Market</span>
+    </div>
+    <div class="page-hero-floats">
+      <div class="phf-item">📊</div>
+      <div class="phf-item">💰</div>
+      <div class="phf-item">🌾</div>
+    </div>
+  </div>
+
+  <!-- MARKET SELECTOR -->
+  <div class="market-select">
+    <label>📍 Market:</label>
+    <select onchange="showToast('📈 Loading prices for ' + this.options[this.selectedIndex].text + '…')">
+      <option>Nairobi – Wakulima</option>
+      <option>Nairobi – City Market</option>
+      <option>Mombasa – Kongowea</option>
+      <option>Kisumu – Kibuye</option>
+      <option>Nakuru – Marikiti</option>
+      <option>Eldoret – Moi's Bridge</option>
+      <option>Meru – Town Market</option>
+      <option>Thika – Municipality</option>
+    </select>
+  </div>
+
+  <!-- CATEGORY TABS -->
+  <div class="market-tabs">
+    <button class="mkt-tab active" onclick="setMktTab(this)">All</button>
+    <button class="mkt-tab" onclick="setMktTab(this)">🍅 Vegetables</button>
+    <button class="mkt-tab" onclick="setMktTab(this)">🌽 Grains</button>
+    <button class="mkt-tab" onclick="setMktTab(this)">🥑 Fruits</button>
+    <button class="mkt-tab" onclick="setMktTab(this)">☕ Cash Crops</button>
+    <button class="mkt-tab" onclick="setMktTab(this)">🫘 Legumes</button>
+  </div>
+
+  <!-- PRICE TABLE -->
+  <div class="prices-section">
+    <div class="section-title">Today's Prices (KSh/kg)</div>
+    <div class="price-card">
+      <div class="price-card-head">
+        <span>Crop</span><span>Wholesale</span><span>Retail</span><span>Trend</span>
+      </div>
+      <div class="price-row"><div class="price-crop-name">🍅 Tomato</div>      <div class="price-wholesale">95</div>  <div class="price-retail">130</div> <div class="price-trend-up">▲ 12%</div></div>
+      <div class="price-row"><div class="price-crop-name">🧅 Onion</div>       <div class="price-wholesale">110</div> <div class="price-retail">145</div> <div class="price-trend-up">▲ 15%</div></div>
+      <div class="price-row"><div class="price-crop-name">🥬 Sukuma Wiki</div>  <div class="price-wholesale">30</div>  <div class="price-retail">45</div>  <div class="price-trend-up">▲ 3%</div></div>
+      <div class="price-row"><div class="price-crop-name">🫛 French Beans</div><div class="price-wholesale">145</div> <div class="price-retail">190</div> <div class="price-trend-up">▲ 8%</div></div>
+      <div class="price-row"><div class="price-crop-name">🍠 Sweet Potato</div><div class="price-wholesale">55</div>  <div class="price-retail">75</div>  <div class="price-trend-up">▲ 6%</div></div>
+      <div class="price-row"><div class="price-crop-name">🥬 Cabbage</div>      <div class="price-wholesale">35</div>  <div class="price-retail">50</div>  <div class="price-trend-down">▼ 2%</div></div>
+    </div>
+
+    <div class="price-card" style="margin-top:14px">
+      <div class="price-card-head">
+        <span>Crop</span><span>Wholesale</span><span>Retail</span><span>Trend</span>
+      </div>
+      <div class="price-row"><div class="price-crop-name">🌽 Maize</div>        <div class="price-wholesale">42</div>  <div class="price-retail">60</div>  <div class="price-trend-down">▼ 3%</div></div>
+      <div class="price-row"><div class="price-crop-name">🍚 Pishori Rice</div> <div class="price-wholesale">185</div> <div class="price-retail">240</div> <div class="price-trend-flat">→ 0%</div></div>
+      <div class="price-row"><div class="price-crop-name">🥔 Potato</div>       <div class="price-wholesale">58</div>  <div class="price-retail">80</div>  <div class="price-trend-up">▲ 5%</div></div>
+      <div class="price-row"><div class="price-crop-name">🫘 Beans</div>         <div class="price-wholesale">135</div> <div class="price-retail">170</div> <div class="price-trend-down">▼ 4%</div></div>
+      <div class="price-row"><div class="price-crop-name">🥑 Avocado</div>      <div class="price-wholesale">85</div>  <div class="price-retail">110</div> <div class="price-trend-up">▲ 9%</div></div>
+      <div class="price-row"><div class="price-crop-name">🍌 Banana</div>       <div class="price-wholesale">48</div>  <div class="price-retail">65</div>  <div class="price-trend-up">▲ 7%</div></div>
+      <div class="price-row"><div class="price-crop-name">🍋 Mango</div>        <div class="price-wholesale">65</div>  <div class="price-retail">90</div>  <div class="price-trend-down">▼ 5%</div></div>
+      <div class="price-row"><div class="price-crop-name">☕ Coffee AA</div>    <div class="price-wholesale">320</div> <div class="price-retail">420</div> <div class="price-trend-up">▲ 8%</div></div>
+      <div class="price-row"><div class="price-crop-name">🍵 Tea BOP</div>      <div class="price-wholesale">280</div> <div class="price-retail">350</div> <div class="price-trend-up">▲ 4%</div></div>
+    </div>
+  </div>
+
+  <!-- TIP -->
+  <div class="tip-strip">
+    <strong>💡 Market Tip:</strong> Tomato prices are up 12% this week due to drought in Kirinyaga. If you have tomatoes ready to harvest, <a onclick="showPage('sell')" href="#" style="color:var(--green);font-weight:700">list them now</a> to catch the price peak.
+  </div>
+
+  <!-- PRICE ALERT -->
+  <div class="alert-box">
+    <h3>🔔 Set a Price Alert</h3>
+    <p>Get notified on WhatsApp or SMS when your crop hits your target price. Free for all farmers.</p>
+    <div class="alert-form">
+      <input type="tel" placeholder="Your phone e.g. 0712 345 678" id="alertPhone" />
+      <button onclick="showToast('✅ Alert set! We\'ll notify you on 0712…')">Set Alert</button>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="home-cta" style="margin-bottom:0">
+    <h2>Ready to Sell at Today's Prices?</h2>
+    <p>List your produce on SeedPro and reach buyers across Kenya within minutes.</p>
+    <button class="btn-hero-white" onclick="showPage('sell')" style="display:inline-block;margin-top:4px">🌾 Sell My Produce →</button>
+  </div>
+
+  <footer class="footer-rich">
+    <div class="footer-logo-row"><div class="footer-logo-icon">🌱</div><div class="footer-logo-name">SeedPro</div></div>
+    <div class="footer-tagline">Kenya's Fresh Farm Marketplace · Empowering Farmers Since 2024</div>
+    <div class="footer-mpesa-badge">💳 M-Pesa Accepted &nbsp;·&nbsp; 🔒 Secure Checkout</div>
+    <div class="footer-trust">
+      <div class="footer-badge">✅ Verified Farmers</div>
+      <div class="footer-badge">🚚 Next-Day Delivery</div>
+      <div class="footer-badge">🌾 Farm-Direct Prices</div>
+      <div class="footer-badge">📞 24/7 Support</div>
+    </div>
+    <div class="footer-links">
+      <a onclick="showPage('home')" href="#">🏠 Home</a>
+      <a onclick="showPage('shop')" href="#">🛒 Shop</a>
+      <a onclick="showPage('blog')" href="#">📰 Blog</a>
+      <a onclick="showPage('prices')" href="#">📈 Live Prices</a>
+      <a onclick="showPage('scan')" href="#">📸 Scan Plant</a>
+      <a onclick="showPage('sell')" href="#">🌾 Post Listing</a>
+    </div>
+    <hr class="footer-hr"/>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2026 SeedPro Kenya · All Rights Reserved</div>
+      <div class="footer-socials">
+        <button class="social-btn" onclick="showToast('💬 WhatsApp: +254 800 720 600')">💬</button>
+        <button class="social-btn" onclick="showToast('📘 Follow @SeedProKenya')">📘</button>
+        <button class="social-btn" onclick="showToast('🐦 Follow @SeedProKE')">🐦</button>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ═══════════════════ SCAN PAGE ═══════════════════ -->
+<div id="page-scan" class="page">
+  <!-- HERO -->
+  <div class="scan-hero">
+    <div class="scan-hero-badge">🤖 AI-Powered · Free for Farmers</div>
+    <h1>📸 AI Plant Scan</h1>
+    <p>Snap a photo to get a verified badge, health score and buyers' trust — instantly.</p>
+    <div class="page-hero-floats">
+      <div class="phf-item">🍅</div>
+      <div class="phf-item">🔬</div>
+      <div class="phf-item">✅</div>
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div class="how-it-works">
+    <div class="section-title">How It Works</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-icon">🌱</div>
+        <h4>Select Crop</h4>
+        <p>Choose what produce you are scanning</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-icon">📸</div>
+        <h4>Take Photo</h4>
+        <p>Point your camera at the produce</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-icon">✅</div>
+        <h4>Get Verified</h4>
+        <p>Post listing with trusted badge</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CROP SELECTOR -->
+  <div class="crop-select-wrap">
+    <label>1️⃣ Select your crop</label>
+    <select id="cropSelect">
+      <option value="">Choose crop…</option>
+      <option>Tomato</option><option>Maize</option><option>Avocado</option>
+      <option>Coffee</option><option>Tea</option><option>Onion</option>
+      <option>Beans</option><option>Potato</option><option>Sukuma Wiki</option>
+      <option>Sweet Potato</option><option>Cabbage</option><option>Banana</option>
+      <option>Mango</option><option>Pineapple</option><option>French Beans</option>
+    </select>
+  </div>
+
+  <!-- SCAN UPLOAD BOX -->
+  <div class="scan-box" id="scanBox">
+    <div class="scan-icon">🔬</div>
+    <h2>2️⃣ Scan Your Produce</h2>
+    <p>Take a clear photo in good lighting. Our AI will verify the crop and assess quality.</p>
+    <div class="scan-btns">
+      <input type="file" accept="image/*" capture="environment" id="cameraInput" style="display:none" onchange="handleCapture(this)" />
+      <label for="cameraInput" class="scan-btn-camera">📷 Camera</label>
+      <input type="file" accept="image/*" id="galleryInput" style="display:none" onchange="handleCapture(this)" />
+      <label for="galleryInput" class="scan-btn-gallery">🖼️ Gallery</label>
+    </div>
+  </div>
+
+  <!-- SCAN PROGRESS -->
+  <div class="scan-progress" id="scanProgress">
+    <div class="scan-preview">
+      <img id="previewImg" src="" alt="Scanning" />
+      <div class="scan-sweep"></div>
+    </div>
+    <div class="scan-pct" id="scanPct">0%</div>
+    <div class="scan-bar-wrap"><div class="scan-bar-fill" id="scanBar" style="width:0%"></div></div>
+    <div class="scan-status" id="scanStatus">Initialising scan…</div>
+  </div>
+
+  <!-- SCAN RESULT -->
+  <div class="scan-result" id="scanResult">
+    <div class="result-card">
+      <div class="result-head">
+        <div class="check">✅</div>
+        <div>
+          <h3 id="resultTitle">Tomato — Verified</h3>
+          <p id="resultSub">Scan complete · High confidence</p>
+        </div>
+      </div>
+      <div class="result-body">
+        <div class="result-stats">
+          <div class="result-stat"><div class="val" id="resultConf">95%</div><div class="lbl">Confidence</div></div>
+          <div class="result-stat"><div class="val" id="resultHealth">Healthy</div><div class="lbl">Condition</div></div>
+          <div class="result-stat"><div class="val" id="resultGrade">Grade A</div><div class="lbl">Quality</div></div>
+        </div>
+        <div class="result-notes" id="resultNotes">Produce looks fresh and marketable. Good colour uniformity detected. Recommend listing within 2 days for best price.</div>
+        <div class="result-actions">
+          <button class="btn-sell" onclick="showPage('sell')">🌾 List with Verified Badge</button>
+          <button class="btn-retry" onclick="resetScan()">↩ Scan Again</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BENEFITS -->
+  <div class="benefits">
+    <div class="section-title">Why Scan Your Produce?</div>
+    <div class="benefit-list">
+      <div class="benefit-item"><div class="benefit-icon">🏆</div><div><h4>Verified ✓ Badge on Your Listing</h4><p>Buyers trust verified listings 3× more. Stand out from unverified sellers.</p></div></div>
+      <div class="benefit-item"><div class="benefit-icon">💰</div><div><h4>Command Higher Prices</h4><p>Verified farmers earn on average 18% more per kg than unverified listings.</p></div></div>
+      <div class="benefit-item"><div class="benefit-icon">🔬</div><div><h4>AI Health Report</h4><p>Know your crop's health status before listing. Catch disease early and take action.</p></div></div>
+      <div class="benefit-item"><div class="benefit-icon">⚡</div><div><h4>Instant Results</h4><p>Scan takes under 2 seconds. No waiting, no forms — just point, shoot and sell.</p></div></div>
+    </div>
+  </div>
+
+  <footer class="footer-rich">
+    <div class="footer-logo-row"><div class="footer-logo-icon">🌱</div><div class="footer-logo-name">SeedPro</div></div>
+    <div class="footer-tagline">Kenya's Fresh Farm Marketplace · Empowering Farmers Since 2024</div>
+    <div class="footer-mpesa-badge">💳 M-Pesa Accepted &nbsp;·&nbsp; 🔒 Secure Checkout</div>
+    <div class="footer-trust">
+      <div class="footer-badge">✅ Verified Farmers</div>
+      <div class="footer-badge">🚚 Next-Day Delivery</div>
+      <div class="footer-badge">🌾 Farm-Direct Prices</div>
+      <div class="footer-badge">📞 24/7 Support</div>
+    </div>
+    <div class="footer-links">
+      <a onclick="showPage('home')" href="#">🏠 Home</a>
+      <a onclick="showPage('shop')" href="#">🛒 Shop</a>
+      <a onclick="showPage('blog')" href="#">📰 Blog</a>
+      <a onclick="showPage('prices')" href="#">📈 Live Prices</a>
+      <a onclick="showPage('scan')" href="#">📸 Scan Plant</a>
+      <a onclick="showPage('sell')" href="#">🌾 Post Listing</a>
+    </div>
+    <hr class="footer-hr"/>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2026 SeedPro Kenya · All Rights Reserved</div>
+      <div class="footer-socials">
+        <button class="social-btn" onclick="showToast('💬 WhatsApp: +254 800 720 600')">💬</button>
+        <button class="social-btn" onclick="showToast('📘 Follow @SeedProKenya')">📘</button>
+        <button class="social-btn" onclick="showToast('🐦 Follow @SeedProKE')">🐦</button>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ═══════════════════ SELL PAGE ═══════════════════ -->
+<div id="page-sell" class="page">
+  <!-- HERO -->
+  <div class="sell-hero">
+    <h1>🌾 Sell Your Produce</h1>
+    <p>Post your farm listing in under 2 minutes and connect with buyers across Kenya. 100% free for farmers.</p>
+    <div class="page-hero-floats">
+      <div class="phf-item">🌽</div>
+      <div class="phf-item">💰</div>
+      <div class="phf-item">🚚</div>
+    </div>
+  </div>
+
+  <!-- STEP PROGRESS -->
+  <div class="sell-steps">
+    <div class="sell-step active">
+      <div class="ss-circle">1</div>
+      <div class="ss-label">Crop Info</div>
+    </div>
+    <div class="sell-step">
+      <div class="ss-circle">2</div>
+      <div class="ss-label">Details</div>
+    </div>
+    <div class="sell-step">
+      <div class="ss-circle">3</div>
+      <div class="ss-label">Photos</div>
+    </div>
+    <div class="sell-step">
+      <div class="ss-circle">4</div>
+      <div class="ss-label">Publish</div>
+    </div>
+  </div>
+
+  <!-- TRUST PILLS -->
+  <div class="trust-row">
+    <div class="trust-pill">✅ Free to List</div>
+    <div class="trust-pill">📈 30,000+ Buyers</div>
+    <div class="trust-pill">💳 M-Pesa Payments</div>
+    <div class="trust-pill">🚚 Pickup &amp; Delivery</div>
+    <div class="trust-pill">🔒 Secure Transactions</div>
+  </div>
+
+  <!-- SELL FORM -->
+  <div class="form-section">
+    <div class="form-card">
+      <div class="form-card-head"><h3>📝 Your Listing Details</h3></div>
+      <div class="form-card-body">
+
+      <div class="form-group">
+        <label>Crop / Produce *</label>
+        <select id="fCrop" required>
+          <option value="">Select crop…</option>
+          <option>Tomato</option><option>Maize</option><option>Avocado</option>
+          <option>Coffee</option><option>Tea</option><option>Onion</option>
+          <option>Beans</option><option>Potato</option><option>Sukuma Wiki</option>
+          <option>Sweet Potato</option><option>Cabbage</option><option>Banana</option>
+          <option>Mango</option><option>Pineapple</option><option>French Beans</option>
+          <option>Other</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Quantity (kg) *</label>
+          <input type="number" id="fQty" placeholder="e.g. 500" min="1" />
+        </div>
+        <div class="form-group">
+          <label>Price (KSh/kg) *</label>
+          <input type="number" id="fPrice" placeholder="e.g. 95" min="1" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>County / Town *</label>
+        <select id="fLocation" required>
+          <option value="">Select location…</option>
+          <option>Nairobi</option><option>Nakuru</option><option>Kisumu</option>
+          <option>Mombasa</option><option>Muranga</option><option>Thika</option>
+          <option>Meru</option><option>Kericho</option><option>Kakamega</option>
+          <option>Eldoret</option><option>Naivasha</option><option>Nyeri</option>
+          <option>Kisii</option><option>Kiambu</option><option>Embu</option>
+          <option>Mwea</option><option>Other</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Your Name *</label>
+          <input type="text" id="fName" placeholder="e.g. James Mwangi" />
+        </div>
+        <div class="form-group">
+          <label>Phone Number *</label>
+          <input type="tel" id="fPhone" placeholder="e.g. 0712 345 678" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="fDesc" placeholder="Describe quality, variety, harvest date, delivery options…"></textarea>
+      </div>
+
+      <!-- SCAN ATTACHMENT -->
+      <div class="form-group">
+        <label>📸 Scan Verification (Optional but recommended)</label>
+        <div class="scan-attach" id="scanAttach" onclick="showPage('scan')">
+          <div style="font-size:28px">📸</div>
+          <p>Tap to scan your produce for a verified badge.<br/>Verified listings earn 18% more on average.</p>
+        </div>
+      </div>
+
+      <button class="submit-btn" onclick="submitListing()">🚀 Publish Listing — It's Free!</button>
+      </div><!-- /form-card-body -->
+    </div>
+  </div>
+
+  <!-- WHY SELL ON SEEDPRO -->
+  <div class="why-sell">
+    <div class="section-title">Why Sell on SeedPro?</div>
+    <div class="why-grid">
+      <div class="why-card"><div class="icon-bg">📲</div><h4>30,000+ Active Buyers</h4><p>Reach supermarkets, hotels and individual buyers instantly.</p></div>
+      <div class="why-card"><div class="icon-bg">💳</div><h4>M-Pesa Payments</h4><p>Get paid directly to your Safaricom number. Fast and secure.</p></div>
+      <div class="why-card"><div class="icon-bg">📈</div><h4>Live Price Guidance</h4><p>We show you today's market price so you never undersell.</p></div>
+      <div class="why-card"><div class="icon-bg">✅</div><h4>Verified Farmer Badge</h4><p>Scan your produce to build buyer trust and command better prices.</p></div>
+    </div>
+  </div>
+
+  <footer class="footer-rich">
+    <div class="footer-logo-row"><div class="footer-logo-icon">🌱</div><div class="footer-logo-name">SeedPro</div></div>
+    <div class="footer-tagline">Kenya's Fresh Farm Marketplace · Empowering Farmers Since 2024</div>
+    <div class="footer-mpesa-badge">💳 M-Pesa Accepted &nbsp;·&nbsp; 🔒 Secure Checkout</div>
+    <div class="footer-trust">
+      <div class="footer-badge">✅ Verified Farmers</div>
+      <div class="footer-badge">🚚 Next-Day Delivery</div>
+      <div class="footer-badge">🌾 Farm-Direct Prices</div>
+      <div class="footer-badge">📞 24/7 Support</div>
+    </div>
+    <div class="footer-links">
+      <a onclick="showPage('home')" href="#">🏠 Home</a>
+      <a onclick="showPage('shop')" href="#">🛒 Shop</a>
+      <a onclick="showPage('blog')" href="#">📰 Blog</a>
+      <a onclick="showPage('prices')" href="#">📈 Live Prices</a>
+      <a onclick="showPage('scan')" href="#">📸 Scan Plant</a>
+      <a onclick="showPage('sell')" href="#">🌾 Post Listing</a>
+    </div>
+    <hr class="footer-hr"/>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2026 SeedPro Kenya · All Rights Reserved</div>
+      <div class="footer-socials">
+        <button class="social-btn" onclick="showToast('💬 WhatsApp: +254 800 720 600')">💬</button>
+        <button class="social-btn" onclick="showToast('📘 Follow @SeedProKenya')">📘</button>
+        <button class="social-btn" onclick="showToast('🐦 Follow @SeedProKE')">🐦</button>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- SUCCESS OVERLAY (sell page) -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-card">
+    <div class="big-icon">🎉</div>
+    <h2>Listing Published!</h2>
+    <p>Your produce is now live on SeedPro. Buyers across Kenya can see and order your listing.</p>
+    <div class="success-actions">
+      <button class="btn-primary" style="width:100%;height:44px;justify-content:center" onclick="showPage('shop')">View My Listing →</button>
+      <button class="btn-primary" style="width:100%;height:44px;justify-content:center;background:var(--orange)" onclick="resetForm()">Post Another Listing</button>
+    </div>
+  </div>
+</div>
+
 <!-- MOBILE NAV -->
 <div class="mob-nav">
-  <a class="mob-nav-btn active" href="/"><span class="mn-icon">🏠</span>Home</a>
-  <a class="mob-nav-btn" href="shop.html"><span class="mn-icon">🛒</span>Shop</a>
-  <a class="mob-nav-btn" href="prices.html"><span class="mn-icon">📈</span>Prices</a>
-  <a class="mob-nav-btn" href="scan.html"><span class="mn-icon">📸</span>Scan</a>
-  <a class="mob-nav-btn" href="sell.html"><span class="mn-icon">🌾</span>Sell</a>
+  <button class="mob-nav-btn active" id="mn-home" onclick="showPage('home')"><span class="mn-icon">🏠</span>Home</button>
+  <button class="mob-nav-btn" id="mn-shop" onclick="showPage('shop')"><span class="mn-icon">🛒</span>Shop</button>
+  <button class="mob-nav-btn" id="mn-prices" onclick="showPage('prices')"><span class="mn-icon">📈</span>Prices</button>
+  <button class="mob-nav-btn" id="mn-scan" onclick="showPage('scan')"><span class="mn-icon">📸</span>Scan</button>
+  <button class="mob-nav-btn" id="mn-sell" onclick="showPage('sell')"><span class="mn-icon">🌾</span>Sell</button>
 </div>
 
 <!-- CART DRAWER -->
@@ -393,13 +1086,120 @@ function showPage(name) {
   document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
   var pg = document.getElementById('page-' + name);
   if (pg) { pg.classList.add('active'); window.scrollTo(0,0); }
+  // Desktop nav active state
   document.querySelectorAll('.nav-link').forEach(function(l){ l.classList.remove('active'); });
   var nl = document.getElementById('nl-' + name);
   if (nl) nl.classList.add('active');
+  // Mobile nav active state
+  document.querySelectorAll('.mob-nav-btn').forEach(function(b){ b.classList.remove('active'); });
+  var mn = document.getElementById('mn-' + name);
+  if (mn) mn.classList.add('active');
+  // Lazy render shop grid
   if (name === 'shop') { renderShopGrid(); }
 }
 
-function shopCat(cat) { window.location.href = 'shop.html'; }
+function shopCat(cat) {
+  showPage('shop');
+  setTimeout(function() {
+    var btn = document.getElementById('sc-' + cat);
+    if (btn) setCat(cat, btn);
+  }, 50);
+}
+
+// ─── Scan page ───────────────────────────────────────────
+var SCAN_DATA = {
+  'Tomato':  { conf:95, health:'Healthy', grade:'Grade A',  notes:'Fresh cherry tomatoes detected. Good colour and firmity. Recommend listing within 48 hours.' },
+  'Maize':   { conf:92, health:'Healthy', grade:'Grade A',  notes:'Dry shelled maize confirmed. Moisture appears below 14%. Ready for milling or storage.' },
+  'Avocado': { conf:96, health:'Healthy', grade:'Grade A',  notes:'Hass avocado, mature stage detected. Will ripen in 3-4 days after harvest.' },
+  'Coffee':  { conf:94, health:'Healthy', grade:'AA Grade', notes:'Arabica cherry confirmed. Good density and uniform ripeness. Ideal for wet processing.' },
+  'Tea':     { conf:93, health:'Healthy', grade:'BOP',      notes:'Two-leaves-and-a-bud flush detected. Optimal harvest stage confirmed.' },
+  'Onion':   { conf:91, health:'Healthy', grade:'Medium',   notes:'Red onion, well-cured detected. Good shelf life expected. Outer skin intact.' },
+  'Beans':   { conf:89, health:'Healthy', grade:'Grade 1',  notes:'Rose coco bean pod confirmed. Seeds appear fully developed. Ready for harvest.' },
+  'default': { conf:90, health:'Healthy', grade:'Grade A',  notes:'Produce looks fresh and marketable. Good quality detected. Recommend listing soon.' },
+};
+
+function handleCapture(input) {
+  var file = input.files && input.files[0];
+  if (!file) return;
+  var crop = document.getElementById('cropSelect').value || 'Produce';
+  if (!crop || crop === '') { showToast('⚠️ Please select a crop first'); return; }
+  var reader = new FileReader();
+  reader.onload = function(ev) { startScan(ev.target.result, crop); };
+  reader.readAsDataURL(file);
+}
+
+function startScan(dataUrl, crop) {
+  document.getElementById('scanBox').style.display = 'none';
+  var prog = document.getElementById('scanProgress');
+  prog.classList.add('active');
+  document.getElementById('previewImg').src = dataUrl;
+  var steps = ['Analysing image…','Detecting crop type…','Assessing health…','Grading quality…','Generating report…'];
+  var pct = 0;
+  var interval = setInterval(function() {
+    pct = Math.min(100, pct + 4);
+    document.getElementById('scanBar').style.width = pct + '%';
+    document.getElementById('scanPct').textContent = pct + '%';
+    document.getElementById('scanStatus').textContent = steps[Math.floor(pct/25)] || 'Finalising…';
+    if (pct >= 100) {
+      clearInterval(interval);
+      setTimeout(function(){ showResult(crop, dataUrl); }, 400);
+    }
+  }, 60);
+}
+
+function showResult(crop, dataUrl) {
+  document.getElementById('scanProgress').classList.remove('active');
+  var data = SCAN_DATA[crop] || SCAN_DATA['default'];
+  document.getElementById('resultTitle').textContent  = crop + ' — Verified ✓';
+  document.getElementById('resultSub').textContent    = 'Scan complete · ' + data.conf + '% confidence';
+  document.getElementById('resultConf').textContent   = data.conf + '%';
+  document.getElementById('resultHealth').textContent = data.health;
+  document.getElementById('resultGrade').textContent  = data.grade;
+  document.getElementById('resultNotes').textContent  = data.notes;
+  document.getElementById('scanResult').classList.add('active');
+  showToast('✅ ' + crop + ' scan verified!');
+}
+
+function resetScan() {
+  document.getElementById('scanResult').classList.remove('active');
+  document.getElementById('scanProgress').classList.remove('active');
+  document.getElementById('scanBox').style.display = '';
+  document.getElementById('cameraInput').value = '';
+  document.getElementById('galleryInput').value = '';
+}
+
+// ─── Sell page ───────────────────────────────────────────
+function submitListing() {
+  var crop  = document.getElementById('fCrop').value;
+  var qty   = document.getElementById('fQty').value;
+  var price = document.getElementById('fPrice').value;
+  var loc   = document.getElementById('fLocation').value;
+  var name  = document.getElementById('fName').value.trim();
+  var phone = document.getElementById('fPhone').value.trim();
+  if (!crop)  { showToast('⚠️ Please select a crop');     return; }
+  if (!qty)   { showToast('⚠️ Please enter quantity');     return; }
+  if (!price) { showToast('⚠️ Please enter a price');      return; }
+  if (!loc)   { showToast('⚠️ Please select your county'); return; }
+  if (!name)  { showToast('⚠️ Please enter your name');    return; }
+  if (!phone) { showToast('⚠️ Please enter your phone');   return; }
+  var btn = document.querySelector('.submit-btn');
+  btn.textContent = '⏳ Publishing…';
+  btn.disabled = true;
+  setTimeout(function() {
+    document.getElementById('successOverlay').classList.add('show');
+  }, 1200);
+}
+
+function resetForm() {
+  document.getElementById('successOverlay').classList.remove('show');
+  ['fCrop','fQty','fPrice','fLocation','fName','fPhone','fDesc'].forEach(function(id){
+    var el = document.getElementById(id); if (el) el.value = '';
+  });
+  var btn = document.querySelector('.submit-btn');
+  btn.textContent = '🚀 Publish Listing — It\'s Free!';
+  btn.disabled = false;
+  window.scrollTo({top:0, behavior:'smooth'});
+}
 
 document.addEventListener('DOMContentLoaded', function() {
   renderHomeGrid();
