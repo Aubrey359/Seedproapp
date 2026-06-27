@@ -1082,6 +1082,11 @@
 
 <script src="/site.js" onerror="var s=document.createElement('script');s.src='public/site.js';document.head.appendChild(s)"></script>
 <script>
+function setMktTab(btn) {
+  document.querySelectorAll('.mkt-tab').forEach(function(t){ t.classList.remove('active'); });
+  btn.classList.add('active');
+}
+
 function showPage(name) {
   document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
   var pg = document.getElementById('page-' + name);
@@ -1202,6 +1207,8 @@ function resetForm() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+  var initPage = sessionStorage.getItem('seedpro_page');
+  if (initPage) { sessionStorage.removeItem('seedpro_page'); showPage(initPage); }
   renderHomeGrid();
   updateCart();
 });
