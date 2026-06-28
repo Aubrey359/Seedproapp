@@ -1,17 +1,17 @@
 /* ── PRODUCTS DATA ── */
 var PRODUCTS = [
-  {id:1,  name:'Tomatoes',      emoji:'🍅', cat:'vegetables', price:95,  old:120, unit:'kg',    farmer:'James M.', county:'Nakuru',   rating:4.9, ok:true,  disc:'-21%'},
-  {id:2,  name:'Maize',         emoji:'🌽', cat:'grains',     price:42,  old:null,unit:'kg',    farmer:'Grace A.', county:'Kisumu',   rating:4.7, ok:true,  disc:null },
-  {id:3,  name:'Coffee AA',     emoji:'☕', cat:'cash',       price:320, old:null,unit:'kg',    farmer:'Mary W.',  county:'Thika',    rating:5.0, ok:true,  disc:null },
-  {id:4,  name:'Avocado Hass',  emoji:'🥑', cat:'fruits',     price:85,  old:110, unit:'kg',    farmer:'Peter N.', county:'Muranga',  rating:4.8, ok:true,  disc:'-23%'},
-  {id:5,  name:'Onions',        emoji:'🧅', cat:'vegetables', price:110, old:null,unit:'kg',    farmer:'Aisha O.', county:'Naivasha', rating:4.6, ok:false, disc:null },
-  {id:6,  name:'Beans',         emoji:'🫘', cat:'legumes',    price:135, old:null,unit:'kg',    farmer:'Simon K.', county:'Meru',     rating:4.5, ok:true,  disc:null },
-  {id:7,  name:'Sukuma Wiki',   emoji:'🥬', cat:'vegetables', price:35,  old:null,unit:'bunch', farmer:'Faith M.', county:'Kiambu',   rating:4.4, ok:false, disc:null },
-  {id:8,  name:'Sweet Potato',  emoji:'🍠', cat:'vegetables', price:55,  old:null,unit:'kg',    farmer:'David O.', county:'Kakamega', rating:4.7, ok:true,  disc:null },
-  {id:9,  name:'Bananas',       emoji:'🍌', cat:'fruits',     price:48,  old:null,unit:'bunch', farmer:'Ruth A.',  county:'Kisii',    rating:4.8, ok:true,  disc:null },
-  {id:10, name:'Pishori Rice',  emoji:'🍚', cat:'grains',     price:185, old:220, unit:'kg',    farmer:'Hassan M.',county:'Mwea',     rating:4.9, ok:true,  disc:'-16%'},
-  {id:11, name:'Tea KTDA',      emoji:'🍵', cat:'cash',       price:280, old:null,unit:'kg',    farmer:'CTC Farm', county:'Kericho',  rating:4.6, ok:true,  disc:null },
-  {id:12, name:'French Beans',  emoji:'🫛', cat:'vegetables', price:145, old:null,unit:'kg',    farmer:'Esther K.',county:'Meru',     rating:4.8, ok:true,  disc:null },
+  {id:1,  name:'Tomatoes',      emoji:'🍅', img:'/images/crop-tomato.jpg',      cat:'vegetables', price:95,  old:120, unit:'kg',    farmer:'James M.', county:'Nakuru',   rating:4.9, ok:true,  disc:'-21%'},
+  {id:2,  name:'Maize',         emoji:'🌽', img:'/images/crop-maize.jpg',       cat:'grains',     price:42,  old:null,unit:'kg',    farmer:'Grace A.', county:'Kisumu',   rating:4.7, ok:true,  disc:null },
+  {id:3,  name:'Coffee AA',     emoji:'☕', img:'/images/crop-coffee.jpg',      cat:'cash',       price:320, old:null,unit:'kg',    farmer:'Mary W.',  county:'Thika',    rating:5.0, ok:true,  disc:null },
+  {id:4,  name:'Avocado Hass',  emoji:'🥑', img:'/images/crop-avocado.jpg',     cat:'fruits',     price:85,  old:110, unit:'kg',    farmer:'Peter N.', county:'Muranga',  rating:4.8, ok:true,  disc:'-23%'},
+  {id:5,  name:'Onions',        emoji:'🧅', img:'/images/crop-onion.jpg',       cat:'vegetables', price:110, old:null,unit:'kg',    farmer:'Aisha O.', county:'Naivasha', rating:4.6, ok:false, disc:null },
+  {id:6,  name:'Beans',         emoji:'🫘', img:'/images/crop-beans.jpg',       cat:'legumes',    price:135, old:null,unit:'kg',    farmer:'Simon K.', county:'Meru',     rating:4.5, ok:true,  disc:null },
+  {id:7,  name:'Sukuma Wiki',   emoji:'🥬', img:'/images/crop-sukuma.jpg',      cat:'vegetables', price:35,  old:null,unit:'bunch', farmer:'Faith M.', county:'Kiambu',   rating:4.4, ok:false, disc:null },
+  {id:8,  name:'Sweet Potato',  emoji:'🍠', img:'/images/crop-sweetpotato.jpg', cat:'vegetables', price:55,  old:null,unit:'kg',    farmer:'David O.', county:'Kakamega', rating:4.7, ok:true,  disc:null },
+  {id:9,  name:'Bananas',       emoji:'🍌', img:'/images/crop-banana.jpg',      cat:'fruits',     price:48,  old:null,unit:'bunch', farmer:'Ruth A.',  county:'Kisii',    rating:4.8, ok:true,  disc:null },
+  {id:10, name:'Pishori Rice',  emoji:'🍚', img:'/images/crop-rice.jpg',        cat:'grains',     price:185, old:220, unit:'kg',    farmer:'Hassan M.',county:'Mwea',     rating:4.9, ok:true,  disc:'-16%'},
+  {id:11, name:'Tea KTDA',      emoji:'🍵', img:'/images/crop-tea.jpg',         cat:'cash',       price:280, old:null,unit:'kg',    farmer:'CTC Farm', county:'Kericho',  rating:4.6, ok:true,  disc:null },
+  {id:12, name:'French Beans',  emoji:'🫛', img:'/images/crop-frenchbeans.jpg', cat:'vegetables', price:145, old:null,unit:'kg',    farmer:'Esther K.',county:'Meru',     rating:4.8, ok:true,  disc:null },
 ];
 
 /* ── CART (localStorage-backed) ── */
@@ -28,7 +28,9 @@ function saveCart() {
 function cardHTML(p) {
   var inCart = cart.find(function(c){return c.id===p.id;});
   return '<div class="prod-card">' +
-    '<div class="prod-img">' + p.emoji +
+    '<div class="prod-img">' +
+      '<span class="prod-emoji">' + p.emoji + '</span>' +
+      (p.img ? '<img class="prod-photo" src="' + p.img + '" alt="' + p.name + '" loading="lazy" onerror="this.remove()">' : '') +
       (p.disc ? '<div class="prod-discount">' + p.disc + '</div>' : '') +
       (p.ok   ? '<div class="prod-check">✓</div>' : '') +
       '<button class="prod-fav" onclick="event.stopPropagation();showToast(\'❤️ Saved!\')">♡</button>' +
