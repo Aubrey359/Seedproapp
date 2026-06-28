@@ -1,30 +1,26 @@
 import { z } from "zod";
 import { createRouter, publicQuery, authedQuery } from "./middleware";
-import { getDb } from "./queries/connection";
-import { ratings, users } from "@db/schema";
-import { eq, desc, avg, sql } from "drizzle-orm";
+import { ratings, users, nextSeq } from "@db/schema";
+
+function average(rows: any[]): number {
+  if (rows.length === 0) return 0;
+  const sum = rows.reduce((acc, r) => acc + (r.rating ?? 0), 0);
+  return sum / rows.length;
+}
 
 export const ratingsRouter = createRouter({
   // ─── Reviews ───
   getForUser: publicQuery
     .input(z.object({ userId: z.number() }))
     .query(async ({ input }) => {
-      const db = getDb();
-      const reviews = await db
-        .select()
-        .from(ratings)
-        .where(eq(ratings.revieweeId, input.userId))
-        .orderBy(desc(ratings.createdAt));
-
-      // Get average rating
-      const avgResult = await db
-        .select({ average: avg(ratings.rating) })
-        .from(ratings)
-        .where(eq(ratings.revieweeId, input.userId));
+      const reviews = await ratings
+        .find({ revieweeId: input.userId })
+        .sort({ createdAt: -1 })
+        .lean();
 
       return {
         reviews,
-        averageRating: Number(avgResult[0]?.average ?? 0),
+        averageRating: average(reviews),
         totalReviews: reviews.length,
       };
     }),
@@ -37,10 +33,9 @@ export const ratingsRouter = createRouter({
         rating: z.number().min(1).max(5),
         review: z.string().min(1),
         tags: z.array(z.string()).optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
-      const db = getDb();
       const reviewerId = ctx.user.id;
 
       // Prevent self-rating
@@ -48,7 +43,9 @@ export const ratingsRouter = createRouter({
         throw new Error("Cannot rate yourself");
       }
 
-      await db.insert(ratings).values({
+      const id = await nextSeq("ratings");
+      await ratings.create({
+        id,
         reviewerId,
         revieweeId: input.revieweeId,
         orderId: input.orderId ?? null,
@@ -57,24 +54,12 @@ export const ratingsRouter = createRouter({
         tags: input.tags ?? [],
       });
 
-      // Update user's average rating
-      const avgResult = await db
-        .select({ average: avg(ratings.rating) })
-        .from(ratings)
-        .where(eq(ratings.revieweeId, input.revieweeId));
-
-      const countResult = await db
-        .select({ count: sql<number>`COUNT(*)` })
-        .from(ratings)
-        .where(eq(ratings.revieweeId, input.revieweeId));
-
-      await db
-        .update(users)
-        .set({
-          rating: String(avgResult[0]?.average ?? 0),
-          reviewCount: Number(countResult[0]?.count ?? 0),
-        })
-        .where(eq(users.id, input.revieweeId));
+      // Recompute the reviewee's average rating + review count
+      const all = await ratings.find({ revieweeId: input.revieweeId }).lean();
+      await users.updateOne(
+        { id: input.revieweeId },
+        { $set: { rating: average(all), reviewCount: all.length } },
+      );
 
       return { success: true };
     }),

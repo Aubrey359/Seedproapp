@@ -28,10 +28,10 @@ export default defineConfig({
     emptyOutDir: true,
   },
   optimizeDeps: {
-    exclude: ["better-sqlite3", "drizzle-orm"],
+    exclude: ["mongoose"],
   },
   ssr: {
-    external: ["better-sqlite3", "drizzle-orm", "dotenv"],
+    external: ["mongoose", "dotenv"],
     noExternal: [],
   },
 });

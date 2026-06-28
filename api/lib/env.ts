@@ -17,6 +17,9 @@ export const env = {
   kimiOpenUrl:  optional("KIMI_OPEN_URL"),
   ownerUnionId: optional("OWNER_UNION_ID"),
 
+  // MongoDB Atlas connection string (mongodb+srv://…)
+  mongoUri:     optional("MONGODB_URI"),
+
   // M-Pesa Daraja
   mpesa: {
     consumerKey:    optional("MPESA_CONSUMER_KEY"),

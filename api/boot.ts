@@ -7,13 +7,11 @@ import { createContext } from "./context";
 import { env } from "./lib/env";
 import { createOAuthCallbackHandler } from "./kimi/auth";
 import { Paths } from "@contracts/constants";
-import { getDb } from "./queries/connection";
 import { mpesaPayments, orders } from "@db/schema";
-import { eq } from "drizzle-orm";
-import { initDb } from "./lib/init-db";
+import { connectDb } from "./lib/db";
 
-// Initialise database tables and seed on first run
-initDb();
+// Connect to MongoDB and seed on first run (non-blocking for the frontend)
+connectDb();
 
 const app = new Hono<{ Bindings: HttpBindings }>();
 
@@ -28,55 +26,50 @@ app.post("/api/mpesa/callback", async (c) => {
     if (!stk) return c.json({ ResultCode: 0, ResultDesc: "Accepted" });
 
     const { CheckoutRequestID, ResultCode, ResultDesc, CallbackMetadata } = stk;
-    const db = getDb();
+    await connectDb();
 
     if (ResultCode === 0) {
       // Successful payment — extract receipt & transaction date
       const items: any[] = CallbackMetadata?.Item ?? [];
       const get = (name: string) => items.find((i: any) => i.Name === name)?.Value;
 
-      const receipt   = String(get("MpesaReceiptNumber") ?? "");
-      const txDate    = String(get("TransactionDate")    ?? "");
-      const amount    = Number(get("Amount")             ?? 0);
-      const phone     = String(get("PhoneNumber")        ?? "");
+      const receipt = String(get("MpesaReceiptNumber") ?? "");
+      const txDate  = String(get("TransactionDate")    ?? "");
 
-      db.update(mpesaPayments)
-        .set({
-          status:             "completed",
-          mpesaReceiptNumber: receipt,
-          transactionDate:    txDate,
-          resultCode:         ResultCode,
-          resultDesc:         ResultDesc,
-          rawCallback:        body,
-          updatedAt:          new Date().toISOString(),
-        })
-        .where(eq(mpesaPayments.checkoutRequestId, CheckoutRequestID))
-        .run();
+      await mpesaPayments.updateOne(
+        { checkoutRequestId: CheckoutRequestID },
+        {
+          $set: {
+            status: "completed",
+            mpesaReceiptNumber: receipt,
+            transactionDate: txDate,
+            resultCode: ResultCode,
+            resultDesc: ResultDesc,
+            rawCallback: body,
+          },
+        },
+      );
 
       // Mark associated order as confirmed
-      const [payment] = db
-        .select({ orderId: mpesaPayments.orderId })
-        .from(mpesaPayments)
-        .where(eq(mpesaPayments.checkoutRequestId, CheckoutRequestID))
-        .all();
+      const payment: any = await mpesaPayments
+        .findOne({ checkoutRequestId: CheckoutRequestID })
+        .lean();
 
       if (payment?.orderId) {
-        db.update(orders)
-          .set({ status: "confirmed", updatedAt: new Date().toISOString() })
-          .where(eq(orders.id, payment.orderId))
-          .run();
+        await orders.updateOne({ id: payment.orderId }, { $set: { status: "confirmed" } });
       }
     } else {
-      db.update(mpesaPayments)
-        .set({
-          status:     ResultCode === 1032 ? "cancelled" : "failed",
-          resultCode: ResultCode,
-          resultDesc: ResultDesc,
-          rawCallback:body,
-          updatedAt:  new Date().toISOString(),
-        })
-        .where(eq(mpesaPayments.checkoutRequestId, CheckoutRequestID))
-        .run();
+      await mpesaPayments.updateOne(
+        { checkoutRequestId: CheckoutRequestID },
+        {
+          $set: {
+            status: ResultCode === 1032 ? "cancelled" : "failed",
+            resultCode: ResultCode,
+            resultDesc: ResultDesc,
+            rawCallback: body,
+          },
+        },
+      );
     }
 
     return c.json({ ResultCode: 0, ResultDesc: "Accepted" });

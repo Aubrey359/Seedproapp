@@ -1,46 +1,45 @@
 import { z } from "zod";
 import { createRouter, publicQuery } from "./middleware";
-import { getDb } from "./queries/connection";
-import { mpesaPayments, orders } from "@db/schema";
-import { eq } from "drizzle-orm";
+import { mpesaPayments, nextSeq } from "@db/schema";
 import { stkPush, stkQuery, normalizePhone } from "./lib/mpesa";
 
 export const mpesaRouter = createRouter({
-
   // ── Initiate STK Push ────────────────────────────────────────
   stkPush: publicQuery
-    .input(z.object({
-      phone:      z.string().min(9, "Invalid phone number"),
-      amount:     z.number().positive("Amount must be positive"),
-      orderId:    z.number().optional(),
-      accountRef: z.string().default("SeedPro"),
-      description:z.string().default("Farm Produce Payment"),
-    }))
+    .input(
+      z.object({
+        phone: z.string().min(9, "Invalid phone number"),
+        amount: z.number().positive("Amount must be positive"),
+        orderId: z.number().optional(),
+        accountRef: z.string().default("SeedPro"),
+        description: z.string().default("Farm Produce Payment"),
+      }),
+    )
     .mutation(async ({ input }) => {
-      const db = getDb();
-
       const result = await stkPush({
-        phone:       input.phone,
-        amount:      input.amount,
-        accountRef:  input.accountRef,
+        phone: input.phone,
+        amount: input.amount,
+        accountRef: input.accountRef,
         description: input.description,
       });
 
       // Persist payment record
-      const inserted = db.insert(mpesaPayments).values({
-        orderId:           input.orderId ?? null,
+      const paymentId = await nextSeq("mpesa_payments");
+      await mpesaPayments.create({
+        id: paymentId,
+        orderId: input.orderId ?? null,
         checkoutRequestId: result.checkoutRequestId,
         merchantRequestId: result.merchantRequestId,
-        phone:             normalizePhone(input.phone),
-        amount:            input.amount,
-        accountRef:        input.accountRef,
-        status:            "pending",
-      }).run();
+        phone: normalizePhone(input.phone),
+        amount: input.amount,
+        accountRef: input.accountRef,
+        status: "pending",
+      });
 
       return {
         checkoutRequestId: result.checkoutRequestId,
-        customerMessage:   result.customerMessage,
-        paymentId:         Number(inserted.lastInsertRowid),
+        customerMessage: result.customerMessage,
+        paymentId,
       };
     }),
 
@@ -48,14 +47,10 @@ export const mpesaRouter = createRouter({
   checkStatus: publicQuery
     .input(z.object({ checkoutRequestId: z.string() }))
     .query(async ({ input }) => {
-      const db = getDb();
-
       // First check our own DB (callback may have arrived already)
-      const [payment] = db
-        .select()
-        .from(mpesaPayments)
-        .where(eq(mpesaPayments.checkoutRequestId, input.checkoutRequestId))
-        .all();
+      const payment: any = await mpesaPayments
+        .findOne({ checkoutRequestId: input.checkoutRequestId })
+        .lean();
 
       if (payment?.status === "completed") {
         return { status: "completed", receipt: payment.mpesaReceiptNumber };
@@ -79,12 +74,7 @@ export const mpesaRouter = createRouter({
   getByOrder: publicQuery
     .input(z.object({ orderId: z.number() }))
     .query(async ({ input }) => {
-      const db = getDb();
-      const [payment] = db
-        .select()
-        .from(mpesaPayments)
-        .where(eq(mpesaPayments.orderId, input.orderId))
-        .all();
+      const payment = await mpesaPayments.findOne({ orderId: input.orderId }).lean();
       return payment ?? null;
     }),
 });

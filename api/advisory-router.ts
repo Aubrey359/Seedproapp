@@ -1,53 +1,34 @@
 import { z } from "zod";
 import { createRouter, publicQuery, authedQuery } from "./middleware";
-import { getDb } from "./queries/connection";
-import { crops, cropGuides, spraySchedules, diagnoses, advisoryMessages } from "@db/schema";
-import { eq, desc, and } from "drizzle-orm";
+import { crops, cropGuides, spraySchedules, diagnoses, advisoryMessages, nextSeq } from "@db/schema";
 
 export const advisoryRouter = createRouter({
   // ─── Crops ───
   listCrops: publicQuery.query(async () => {
-    const db = getDb();
-    return db.select().from(crops).orderBy(crops.name);
+    return crops.find().sort({ name: 1 }).lean();
   }),
 
   getCrop: publicQuery
     .input(z.object({ id: z.number() }))
     .query(async ({ input }) => {
-      const db = getDb();
-      const result = await db
-        .select()
-        .from(crops)
-        .where(eq(crops.id, input.id));
-      return result[0] ?? null;
+      const crop = await crops.findOne({ id: input.id }).lean();
+      return crop ?? null;
     }),
 
   // ─── Crop Guides ───
   getGuides: publicQuery
     .input(z.object({ cropId: z.number(), stage: z.string().optional() }))
     .query(async ({ input }) => {
-      const db = getDb();
-      const conditions = [eq(cropGuides.cropId, input.cropId)];
-      if (input.stage) {
-        conditions.push(eq(cropGuides.stage, input.stage as any));
-      }
-      return db
-        .select()
-        .from(cropGuides)
-        .where(and(...conditions))
-        .orderBy(cropGuides.stageOrder);
+      const filter: any = { cropId: input.cropId };
+      if (input.stage) filter.stage = input.stage;
+      return cropGuides.find(filter).sort({ stageOrder: 1 }).lean();
     }),
 
   // ─── Spray Schedules ───
   getSchedule: publicQuery
     .input(z.object({ cropId: z.number() }))
     .query(async ({ input }) => {
-      const db = getDb();
-      return db
-        .select()
-        .from(spraySchedules)
-        .where(eq(spraySchedules.cropId, input.cropId))
-        .orderBy(spraySchedules.dayFrom);
+      return spraySchedules.find({ cropId: input.cropId }).sort({ dayFrom: 1 }).lean();
     }),
 
   // ─── Diagnoses ───
@@ -57,38 +38,32 @@ export const advisoryRouter = createRouter({
         cropName: z.string(),
         photoUrl: z.string(),
         description: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
-      const db = getDb();
-      const result = await db.insert(diagnoses).values({
+      const id = await nextSeq("diagnoses");
+      await diagnoses.create({
+        id,
         farmerId: ctx.user.id,
         cropName: input.cropName,
         photoUrl: input.photoUrl,
         description: input.description ?? null,
         status: "pending",
       });
-      return { id: Number(result[0].insertId) };
+      return { id };
     }),
 
   getMyDiagnoses: authedQuery.query(async ({ ctx }) => {
-    const db = getDb();
-    return db
-      .select()
-      .from(diagnoses)
-      .where(eq(diagnoses.farmerId, ctx.user.id))
-      .orderBy(desc(diagnoses.createdAt));
+    return diagnoses.find({ farmerId: ctx.user.id }).sort({ createdAt: -1 }).lean();
   }),
 
   // ─── Advisory Messages (WhatsApp-style chat) ───
   getMessages: authedQuery.query(async ({ ctx }) => {
-    const db = getDb();
-    return db
-      .select()
-      .from(advisoryMessages)
-      .where(eq(advisoryMessages.userId, ctx.user.id))
-      .orderBy(advisoryMessages.createdAt)
-      .limit(100);
+    return advisoryMessages
+      .find({ userId: ctx.user.id })
+      .sort({ createdAt: 1 })
+      .limit(100)
+      .lean();
   }),
 
   sendMessage: authedQuery
@@ -98,12 +73,12 @@ export const advisoryRouter = createRouter({
         cropId: z.number().optional(),
         messageType: z.enum(["text", "image", "quick_reply", "product_card", "guide"]).default("text"),
         metadata: z.record(z.string(), z.any()).optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
-      const db = getDb();
       // Store outgoing message
-      await db.insert(advisoryMessages).values({
+      await advisoryMessages.create({
+        id: await nextSeq("advisory_messages"),
         userId: ctx.user.id,
         cropId: input.cropId ?? null,
         direction: "outgoing",
@@ -116,7 +91,8 @@ export const advisoryRouter = createRouter({
       const response = generateAdvisoryResponse(input.content, input.cropId);
 
       // Store incoming (bot) response
-      await db.insert(advisoryMessages).values({
+      await advisoryMessages.create({
+        id: await nextSeq("advisory_messages"),
         userId: ctx.user.id,
         cropId: input.cropId ?? null,
         direction: "incoming",
@@ -191,7 +167,7 @@ function generateAdvisoryResponse(content: string, _cropId?: number): {
   // Stage-specific responses
   if (lower.includes("flowering")) {
     return {
-      content: `**Flowering Stage Guide** \uD83C\uDF45\n\n1. **Watering**: Keep soil moist, not waterlogged. 2-3 times/week.\n2. **Fertilizer**: Apply NPK 17:17:17 at 50g per plant\n3. **Pest Watch**: Check for whiteflies and aphids daily\n4. **Support**: Stake plants to prevent lodging\n\nWould you like product recommendations for this stage?`,
+      content: `**Flowering Stage Guide** 🍅\n\n1. **Watering**: Keep soil moist, not waterlogged. 2-3 times/week.\n2. **Fertilizer**: Apply NPK 17:17:17 at 50g per plant\n3. **Pest Watch**: Check for whiteflies and aphids daily\n4. **Support**: Stake plants to prevent lodging\n\nWould you like product recommendations for this stage?`,
       messageType: "text",
       metadata: {
         actions: ["View Full Calendar", "Set Reminder", "Ask About Pests"],
@@ -201,7 +177,7 @@ function generateAdvisoryResponse(content: string, _cropId?: number): {
 
   if (lower.includes("nursery") || lower.includes("seedling")) {
     return {
-      content: `**Nursery/Seedling Stage Guide** \uD83C\uDF31\n\n1. **Seed Selection**: Use certified seeds for best germination\n2. **Seedbed Prep**: Mix soil with compost (3:1 ratio)\n3. **Sowing**: Plant seeds 1cm deep, 2cm apart\n4. **Watering**: Light misting twice daily\n5. **Protection**: Use shade net (50%) for first 2 weeks\n\nGermination typically takes 5-10 days. Ready for transplant at 4-6 weeks!`,
+      content: `**Nursery/Seedling Stage Guide** 🌱\n\n1. **Seed Selection**: Use certified seeds for best germination\n2. **Seedbed Prep**: Mix soil with compost (3:1 ratio)\n3. **Sowing**: Plant seeds 1cm deep, 2cm apart\n4. **Watering**: Light misting twice daily\n5. **Protection**: Use shade net (50%) for first 2 weeks\n\nGermination typically takes 5-10 days. Ready for transplant at 4-6 weeks!`,
       messageType: "text",
       metadata: {
         actions: ["View Full Calendar", "Buy SeedPro Seeds"],
@@ -211,7 +187,7 @@ function generateAdvisoryResponse(content: string, _cropId?: number): {
 
   if (lower.includes("harvest")) {
     return {
-      content: `**Harvest Stage Guide** \uD83C\uDF3E\n\n1. **Timing**: Harvest early morning for best shelf life\n2. **Tools**: Use clean sharp knives/cutters\n3. **Handling**: Avoid bruising - handle with care\n4. **Sorting**: Grade by size and quality\n5. **Storage**: Keep in shaded, ventilated area\n\nPost your harvest on the marketplace to connect with buyers!`,
+      content: `**Harvest Stage Guide** 🌾\n\n1. **Timing**: Harvest early morning for best shelf life\n2. **Tools**: Use clean sharp knives/cutters\n3. **Handling**: Avoid bruising - handle with care\n4. **Sorting**: Grade by size and quality\n5. **Storage**: Keep in shaded, ventilated area\n\nPost your harvest on the marketplace to connect with buyers!`,
       messageType: "text",
       metadata: {
         actions: ["Post to Marketplace", "View Buyer Prices"],
@@ -222,7 +198,7 @@ function generateAdvisoryResponse(content: string, _cropId?: number): {
   // Pest/disease responses
   if (lower.includes("pest") || lower.includes("disease") || lower.includes("problem")) {
     return {
-      content: `I'm here to help with crop problems! \uD83D\uDD0D\n\nPlease **upload a photo** of the affected plant, and I'll help diagnose the issue. You can also describe the symptoms:\n- Yellowing leaves?\n- Brown spots?\n- Wilting?\n- Holes in leaves?\n- White powdery coating?`,
+      content: `I'm here to help with crop problems! 🔍\n\nPlease **upload a photo** of the affected plant, and I'll help diagnose the issue. You can also describe the symptoms:\n- Yellowing leaves?\n- Brown spots?\n- Wilting?\n- Holes in leaves?\n- White powdery coating?`,
       messageType: "text",
       metadata: {
         actions: ["Upload Photo", "Describe Symptoms"],
@@ -257,7 +233,7 @@ function generateAdvisoryResponse(content: string, _cropId?: number): {
 
   // Default greeting/help response
   return {
-    content: `Welcome to SeedPro Advisory! \uD83C\uDF31 I'm your farming assistant.\n\nHow can I help you today?\n\n**Quick Options:**\n• Select a crop for stage-by-stage guidance\n• Diagnose crop problems (upload a photo)\n• Get spray & fertilizer schedules\n• View market prices\n• Connect with buyers\n\nWhat crop are you growing?`,
+    content: `Welcome to SeedPro Advisory! 🌱 I'm your farming assistant.\n\nHow can I help you today?\n\n**Quick Options:**\n• Select a crop for stage-by-stage guidance\n• Diagnose crop problems (upload a photo)\n• Get spray & fertilizer schedules\n• View market prices\n• Connect with buyers\n\nWhat crop are you growing?`,
     messageType: "quick_reply",
     metadata: {
       quickReplies: ["Tomato", "Onion", "Maize", "Potato", "Coffee", "Other"],

@@ -1,229 +1,299 @@
-import {
-  sqliteTable,
-  text,
-  integer,
-  real,
-} from "drizzle-orm/sqlite-core";
-import { sql } from "drizzle-orm";
+// MongoDB / Mongoose model layer for SeedPro.
+// Mongoose is loaded via createRequire so it resolves correctly inside Vite's
+// SSR module context (same pattern used elsewhere in this codebase).
+import { createRequire } from "module";
+
+const require = createRequire(process.cwd() + "/package.json");
+const mongoose = require("mongoose");
+const { Schema } = mongoose;
+
+// Re-register-safe model factory (Vite HMR re-imports this module repeatedly).
+function model(name: string, schema: any) {
+  return mongoose.models[name] || mongoose.model(name, schema);
+}
+
+// ─── Auto-increment numeric ids ───
+// Documents keep a numeric `id` so the existing numeric foreign keys
+// (farmerId, cropId, …) and z.number() tRPC inputs work unchanged.
+const counterSchema = new Schema({
+  _id: String,
+  seq: { type: Number, default: 0 },
+});
+export const counters = model("Counter", counterSchema);
+
+export async function nextSeq(name: string): Promise<number> {
+  const doc = await counters.findByIdAndUpdate(
+    name,
+    { $inc: { seq: 1 } },
+    { upsert: true, new: true, setDefaultsOnInsert: true },
+  );
+  return doc.seq as number;
+}
+
+// Strip Mongo internals so API responses look like the old SQL rows.
+const toJSON = {
+  virtuals: false,
+  versionKey: false,
+  transform(_doc: any, ret: any) {
+    delete ret._id;
+    return ret;
+  },
+};
 
 // ─── Users ───
-export const users = sqliteTable("users", {
-  id:          integer("id").primaryKey({ autoIncrement: true }),
-  unionId:     text("unionId").notNull().unique(),
-  name:        text("name"),
-  email:       text("email"),
-  avatar:      text("avatar"),
-  role:        text("role", { enum: ["user", "admin"] }).default("user").notNull(),
-  userType:    text("userType", { enum: ["farmer", "buyer", "aggregator"] }).default("farmer").notNull(),
-  phone:       text("phone"),
-  location:    text("location"),
-  bio:         text("bio"),
-  verified:    integer("verified", { mode: "boolean" }).default(false),
-  rating:      real("rating").default(0.0),
-  reviewCount: integer("reviewCount").default(0),
-  createdAt:   text("createdAt").default(sql`(datetime('now'))`).notNull(),
-  updatedAt:   text("updatedAt").default(sql`(datetime('now'))`).notNull(),
-  lastSignInAt:text("lastSignInAt").default(sql`(datetime('now'))`).notNull(),
-});
-
-export type User = typeof users.$inferSelect;
-export type InsertUser = typeof users.$inferInsert;
+const userSchema = new Schema(
+  {
+    id: { type: Number, unique: true, index: true },
+    unionId: { type: String, required: true, unique: true },
+    name: String,
+    email: String,
+    avatar: String,
+    role: { type: String, enum: ["user", "admin"], default: "user" },
+    userType: { type: String, enum: ["farmer", "buyer", "aggregator"], default: "farmer" },
+    phone: String,
+    location: String,
+    bio: String,
+    verified: { type: Boolean, default: false },
+    rating: { type: Number, default: 0 },
+    reviewCount: { type: Number, default: 0 },
+    lastSignInAt: { type: Date, default: Date.now },
+  },
+  { timestamps: true, toJSON },
+);
+export const users = model("User", userSchema);
 
 // ─── Crops ───
-export const crops = sqliteTable("crops", {
-  id:            integer("id").primaryKey({ autoIncrement: true }),
-  name:          text("name").notNull(),
-  category:      text("category", { enum: ["vegetables", "grains", "cash_crops", "fruits", "legumes"] }).notNull(),
-  icon:          text("icon"),
-  image:         text("image"),
-  description:   text("description"),
-  growingPeriod: integer("growingPeriod"),
-  typicalYield:  text("typicalYield"),
-  createdAt:     text("createdAt").default(sql`(datetime('now'))`).notNull(),
-});
-
-export type Crop = typeof crops.$inferSelect;
+const cropSchema = new Schema(
+  {
+    id: { type: Number, unique: true, index: true },
+    name: { type: String, required: true },
+    category: { type: String, enum: ["vegetables", "grains", "cash_crops", "fruits", "legumes"] },
+    icon: String,
+    image: String,
+    description: String,
+    growingPeriod: Number,
+    typicalYield: String,
+  },
+  { timestamps: true, toJSON },
+);
+export const crops = model("Crop", cropSchema);
 
 // ─── Listings ───
-export const listings = sqliteTable("listings", {
-  id:           integer("id").primaryKey({ autoIncrement: true }),
-  farmerId:     integer("farmerId").notNull(),
-  cropId:       integer("cropId").notNull(),
-  cropName:     text("cropName").notNull(),
-  quantity:     integer("quantity").notNull(),
-  quantityUnit: text("quantityUnit").default("kg"),
-  location:     text("location").notNull(),
-  harvestDate:  text("harvestDate"),
-  expectedPrice:real("expectedPrice").notNull(),
-  currency:     text("currency").default("KES"),
-  description:  text("description"),
-  images:       text("images", { mode: "json" }).$type<string[]>(),
-  status:       text("status", { enum: ["active", "sold", "reserved", "expired"] }).default("active").notNull(),
-  createdAt:    text("createdAt").default(sql`(datetime('now'))`).notNull(),
-  updatedAt:    text("updatedAt").default(sql`(datetime('now'))`).notNull(),
-});
-
-export type Listing = typeof listings.$inferSelect;
+const listingSchema = new Schema(
+  {
+    id: { type: Number, unique: true, index: true },
+    farmerId: { type: Number, required: true },
+    cropId: { type: Number, required: true },
+    cropName: { type: String, required: true },
+    quantity: { type: Number, required: true },
+    quantityUnit: { type: String, default: "kg" },
+    location: { type: String, required: true },
+    harvestDate: Date,
+    expectedPrice: { type: Number, required: true },
+    currency: { type: String, default: "KES" },
+    description: String,
+    images: { type: [String], default: [] },
+    status: { type: String, enum: ["active", "sold", "reserved", "expired"], default: "active" },
+  },
+  { timestamps: true, toJSON },
+);
+export const listings = model("Listing", listingSchema);
 
 // ─── Orders ───
-export const orders = sqliteTable("orders", {
-  id:             integer("id").primaryKey({ autoIncrement: true }),
-  listingId:      integer("listingId").notNull(),
-  buyerId:        integer("buyerId").notNull(),
-  farmerId:       integer("farmerId").notNull(),
-  quantity:       integer("quantity").notNull(),
-  price:          real("price").notNull(),
-  totalAmount:    real("totalAmount").notNull(),
-  deliveryMethod: text("deliveryMethod", { enum: ["pickup", "delivery"] }).default("pickup"),
-  notes:          text("notes"),
-  status:         text("status", { enum: ["pending", "confirmed", "in_transit", "delivered", "cancelled"] }).default("pending").notNull(),
-  createdAt:      text("createdAt").default(sql`(datetime('now'))`).notNull(),
-  updatedAt:      text("updatedAt").default(sql`(datetime('now'))`).notNull(),
-});
-
-export type Order = typeof orders.$inferSelect;
+const orderSchema = new Schema(
+  {
+    id: { type: Number, unique: true, index: true },
+    listingId: { type: Number, required: true },
+    buyerId: { type: Number, required: true },
+    farmerId: { type: Number, required: true },
+    quantity: { type: Number, required: true },
+    price: { type: Number, required: true },
+    totalAmount: { type: Number, required: true },
+    deliveryMethod: { type: String, enum: ["pickup", "delivery"], default: "pickup" },
+    notes: String,
+    status: { type: String, enum: ["pending", "confirmed", "in_transit", "delivered", "cancelled"], default: "pending" },
+  },
+  { timestamps: true, toJSON },
+);
+export const orders = model("Order", orderSchema);
 
 // ─── Market Prices ───
-export const marketPrices = sqliteTable("market_prices", {
-  id:             integer("id").primaryKey({ autoIncrement: true }),
-  cropId:         integer("cropId").notNull(),
-  cropName:       text("cropName").notNull(),
-  town:           text("town").notNull(),
-  wholesalePrice: real("wholesalePrice").notNull(),
-  retailPrice:    real("retailPrice").notNull(),
-  currency:       text("currency").default("KES"),
-  trend:          text("trend", { enum: ["up", "down", "stable"] }).default("stable"),
-  trendPercent:   real("trendPercent").default(0),
-  priceDate:      text("priceDate").notNull(),
-  createdAt:      text("createdAt").default(sql`(datetime('now'))`).notNull(),
-});
-
-export type MarketPrice = typeof marketPrices.$inferSelect;
+const marketPriceSchema = new Schema(
+  {
+    id: { type: Number, unique: true, index: true },
+    cropId: { type: Number, required: true },
+    cropName: { type: String, required: true },
+    town: { type: String, required: true },
+    wholesalePrice: { type: Number, required: true },
+    retailPrice: { type: Number, required: true },
+    currency: { type: String, default: "KES" },
+    trend: { type: String, enum: ["up", "down", "stable"], default: "stable" },
+    trendPercent: { type: Number, default: 0 },
+    priceDate: { type: String, required: true },
+  },
+  { timestamps: true, toJSON },
+);
+export const marketPrices = model("MarketPrice", marketPriceSchema);
 
 // ─── Ratings ───
-export const ratings = sqliteTable("ratings", {
-  id:         integer("id").primaryKey({ autoIncrement: true }),
-  reviewerId: integer("reviewerId").notNull(),
-  revieweeId: integer("revieweeId").notNull(),
-  orderId:    integer("orderId"),
-  rating:     integer("rating").notNull(),
-  review:     text("review"),
-  tags:       text("tags", { mode: "json" }).$type<string[]>(),
-  createdAt:  text("createdAt").default(sql`(datetime('now'))`).notNull(),
-});
-
-export type Rating = typeof ratings.$inferSelect;
+const ratingSchema = new Schema(
+  {
+    id: { type: Number, unique: true, index: true },
+    reviewerId: { type: Number, required: true },
+    revieweeId: { type: Number, required: true },
+    orderId: Number,
+    rating: { type: Number, required: true },
+    review: String,
+    tags: { type: [String], default: [] },
+  },
+  { timestamps: true, toJSON },
+);
+export const ratings = model("Rating", ratingSchema);
 
 // ─── Crop Guides ───
-export const cropGuides = sqliteTable("cropGuides", {
-  id:          integer("id").primaryKey({ autoIncrement: true }),
-  cropId:      integer("cropId").notNull(),
-  stage:       text("stage").notNull(),
-  stageOrder:  integer("stageOrder").notNull(),
-  title:       text("title").notNull(),
-  description: text("description").notNull(),
-  tasks:       text("tasks", { mode: "json" }).$type<string[]>(),
-  tips:        text("tips", { mode: "json" }).$type<string[]>(),
-  warnings:    text("warnings", { mode: "json" }).$type<string[]>(),
-  createdAt:   text("createdAt").default(sql`(datetime('now'))`).notNull(),
-});
-
-export type CropGuide = typeof cropGuides.$inferSelect;
+const cropGuideSchema = new Schema(
+  {
+    id: { type: Number, unique: true, index: true },
+    cropId: { type: Number, required: true },
+    stage: { type: String, required: true },
+    stageOrder: { type: Number, required: true },
+    title: { type: String, required: true },
+    description: { type: String, required: true },
+    tasks: { type: [String], default: [] },
+    tips: { type: [String], default: [] },
+    warnings: { type: [String], default: [] },
+  },
+  { timestamps: true, toJSON },
+);
+export const cropGuides = model("CropGuide", cropGuideSchema);
 
 // ─── Spray Schedules ───
-export const spraySchedules = sqliteTable("spraySchedules", {
-  id:           integer("id").primaryKey({ autoIncrement: true }),
-  cropId:       integer("cropId").notNull(),
-  stage:        text("stage").notNull(),
-  dayFrom:      integer("dayFrom").notNull(),
-  dayTo:        integer("dayTo"),
-  activityType: text("activityType", { enum: ["fertilizer", "pesticide", "fungicide", "herbicide", "irrigation", "pruning", "harvest"] }).notNull(),
-  productName:  text("productName"),
-  dosage:       text("dosage"),
-  instructions: text("instructions"),
-  reminderSent: integer("reminderSent", { mode: "boolean" }).default(false),
-  createdAt:    text("createdAt").default(sql`(datetime('now'))`).notNull(),
-});
-
-export type SpraySchedule = typeof spraySchedules.$inferSelect;
+const sprayScheduleSchema = new Schema(
+  {
+    id: { type: Number, unique: true, index: true },
+    cropId: { type: Number, required: true },
+    stage: { type: String, required: true },
+    dayFrom: { type: Number, required: true },
+    dayTo: Number,
+    activityType: { type: String, enum: ["fertilizer", "pesticide", "fungicide", "herbicide", "irrigation", "pruning", "harvest"] },
+    productName: String,
+    dosage: String,
+    instructions: String,
+    reminderSent: { type: Boolean, default: false },
+  },
+  { timestamps: true, toJSON },
+);
+export const spraySchedules = model("SpraySchedule", sprayScheduleSchema);
 
 // ─── Diagnoses ───
-export const diagnoses = sqliteTable("diagnoses", {
-  id:          integer("id").primaryKey({ autoIncrement: true }),
-  farmerId:    integer("farmerId").notNull(),
-  cropId:      integer("cropId"),
-  cropName:    text("cropName"),
-  photoUrl:    text("photoUrl").notNull(),
-  description: text("description"),
-  diagnosis:   text("diagnosis"),
-  treatment:   text("treatment"),
-  status:      text("status", { enum: ["pending", "diagnosed", "resolved"] }).default("pending"),
-  createdAt:   text("createdAt").default(sql`(datetime('now'))`).notNull(),
-  updatedAt:   text("updatedAt").default(sql`(datetime('now'))`).notNull(),
-});
-
-export type Diagnosis = typeof diagnoses.$inferSelect;
+const diagnosisSchema = new Schema(
+  {
+    id: { type: Number, unique: true, index: true },
+    farmerId: { type: Number, required: true },
+    cropId: Number,
+    cropName: String,
+    photoUrl: { type: String, required: true },
+    description: String,
+    diagnosis: String,
+    treatment: String,
+    status: { type: String, enum: ["pending", "diagnosed", "resolved"], default: "pending" },
+  },
+  { timestamps: true, toJSON },
+);
+export const diagnoses = model("Diagnosis", diagnosisSchema);
 
 // ─── Advisory Messages ───
-export const advisoryMessages = sqliteTable("advisoryMessages", {
-  id:          integer("id").primaryKey({ autoIncrement: true }),
-  userId:      integer("userId").notNull(),
-  cropId:      integer("cropId"),
-  direction:   text("direction", { enum: ["incoming", "outgoing"] }).notNull(),
-  content:     text("content").notNull(),
-  messageType: text("messageType", { enum: ["text", "image", "quick_reply", "product_card", "guide"] }).default("text"),
-  metadata:    text("metadata", { mode: "json" }),
-  createdAt:   text("createdAt").default(sql`(datetime('now'))`).notNull(),
-});
-
-export type AdvisoryMessage = typeof advisoryMessages.$inferSelect;
+const advisoryMessageSchema = new Schema(
+  {
+    id: { type: Number, unique: true, index: true },
+    userId: { type: Number, required: true },
+    cropId: Number,
+    direction: { type: String, enum: ["incoming", "outgoing"], required: true },
+    content: { type: String, required: true },
+    messageType: { type: String, enum: ["text", "image", "quick_reply", "product_card", "guide"], default: "text" },
+    metadata: Schema.Types.Mixed,
+  },
+  { timestamps: true, toJSON },
+);
+export const advisoryMessages = model("AdvisoryMessage", advisoryMessageSchema);
 
 // ─── Zones ───
-export const zones = sqliteTable("zones", {
-  id:           integer("id").primaryKey({ autoIncrement: true }),
-  name:         text("name").notNull(),
-  aggregatorId: integer("aggregatorId").notNull(),
-  towns:        text("towns", { mode: "json" }).$type<string[]>(),
-  description:  text("description"),
-  active:       integer("active", { mode: "boolean" }).default(true),
-  createdAt:    text("createdAt").default(sql`(datetime('now'))`).notNull(),
-});
-
-export type Zone = typeof zones.$inferSelect;
+const zoneSchema = new Schema(
+  {
+    id: { type: Number, unique: true, index: true },
+    name: { type: String, required: true },
+    aggregatorId: { type: Number, required: true },
+    towns: { type: [String], default: [] },
+    description: String,
+    active: { type: Boolean, default: true },
+  },
+  { timestamps: true, toJSON },
+);
+export const zones = model("Zone", zoneSchema);
 
 // ─── Price Alerts ───
-export const priceAlerts = sqliteTable("priceAlerts", {
-  id:                 integer("id").primaryKey({ autoIncrement: true }),
-  userId:             integer("userId").notNull(),
-  cropName:           text("cropName").notNull(),
-  town:               text("town"),
-  condition:          text("condition", { enum: ["above", "below"] }).notNull(),
-  targetPrice:        real("targetPrice").notNull(),
-  notificationMethod: text("notificationMethod", { enum: ["whatsapp", "sms", "in_app"] }).default("in_app"),
-  active:             integer("active", { mode: "boolean" }).default(true),
-  triggered:          integer("triggered", { mode: "boolean" }).default(false),
-  createdAt:          text("createdAt").default(sql`(datetime('now'))`).notNull(),
-});
-
-export type PriceAlert = typeof priceAlerts.$inferSelect;
+const priceAlertSchema = new Schema(
+  {
+    id: { type: Number, unique: true, index: true },
+    userId: { type: Number, required: true },
+    cropName: { type: String, required: true },
+    town: String,
+    condition: { type: String, enum: ["above", "below"], required: true },
+    targetPrice: { type: Number, required: true },
+    notificationMethod: { type: String, enum: ["whatsapp", "sms", "in_app"], default: "in_app" },
+    active: { type: Boolean, default: true },
+    triggered: { type: Boolean, default: false },
+  },
+  { timestamps: true, toJSON },
+);
+export const priceAlerts = model("PriceAlert", priceAlertSchema);
 
 // ─── M-Pesa Payments ───
-export const mpesaPayments = sqliteTable("mpesa_payments", {
-  id:                integer("id").primaryKey({ autoIncrement: true }),
-  orderId:           integer("orderId"),
-  checkoutRequestId: text("checkoutRequestId").unique(),
-  merchantRequestId: text("merchantRequestId"),
-  phone:             text("phone").notNull(),
-  amount:            real("amount").notNull(),
-  accountRef:        text("accountRef"),
-  status:            text("status", { enum: ["pending", "completed", "failed", "cancelled"] }).default("pending").notNull(),
-  mpesaReceiptNumber:text("mpesaReceiptNumber"),
-  transactionDate:   text("transactionDate"),
-  resultCode:        integer("resultCode"),
-  resultDesc:        text("resultDesc"),
-  rawCallback:       text("rawCallback", { mode: "json" }),
-  createdAt:         text("createdAt").default(sql`(datetime('now'))`).notNull(),
-  updatedAt:         text("updatedAt").default(sql`(datetime('now'))`).notNull(),
-});
+const mpesaPaymentSchema = new Schema(
+  {
+    id: { type: Number, unique: true, index: true },
+    orderId: Number,
+    checkoutRequestId: { type: String, unique: true, sparse: true },
+    merchantRequestId: String,
+    phone: { type: String, required: true },
+    amount: { type: Number, required: true },
+    accountRef: String,
+    status: { type: String, enum: ["pending", "completed", "failed", "cancelled"], default: "pending" },
+    mpesaReceiptNumber: String,
+    transactionDate: String,
+    resultCode: Number,
+    resultDesc: String,
+    rawCallback: Schema.Types.Mixed,
+  },
+  { timestamps: true, toJSON },
+);
+export const mpesaPayments = model("MpesaPayment", mpesaPaymentSchema);
 
-export type MpesaPayment = typeof mpesaPayments.$inferSelect;
+// ─── Types used across the API ───
+export interface User {
+  id: number;
+  unionId: string;
+  name?: string | null;
+  email?: string | null;
+  avatar?: string | null;
+  role: "user" | "admin";
+  userType: "farmer" | "buyer" | "aggregator";
+  phone?: string | null;
+  location?: string | null;
+  bio?: string | null;
+  verified?: boolean;
+  rating?: number;
+  reviewCount?: number;
+  lastSignInAt?: Date;
+}
+
+export interface InsertUser {
+  unionId: string;
+  name?: string | null;
+  avatar?: string | null;
+  role?: "user" | "admin";
+  userType?: "farmer" | "buyer" | "aggregator";
+  lastSignInAt?: Date;
+}
+
+export { mongoose };
