@@ -72,6 +72,14 @@
     .msg.out .bub{ background:#dcf8c6; } .msg.in .bub{ background:#fff; border:1px solid var(--line); }
     .msg .bub{ display:inline-block; padding:7px 11px; border-radius:10px; max-width:80%; white-space:pre-wrap; }
     .msg.out{ text-align:right; }
+    tbody tr:hover td{ background:#f8faf8; }
+    .panel-search{ border:1px solid var(--line); border-radius:8px; padding:6px 11px; font-size:13px; font-family:inherit; width:220px; max-width:46vw; }
+    .panel-search:focus{ outline:none; border-color:var(--green3); }
+    .mini{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    @media(max-width:760px){ .mini{ grid-template-columns:1fr; } .sidebar{ width:64px; } .sb-logo b,.sb-logo span,.nav-item span:not(.nav-ico),.sb-foot{ display:none; } .nav-item{ justify-content:center; } }
+    .toast{ position:fixed; bottom:22px; right:22px; background:var(--dark); color:#fff; padding:12px 18px; border-radius:10px; font-size:13px; font-weight:800; box-shadow:0 10px 30px rgba(0,0,0,.28); opacity:0; transform:translateY(12px); transition:all .25s; z-index:100; pointer-events:none; }
+    .toast.show{ opacity:1; transform:translateY(0); }
+    .toast.err{ background:#c62828; }
   </style>
 </head>
 <body>
@@ -115,6 +123,7 @@
       <div class="content" id="view"><div class="loading">Loading…</div></div>
     </main>
   </div>
+  <div class="toast" id="toast"></div>
 
   <script>
     var KEY = localStorage.getItem('ss_admin_key') || '';
@@ -179,7 +188,8 @@
 
     // ── Sections ──
     function renderOverview(){
-      return api('/overview').then(function(d){
+      return Promise.all([api('/overview'), api('/listings'), api('/orders')]).then(function(res){
+        var d = res[0], L = res[1] || {}, O = res[2] || {};
         setDbPill(d.dbConnected);
         if (!d.dbConnected) { document.getElementById('view').innerHTML = dbBanner() + emptyStats(); return; }
         var s = d.stats;
@@ -192,8 +202,17 @@
           ['Pending payments', s.pendingPayments, ''],
           ['WhatsApp chats', s.conversations, s.messages+' messages'],
         ].map(function(c){ return '<div class="stat"><div class="lbl">'+c[0]+'</div><div class="val">'+c[1]+'</div><div class="sub">'+c[2]+'</div></div>'; }).join('');
+        var recentL = (L.listings||[]).slice(0,6).map(function(l){
+          return '<tr><td><b>'+esc(l.cropName)+'</b></td><td>'+esc(l.farmerName||('#'+l.farmerId))+'</td><td>'+ksh(l.expectedPrice)+'</td><td>'+statusTag(l.status)+'</td></tr>';
+        }).join('');
+        var recentO = (O.orders||[]).slice(0,6).map(function(o){
+          return '<tr><td>#'+o.id+'</td><td>'+ksh(o.totalAmount)+'</td><td>'+when(o.createdAt)+'</td><td>'+statusTag(o.status)+'</td></tr>';
+        }).join('');
         document.getElementById('view').innerHTML = '<div class="cards">'+cards+'</div>'+
-          '<div class="panel"><div class="panel-h">Quick actions</div><div style="padding:16px 18px" class="muted">Use the sidebar to verify farmers, moderate listings, update order status, edit market prices, and review WhatsApp conversations.</div></div>';
+          '<div class="mini">'+
+            panel('Recent listings', table(['Crop','Farmer','Price','Status'], recentL, 4), false)+
+            panel('Recent orders', table(['Order','Total','When','Status'], recentO, 4), false)+
+          '</div>';
       });
     }
     function emptyStats(){ return '<div class="cards">'+['Farmers','Buyers','Listings','Orders','Revenue'].map(function(l){return '<div class="stat"><div class="lbl">'+l+'</div><div class="val">—</div></div>';}).join('')+'</div>'; }
@@ -294,19 +313,35 @@
     }
 
     // ── Actions ──
-    function setVerify(id, v){ api('/users/verify',{method:'POST',body:JSON.stringify({id:id,verified:v})}).then(refresh); }
-    function setListingStatus(id, s){ api('/listings/status',{method:'POST',body:JSON.stringify({id:id,status:s})}); }
-    function setOrderStatus(id, s){ api('/orders/status',{method:'POST',body:JSON.stringify({id:id,status:s})}); }
+    function setVerify(id, v){ api('/users/verify',{method:'POST',body:JSON.stringify({id:id,verified:v})}).then(function(){ toast('✓ Farmer '+(v?'verified':'unverified')); refresh(); }).catch(function(){ toast('Update failed', true); }); }
+    function setListingStatus(id, s){ api('/listings/status',{method:'POST',body:JSON.stringify({id:id,status:s})}).then(function(){ toast('✓ Listing set to '+s); }).catch(function(){ toast('Update failed', true); }); }
+    function setOrderStatus(id, s){ api('/orders/status',{method:'POST',body:JSON.stringify({id:id,status:s})}).then(function(){ toast('✓ Order set to '+s); }).catch(function(){ toast('Update failed', true); }); }
     function savePrice(id){
       var w = document.getElementById('w'+id).value, r = document.getElementById('r'+id).value;
-      api('/prices',{method:'POST',body:JSON.stringify({id:id,wholesalePrice:w,retailPrice:r})}).then(function(){
-        var btn = event.target; btn.textContent='Saved ✓'; setTimeout(function(){ btn.textContent='Save'; }, 1200);
-      });
+      api('/prices',{method:'POST',body:JSON.stringify({id:id,wholesalePrice:w,retailPrice:r})})
+        .then(function(){ toast('✓ Price saved'); }).catch(function(){ toast('Save failed', true); });
     }
 
     // ── Helpers ──
     function setView(html){ document.getElementById('view').innerHTML = html; }
-    function panel(title, body){ return '<div class="panel"><div class="panel-h">'+title+'</div>'+body+'</div>'; }
+    function panel(title, body, search){
+      var hasTable = (search !== false) && body.indexOf('<table') >= 0;
+      var s = hasTable ? '<input class="panel-search" placeholder="Search…" onkeyup="filterRows(this)" />' : '';
+      return '<div class="panel"><div class="panel-h"><span>'+title+'</span>'+s+'</div>'+body+'</div>';
+    }
+    function filterRows(input){
+      var q = input.value.toLowerCase();
+      input.closest('.panel').querySelectorAll('tbody tr').forEach(function(tr){
+        tr.style.display = tr.textContent.toLowerCase().indexOf(q) >= 0 ? '' : 'none';
+      });
+    }
+    var toastTimer;
+    function toast(msg, isErr){
+      var t = document.getElementById('toast');
+      t.textContent = msg; t.className = 'toast show' + (isErr ? ' err' : '');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function(){ t.className = 'toast'; }, 2000);
+    }
     function table(cols, rows, n){
       if (!rows) rows = '<tr><td colspan="'+n+'" class="muted" style="padding:30px;text-align:center">No records yet.</td></tr>';
       return '<div style="overflow:auto"><table><thead><tr>'+cols.map(function(c){return '<th>'+c+'</th>';}).join('')+'</tr></thead><tbody>'+rows+'</tbody></table></div>';
