@@ -1,6 +1,6 @@
-/** SeedPro Kenya — shared marketplace configuration */
+/** Shamba Sokoni Kenya — shared marketplace configuration */
 
-export const APP_NAME = "SeedPro";
+export const APP_NAME = "Shamba Sokoni";
 export const APP_TAGLINE = "Kenya's Farmer Marketplace";
 export const COUNTRY = "Kenya";
 export const CURRENCY = "KES";

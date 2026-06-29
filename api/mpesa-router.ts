@@ -11,7 +11,7 @@ export const mpesaRouter = createRouter({
         phone: z.string().min(9, "Invalid phone number"),
         amount: z.number().positive("Amount must be positive"),
         orderId: z.number().optional(),
-        accountRef: z.string().default("SeedPro"),
+        accountRef: z.string().default("ShambaSokoni"),
         description: z.string().default("Farm Produce Payment"),
       }),
     )

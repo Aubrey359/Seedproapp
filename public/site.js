@@ -231,7 +231,7 @@ function initiateMpesa(amount) {
       json: {
         phone:       phone,
         amount:      amount,
-        accountRef:  'SeedPro',
+        accountRef:  'Shamba Sokoni',
         description: 'Farm Produce'
       }
     })
@@ -307,7 +307,7 @@ function enterApp() {
     '<div class="auth-sheet">',
       '<button class="auth-close" onclick="closeAuth()">✕</button>',
       '<div class="auth-logo"><span>🌱</span></div>',
-      '<h2 class="auth-title">Welcome to SeedPro</h2>',
+      '<h2 class="auth-title">Welcome to Shamba Sokoni</h2>',
       '<p class="auth-sub">Kenya\'s #1 Farm Marketplace</p>',
       '<div class="auth-tabs">',
         '<button class="auth-tab active" id="atab-login" onclick="switchAuthTab(\'login\')">Sign In</button>',
@@ -394,7 +394,7 @@ function doRegister() {
   setTimeout(function() {
     btn.textContent = '🌱 Create Free Account'; btn.disabled = false;
     closeAuth();
-    showToast('🎉 Account created! Welcome to SeedPro, ' + name.split(' ')[0] + '!');
+    showToast('🎉 Account created! Welcome to Shamba Sokoni, ' + name.split(' ')[0] + '!');
   }, 1400);
 }
 

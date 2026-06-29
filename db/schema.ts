@@ -1,4 +1,4 @@
-// MongoDB / Mongoose model layer for SeedPro.
+// MongoDB / Mongoose model layer for Shamba Sokoni.
 // Mongoose is loaded via createRequire so it resolves correctly inside Vite's
 // SSR module context (same pattern used elsewhere in this codebase).
 import { createRequire } from "module";

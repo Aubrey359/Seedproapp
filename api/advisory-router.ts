@@ -180,7 +180,7 @@ function generateAdvisoryResponse(content: string, _cropId?: number): {
       content: `**Nursery/Seedling Stage Guide** 🌱\n\n1. **Seed Selection**: Use certified seeds for best germination\n2. **Seedbed Prep**: Mix soil with compost (3:1 ratio)\n3. **Sowing**: Plant seeds 1cm deep, 2cm apart\n4. **Watering**: Light misting twice daily\n5. **Protection**: Use shade net (50%) for first 2 weeks\n\nGermination typically takes 5-10 days. Ready for transplant at 4-6 weeks!`,
       messageType: "text",
       metadata: {
-        actions: ["View Full Calendar", "Buy SeedPro Seeds"],
+        actions: ["View Full Calendar", "Buy Shamba Sokoni Seeds"],
       },
     };
   }
@@ -209,12 +209,12 @@ function generateAdvisoryResponse(content: string, _cropId?: number): {
   // Product recommendations
   if (lower.includes("product") || lower.includes("recommend") || lower.includes("fertilizer")) {
     return {
-      content: `Based on your crop stage, here are SeedPro recommendations:\n\n**SeedPro Tomato Fertilizer**\nNPK 17:17:17 balanced formula\nPrice: KSh 1,500 per kg\n\n**SeedPro Pest Control**\nOrganic neem-based spray\nPrice: KSh 850 per liter\n\nWould you like to order any of these products?`,
+      content: `Based on your crop stage, here are Shamba Sokoni recommendations:\n\n**Shamba Sokoni Tomato Fertilizer**\nNPK 17:17:17 balanced formula\nPrice: KSh 1,500 per kg\n\n**Shamba Sokoni Pest Control**\nOrganic neem-based spray\nPrice: KSh 850 per liter\n\nWould you like to order any of these products?`,
       messageType: "product_card",
       metadata: {
         products: [
-          { name: "SeedPro NPK Fertilizer", price: 1500, unit: "kg" },
-          { name: "SeedPro Organic Pest Spray", price: 850, unit: "liter" },
+          { name: "Shamba Sokoni NPK Fertilizer", price: 1500, unit: "kg" },
+          { name: "Shamba Sokoni Organic Pest Spray", price: 850, unit: "liter" },
         ],
       },
     };
@@ -233,7 +233,7 @@ function generateAdvisoryResponse(content: string, _cropId?: number): {
 
   // Default greeting/help response
   return {
-    content: `Welcome to SeedPro Advisory! 🌱 I'm your farming assistant.\n\nHow can I help you today?\n\n**Quick Options:**\n• Select a crop for stage-by-stage guidance\n• Diagnose crop problems (upload a photo)\n• Get spray & fertilizer schedules\n• View market prices\n• Connect with buyers\n\nWhat crop are you growing?`,
+    content: `Welcome to Shamba Sokoni Advisory! 🌱 I'm your farming assistant.\n\nHow can I help you today?\n\n**Quick Options:**\n• Select a crop for stage-by-stage guidance\n• Diagnose crop problems (upload a photo)\n• Get spray & fertilizer schedules\n• View market prices\n• Connect with buyers\n\nWhat crop are you growing?`,
     messageType: "quick_reply",
     metadata: {
       quickReplies: ["Tomato", "Onion", "Maize", "Potato", "Coffee", "Other"],
