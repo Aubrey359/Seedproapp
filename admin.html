@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shamba Sokoni — Admin Dashboard</title>
+  <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root{ --green:#1B5E20; --green2:#2E7D32; --green3:#43A047; --bg:#eef1ee; --card:#fff; --line:#e2e6e2; --muted:#6b7a6e; --dark:#16321a; }
+    *{ box-sizing:border-box; margin:0; padding:0; }
+    body{ font-family:'Nunito',system-ui,sans-serif; background:var(--bg); color:var(--dark); }
+    a{ color:inherit; }
+
+    /* Login */
+    #login{ position:fixed; inset:0; background:linear-gradient(135deg,#14532D,#2E7D32); display:flex; align-items:center; justify-content:center; z-index:50; }
+    .login-card{ background:#fff; border-radius:18px; padding:32px 28px; width:340px; box-shadow:0 20px 60px rgba(0,0,0,.3); text-align:center; }
+    .login-card img{ width:60px; height:60px; margin-bottom:12px; }
+    .login-card h1{ font-size:20px; margin-bottom:4px; }
+    .login-card p{ font-size:13px; color:var(--muted); margin-bottom:18px; }
+    .login-card input{ width:100%; height:44px; border:1.5px solid var(--line); border-radius:10px; padding:0 14px; font-size:15px; font-family:inherit; margin-bottom:12px; }
+    .login-card input:focus{ outline:none; border-color:var(--green3); }
+    .login-card button{ width:100%; height:44px; border:none; border-radius:10px; background:var(--green2); color:#fff; font-weight:800; font-size:15px; font-family:inherit; cursor:pointer; }
+    .login-err{ color:#c62828; font-size:12px; min-height:16px; margin-bottom:8px; }
+
+    /* Shell */
+    .shell{ display:flex; min-height:100vh; }
+    .sidebar{ width:230px; background:#14532D; color:#fff; flex-shrink:0; position:sticky; top:0; height:100vh; display:flex; flex-direction:column; padding:18px 14px; }
+    .sb-logo{ display:flex; align-items:center; gap:10px; padding:6px 8px 18px; }
+    .sb-logo img{ width:38px; height:38px; border-radius:9px; }
+    .sb-logo b{ font-size:17px; } .sb-logo span{ display:block; font-size:10px; color:#9ccc9f; font-weight:700; letter-spacing:.5px; }
+    .nav-item{ display:flex; align-items:center; gap:10px; padding:11px 12px; border-radius:10px; cursor:pointer; font-weight:700; font-size:14px; color:#cfe3d0; border:none; background:none; width:100%; text-align:left; font-family:inherit; }
+    .nav-item:hover{ background:rgba(255,255,255,.08); color:#fff; }
+    .nav-item.active{ background:#43A047; color:#fff; }
+    .nav-ico{ width:20px; text-align:center; }
+    .sb-foot{ margin-top:auto; padding:10px 8px; font-size:11px; color:#7fae83; }
+
+    main{ flex:1; min-width:0; }
+    .topbar{ background:#fff; border-bottom:1px solid var(--line); padding:14px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:10; }
+    .topbar h2{ font-size:18px; }
+    .topbar .right{ display:flex; align-items:center; gap:12px; }
+    .pill{ font-size:11px; font-weight:800; padding:4px 10px; border-radius:100px; }
+    .pill.ok{ background:#e6f4ea; color:#1B5E20; } .pill.off{ background:#fdeaea; color:#c62828; }
+    .btn-ghost{ border:1px solid var(--line); background:#fff; border-radius:8px; padding:7px 12px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; color:var(--dark); }
+    .content{ padding:22px 24px 60px; }
+
+    .banner{ background:#fff8e1; border:1px solid #ffe082; color:#8a6d00; border-radius:12px; padding:14px 16px; font-size:13px; font-weight:700; margin-bottom:18px; }
+
+    .cards{ display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px; margin-bottom:22px; }
+    .stat{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px 18px; }
+    .stat .lbl{ font-size:12px; color:var(--muted); font-weight:700; }
+    .stat .val{ font-size:26px; font-weight:900; color:var(--green); margin-top:4px; }
+    .stat .sub{ font-size:11px; color:var(--muted); margin-top:2px; }
+
+    .panel{ background:var(--card); border:1px solid var(--line); border-radius:14px; overflow:hidden; margin-bottom:20px; }
+    .panel-h{ padding:14px 18px; border-bottom:1px solid var(--line); font-weight:800; font-size:15px; display:flex; justify-content:space-between; align-items:center; }
+    table{ width:100%; border-collapse:collapse; font-size:13px; }
+    th{ text-align:left; padding:10px 14px; background:#f6f8f6; color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.4px; border-bottom:1px solid var(--line); position:sticky; }
+    td{ padding:10px 14px; border-bottom:1px solid #f0f3f0; vertical-align:middle; }
+    tr:last-child td{ border-bottom:none; }
+    .tag{ font-size:11px; font-weight:800; padding:3px 9px; border-radius:100px; display:inline-block; }
+    .t-green{ background:#e6f4ea; color:#1B5E20; } .t-amber{ background:#fff4d6; color:#8a6d00; }
+    .t-red{ background:#fdeaea; color:#c62828; } .t-blue{ background:#e3f0fd; color:#1565c0; } .t-grey{ background:#eef0ee; color:#566; }
+    select,.cell-input{ font-family:inherit; font-size:12px; border:1px solid var(--line); border-radius:7px; padding:5px 7px; background:#fff; }
+    .cell-input{ width:70px; }
+    .act{ border:none; border-radius:7px; padding:6px 11px; font-size:12px; font-weight:800; cursor:pointer; font-family:inherit; }
+    .act.green{ background:var(--green2); color:#fff; } .act.line{ background:#fff; border:1px solid var(--line); color:var(--dark); }
+    .muted{ color:var(--muted); }
+    .loading{ padding:40px; text-align:center; color:var(--muted); }
+    .convo-msgs{ background:#f6f8f6; border-radius:10px; padding:12px; max-height:340px; overflow:auto; margin-top:10px; }
+    .msg{ margin-bottom:8px; font-size:13px; } .msg .who{ font-size:10px; font-weight:800; text-transform:uppercase; color:var(--muted); }
+    .msg.out .bub{ background:#dcf8c6; } .msg.in .bub{ background:#fff; border:1px solid var(--line); }
+    .msg .bub{ display:inline-block; padding:7px 11px; border-radius:10px; max-width:80%; white-space:pre-wrap; }
+    .msg.out{ text-align:right; }
+  </style>
+</head>
+<body>
+  <!-- LOGIN -->
+  <div id="login">
+    <div class="login-card">
+      <img src="/icon.svg" alt="" />
+      <h1>Shamba Sokoni Admin</h1>
+      <p>Enter your admin key to continue</p>
+      <div class="login-err" id="loginErr"></div>
+      <input type="password" id="keyInput" placeholder="Admin key" onkeydown="if(event.key==='Enter')doLogin()" />
+      <button onclick="doLogin()">Sign in</button>
+    </div>
+  </div>
+
+  <!-- SHELL -->
+  <div class="shell" id="shell" hidden>
+    <aside class="sidebar">
+      <div class="sb-logo">
+        <img src="/icon.svg" alt="" />
+        <div><b>Shamba Sokoni</b><span>ADMIN</span></div>
+      </div>
+      <button class="nav-item active" data-sec="overview" onclick="nav('overview')"><span class="nav-ico">📊</span> Overview</button>
+      <button class="nav-item" data-sec="listings" onclick="nav('listings')"><span class="nav-ico">🌾</span> Listings</button>
+      <button class="nav-item" data-sec="farmers" onclick="nav('farmers')"><span class="nav-ico">👩🏾‍🌾</span> Farmers &amp; Users</button>
+      <button class="nav-item" data-sec="orders" onclick="nav('orders')"><span class="nav-ico">📦</span> Orders</button>
+      <button class="nav-item" data-sec="payments" onclick="nav('payments')"><span class="nav-ico">💳</span> Payments</button>
+      <button class="nav-item" data-sec="prices" onclick="nav('prices')"><span class="nav-ico">📈</span> Market Prices</button>
+      <button class="nav-item" data-sec="whatsapp" onclick="nav('whatsapp')"><span class="nav-ico">💬</span> WhatsApp Bot</button>
+      <div class="sb-foot">v1 · key-gated REST API</div>
+    </aside>
+    <main>
+      <div class="topbar">
+        <h2 id="secTitle">Overview</h2>
+        <div class="right">
+          <span class="pill off" id="dbPill">DB: checking…</span>
+          <button class="btn-ghost" onclick="refresh()">↻ Refresh</button>
+          <button class="btn-ghost" onclick="logout()">Sign out</button>
+        </div>
+      </div>
+      <div class="content" id="view"><div class="loading">Loading…</div></div>
+    </main>
+  </div>
+
+  <script>
+    var KEY = localStorage.getItem('ss_admin_key') || '';
+    var SECTION = 'overview';
+    var TITLES = { overview:'Overview', listings:'Listings', farmers:'Farmers & Users', orders:'Orders', payments:'Payments', prices:'Market Prices', whatsapp:'WhatsApp Bot' };
+
+    function api(path, opts){
+      opts = opts || {};
+      opts.headers = Object.assign({ 'x-admin-key': KEY, 'Content-Type':'application/json' }, opts.headers||{});
+      return fetch('/api/admin'+path, opts).then(function(r){
+        if (r.status === 401) { throw { unauth:true }; }
+        return r.json();
+      });
+    }
+    function setDbPill(connected){
+      var p = document.getElementById('dbPill');
+      if (connected){ p.className='pill ok'; p.textContent='DB: connected'; }
+      else { p.className='pill off'; p.textContent='DB: not connected'; }
+    }
+    function dbBanner(){ return '<div class="banner">⚠️ MongoDB is not connected. Add your Atlas <code>MONGODB_URI</code> to <code>.env</code> and restart — then live data appears here.</div>'; }
+    function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+    function ksh(n){ return 'KSh ' + Number(n||0).toLocaleString(); }
+    function when(d){ if(!d) return '—'; var t=new Date(d); return isNaN(t)?'—':t.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})+' '+t.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}); }
+    function statusTag(s){
+      var m={ active:'t-green', completed:'t-green', confirmed:'t-green', delivered:'t-green',
+              pending:'t-amber', reserved:'t-amber', in_transit:'t-blue',
+              failed:'t-red', cancelled:'t-red', expired:'t-grey', sold:'t-grey' };
+      return '<span class="tag '+(m[s]||'t-grey')+'">'+esc(s)+'</span>';
+    }
+
+    // ── Auth ──
+    function doLogin(){
+      var v = document.getElementById('keyInput').value.trim();
+      if (!v) return;
+      KEY = v;
+      api('/overview').then(function(){
+        localStorage.setItem('ss_admin_key', KEY);
+        document.getElementById('login').hidden = true;
+        document.getElementById('shell').hidden = false;
+        nav('overview');
+      }).catch(function(){
+        document.getElementById('loginErr').textContent = 'Invalid key. Try again.';
+      });
+    }
+    function logout(){ localStorage.removeItem('ss_admin_key'); location.reload(); }
+
+    function nav(sec){
+      SECTION = sec;
+      document.querySelectorAll('.nav-item').forEach(function(b){ b.classList.toggle('active', b.dataset.sec===sec); });
+      document.getElementById('secTitle').textContent = TITLES[sec];
+      refresh();
+    }
+    function refresh(){
+      var v = document.getElementById('view');
+      v.innerHTML = '<div class="loading">Loading…</div>';
+      var fn = { overview:renderOverview, listings:renderListings, farmers:renderFarmers, orders:renderOrders, payments:renderPayments, prices:renderPrices, whatsapp:renderWhatsapp }[SECTION];
+      fn().catch(function(e){
+        if (e && e.unauth) return logout();
+        v.innerHTML = '<div class="banner">Error loading data: '+esc(e&&e.message||e)+'</div>';
+      });
+    }
+
+    // ── Sections ──
+    function renderOverview(){
+      return api('/overview').then(function(d){
+        setDbPill(d.dbConnected);
+        if (!d.dbConnected) { document.getElementById('view').innerHTML = dbBanner() + emptyStats(); return; }
+        var s = d.stats;
+        var cards = [
+          ['Farmers', s.farmers, s.verified+' verified'],
+          ['Buyers', s.buyers, ''],
+          ['Active listings', s.activeListings, s.totalListings+' total'],
+          ['Pending orders', s.pendingOrders, s.totalOrders+' total'],
+          ['Revenue (paid)', ksh(s.revenue), s.completedPayments+' payments'],
+          ['Pending payments', s.pendingPayments, ''],
+          ['WhatsApp chats', s.conversations, s.messages+' messages'],
+        ].map(function(c){ return '<div class="stat"><div class="lbl">'+c[0]+'</div><div class="val">'+c[1]+'</div><div class="sub">'+c[2]+'</div></div>'; }).join('');
+        document.getElementById('view').innerHTML = '<div class="cards">'+cards+'</div>'+
+          '<div class="panel"><div class="panel-h">Quick actions</div><div style="padding:16px 18px" class="muted">Use the sidebar to verify farmers, moderate listings, update order status, edit market prices, and review WhatsApp conversations.</div></div>';
+      });
+    }
+    function emptyStats(){ return '<div class="cards">'+['Farmers','Buyers','Listings','Orders','Revenue'].map(function(l){return '<div class="stat"><div class="lbl">'+l+'</div><div class="val">—</div></div>';}).join('')+'</div>'; }
+
+    function renderListings(){
+      return api('/listings').then(function(d){
+        setDbPill(d.dbConnected);
+        if (!d.dbConnected) return setView(dbBanner());
+        var rows = (d.listings||[]).map(function(l){
+          return '<tr><td>#'+l.id+'</td><td><b>'+esc(l.cropName)+'</b></td><td>'+esc(l.farmerName||('farmer #'+l.farmerId))+'</td><td>'+l.quantity+' '+esc(l.quantityUnit||'kg')+'</td><td>'+ksh(l.expectedPrice)+'</td><td>'+esc(l.location)+'</td><td>'+
+            '<select onchange="setListingStatus('+l.id+',this.value)">'+
+              ['active','reserved','sold','expired'].map(function(s){return '<option'+(s===l.status?' selected':'')+'>'+s+'</option>';}).join('')+
+            '</select></td></tr>';
+        }).join('');
+        setView(panel('Listings ('+(d.listings||[]).length+')',
+          table(['ID','Crop','Farmer','Qty','Price','Location','Status'], rows, 7)));
+      });
+    }
+    function renderFarmers(){
+      return api('/users').then(function(d){
+        setDbPill(d.dbConnected);
+        if (!d.dbConnected) return setView(dbBanner());
+        var rows = (d.users||[]).map(function(u){
+          return '<tr><td>#'+u.id+'</td><td><b>'+esc(u.name||'—')+'</b></td><td>'+esc(u.phone||'—')+'</td><td>'+esc(u.location||'—')+'</td><td><span class="tag t-grey">'+esc(u.userType)+'</span></td><td>'+(u.verified?'<span class="tag t-green">verified</span>':'<span class="tag t-amber">unverified</span>')+'</td><td>★ '+(u.rating||0)+'</td><td>'+
+            '<button class="act '+(u.verified?'line':'green')+'" onclick="setVerify('+u.id+','+(!u.verified)+')">'+(u.verified?'Unverify':'Verify')+'</button></td></tr>';
+        }).join('');
+        setView(panel('Users ('+(d.users||[]).length+')',
+          table(['ID','Name','Phone','Location','Type','Status','Rating','Action'], rows, 8)));
+      });
+    }
+    function renderOrders(){
+      return api('/orders').then(function(d){
+        setDbPill(d.dbConnected);
+        if (!d.dbConnected) return setView(dbBanner());
+        var rows = (d.orders||[]).map(function(o){
+          return '<tr><td>#'+o.id+'</td><td>listing #'+o.listingId+'</td><td>'+o.quantity+'</td><td>'+ksh(o.totalAmount)+'</td><td>'+esc(o.deliveryMethod||'—')+'</td><td>'+when(o.createdAt)+'</td><td>'+
+            '<select onchange="setOrderStatus('+o.id+',this.value)">'+
+              ['pending','confirmed','in_transit','delivered','cancelled'].map(function(s){return '<option'+(s===o.status?' selected':'')+'>'+s+'</option>';}).join('')+
+            '</select></td></tr>';
+        }).join('');
+        setView(panel('Orders ('+(d.orders||[]).length+')',
+          table(['ID','Listing','Qty','Total','Delivery','Created','Status'], rows, 7)));
+      });
+    }
+    function renderPayments(){
+      return api('/payments').then(function(d){
+        setDbPill(d.dbConnected);
+        if (!d.dbConnected) return setView(dbBanner());
+        var rows = (d.payments||[]).map(function(p){
+          return '<tr><td>#'+p.id+'</td><td>'+esc(p.phone)+'</td><td>'+ksh(p.amount)+'</td><td>'+esc(p.accountRef||'—')+'</td><td>'+esc(p.mpesaReceiptNumber||'—')+'</td><td>'+when(p.createdAt)+'</td><td>'+statusTag(p.status)+'</td></tr>';
+        }).join('');
+        setView(panel('M-Pesa payments ('+(d.payments||[]).length+')',
+          table(['ID','Phone','Amount','Ref','Receipt','Created','Status'], rows, 7)));
+      });
+    }
+    function renderPrices(){
+      return api('/prices').then(function(d){
+        setDbPill(d.dbConnected);
+        if (!d.dbConnected) return setView(dbBanner());
+        var rows = (d.prices||[]).map(function(p){
+          return '<tr><td><b>'+esc(p.cropName)+'</b></td><td>'+esc(p.town)+'</td>'+
+            '<td><input class="cell-input" id="w'+p.id+'" value="'+p.wholesalePrice+'"></td>'+
+            '<td><input class="cell-input" id="r'+p.id+'" value="'+p.retailPrice+'"></td>'+
+            '<td>'+statusTag(p.trend)+' '+(p.trendPercent||0)+'%</td>'+
+            '<td><button class="act green" onclick="savePrice('+p.id+')">Save</button></td></tr>';
+        }).join('');
+        setView(panel("Today's market prices ("+(d.prices||[]).length+')',
+          table(['Crop','Town','Wholesale','Retail','Trend','Action'], rows, 6)));
+      });
+    }
+    function renderWhatsapp(){
+      return api('/whatsapp').then(function(d){
+        setDbPill(d.dbConnected);
+        if (!d.dbConnected) return setView(dbBanner());
+        var bot = d.bot||{};
+        var status = bot.connected
+          ? '<span class="tag t-green">connected</span> via '+esc(bot.provider||'?')+' '+(bot.number?('('+esc(bot.number)+')'):'')
+          : '<span class="tag t-amber">not connected</span> — set WHATSAPP_PROVIDER / WHATSAPP_TOKEN in .env once the bot is built';
+        var botCard = '<div class="panel"><div class="panel-h">Bot status</div><div style="padding:16px 18px">'+status+
+          '<div class="muted" style="margin-top:8px;font-size:12px">The SELL flow (SELL TOMATOES → crates → location → price → listing) is the next build. Conversations below come from the advisory chat model the bot will share.</div></div></div>';
+        var rows = (d.conversations||[]).map(function(x){
+          return '<tr><td><b>'+esc(x.name||('user #'+x.userId))+'</b></td><td>'+esc(x.phone||'—')+'</td><td>'+x.messages+'</td><td class="muted">'+esc((x.lastMessage||'').slice(0,60))+'</td><td>'+when(x.lastAt)+'</td><td><button class="act line" onclick="viewConvo('+x.userId+')">View</button></td></tr>';
+        }).join('');
+        setView(botCard + panel('Conversations ('+(d.conversations||[]).length+')',
+          table(['Name','Phone','Msgs','Last message','When','Chat'], rows, 6)) +
+          '<div id="convoView"></div>');
+      });
+    }
+    function viewConvo(userId){
+      api('/whatsapp/messages?userId='+userId).then(function(d){
+        var msgs = (d.messages||[]).map(function(m){
+          var out = m.direction==='outgoing';
+          return '<div class="msg '+(out?'out':'in')+'"><div class="who">'+(out?'Farmer':'Bot')+'</div><div class="bub">'+esc(m.content)+'</div></div>';
+        }).join('') || '<div class="muted">No messages.</div>';
+        document.getElementById('convoView').innerHTML = '<div class="panel"><div class="panel-h">Conversation — user #'+userId+'</div><div style="padding:14px 18px"><div class="convo-msgs">'+msgs+'</div></div></div>';
+        document.getElementById('convoView').scrollIntoView({behavior:'smooth',block:'start'});
+      });
+    }
+
+    // ── Actions ──
+    function setVerify(id, v){ api('/users/verify',{method:'POST',body:JSON.stringify({id:id,verified:v})}).then(refresh); }
+    function setListingStatus(id, s){ api('/listings/status',{method:'POST',body:JSON.stringify({id:id,status:s})}); }
+    function setOrderStatus(id, s){ api('/orders/status',{method:'POST',body:JSON.stringify({id:id,status:s})}); }
+    function savePrice(id){
+      var w = document.getElementById('w'+id).value, r = document.getElementById('r'+id).value;
+      api('/prices',{method:'POST',body:JSON.stringify({id:id,wholesalePrice:w,retailPrice:r})}).then(function(){
+        var btn = event.target; btn.textContent='Saved ✓'; setTimeout(function(){ btn.textContent='Save'; }, 1200);
+      });
+    }
+
+    // ── Helpers ──
+    function setView(html){ document.getElementById('view').innerHTML = html; }
+    function panel(title, body){ return '<div class="panel"><div class="panel-h">'+title+'</div>'+body+'</div>'; }
+    function table(cols, rows, n){
+      if (!rows) rows = '<tr><td colspan="'+n+'" class="muted" style="padding:30px;text-align:center">No records yet.</td></tr>';
+      return '<div style="overflow:auto"><table><thead><tr>'+cols.map(function(c){return '<th>'+c+'</th>';}).join('')+'</tr></thead><tbody>'+rows+'</tbody></table></div>';
+    }
+
+    // ── Boot ──
+    if (KEY) {
+      api('/overview').then(function(){
+        document.getElementById('login').hidden = true;
+        document.getElementById('shell').hidden = false;
+        nav('overview');
+      }).catch(function(){ /* show login */ });
+    }
+  </script>
+</body>
+</html>

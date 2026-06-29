@@ -20,6 +20,9 @@ export const env = {
   // MongoDB Atlas connection string (mongodb+srv://…)
   mongoUri:     optional("MONGODB_URI"),
 
+  // Admin dashboard access key (set ADMIN_KEY in .env for production)
+  adminKey:     optional("ADMIN_KEY") || "shamba-admin-2026",
+
   // M-Pesa Daraja
   mpesa: {
     consumerKey:    optional("MPESA_CONSUMER_KEY"),

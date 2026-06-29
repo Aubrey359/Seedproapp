@@ -9,6 +9,7 @@ import { createOAuthCallbackHandler } from "./kimi/auth";
 import { Paths } from "@contracts/constants";
 import { mpesaPayments, orders } from "@db/schema";
 import { connectDb } from "./lib/db";
+import adminRouter from "./admin-router";
 
 // Connect to MongoDB and seed on first run (non-blocking for the frontend)
 connectDb();
@@ -87,6 +88,10 @@ app.use("/api/trpc/*", async (c) => {
     createContext,
   });
 });
+
+// Admin dashboard API (key-gated REST)
+app.route("/api/admin", adminRouter);
+
 app.all("/api/*", (c) => c.json({ error: "Not Found" }, 404));
 
 export default app;
