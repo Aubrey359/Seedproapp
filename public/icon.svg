@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Shamba Sokoni">
+  <rect width="512" height="512" rx="116" fill="#14532D"/>
+  <!-- rising sun (top-left) -->
+  <g stroke="#F9C802" stroke-width="13" stroke-linecap="round">
+    <line x1="150" y1="103" x2="150" y2="79"/>
+    <line x1="114" y1="119" x2="97" y2="102"/>
+    <line x1="98" y1="155" x2="74" y2="155"/>
+    <line x1="114" y1="191" x2="97" y2="208"/>
+    <line x1="150" y1="207" x2="150" y2="231"/>
+  </g>
+  <circle cx="150" cy="155" r="36" fill="#F9C802"/>
+  <!-- "S" sprout -->
+  <path d="M 348 170 C 250 154 226 216 300 250 C 374 284 350 348 252 332"
+        fill="none" stroke="#8BC34A" stroke-width="50" stroke-linecap="round"/>
+  <!-- leaf at the top of the S -->
+  <path d="M 348 170 C 366 116 426 108 448 138 C 420 172 378 184 348 170 Z" fill="#66BB6A"/>
+  <!-- field furrows -->
+  <g stroke="#A5D6A7" stroke-width="12" stroke-linecap="round" fill="none">
+    <path d="M 92 412 Q 256 350 420 412"/>
+    <path d="M 128 442 Q 256 392 384 442"/>
+  </g>
+</svg>
