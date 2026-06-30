@@ -269,6 +269,18 @@ const mpesaPaymentSchema = new Schema(
 );
 export const mpesaPayments = model("MpesaPayment", mpesaPaymentSchema);
 
+// ─── WhatsApp bot sessions (one per phone; tracks conversation state) ───
+const botSessionSchema = new Schema(
+  {
+    phone: { type: String, required: true, unique: true, index: true },
+    userId: Number,
+    step: { type: String, default: "idle" },
+    draft: { type: Schema.Types.Mixed, default: {} },
+  },
+  { timestamps: true, toJSON },
+);
+export const botSessions = model("BotSession", botSessionSchema);
+
 // ─── Types used across the API ───
 export interface User {
   id: number;

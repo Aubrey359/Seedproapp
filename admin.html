@@ -286,20 +286,42 @@
     function renderWhatsapp(){
       return api('/whatsapp').then(function(d){
         setDbPill(d.dbConnected);
-        if (!d.dbConnected) return setView(dbBanner());
         var bot = d.bot||{};
         var status = bot.connected
           ? '<span class="tag t-green">connected</span> via '+esc(bot.provider||'?')+' '+(bot.number?('('+esc(bot.number)+')'):'')
-          : '<span class="tag t-amber">not connected</span> — set WHATSAPP_PROVIDER / WHATSAPP_TOKEN in .env once the bot is built';
+          : '<span class="tag t-amber">simulator mode</span> — set WHATSAPP_PROVIDER + WHATSAPP_TOKEN in .env and point your webhook at <code>/api/whatsapp/webhook</code> to go live';
         var botCard = '<div class="panel"><div class="panel-h">Bot status</div><div style="padding:16px 18px">'+status+
-          '<div class="muted" style="margin-top:8px;font-size:12px">The SELL flow (SELL TOMATOES → crates → location → price → listing) is the next build. Conversations below come from the advisory chat model the bot will share.</div></div></div>';
+          '<div class="muted" style="margin-top:8px;font-size:12px">The SELL flow is live (SELL → crates → location → price → publishes a real listing). Test it below; real conversations appear under Conversations.</div></div></div>';
+        if (!d.dbConnected) return setView(botCard + dbBanner() + simPanel());
         var rows = (d.conversations||[]).map(function(x){
           return '<tr><td><b>'+esc(x.name||('user #'+x.userId))+'</b></td><td>'+esc(x.phone||'—')+'</td><td>'+x.messages+'</td><td class="muted">'+esc((x.lastMessage||'').slice(0,60))+'</td><td>'+when(x.lastAt)+'</td><td><button class="act line" onclick="viewConvo('+x.userId+')">View</button></td></tr>';
         }).join('');
-        setView(botCard + panel('Conversations ('+(d.conversations||[]).length+')',
+        setView(botCard + simPanel() + panel('Conversations ('+(d.conversations||[]).length+')',
           table(['Name','Phone','Msgs','Last message','When','Chat'], rows, 6)) +
           '<div id="convoView"></div>');
       });
+    }
+    function simPanel(){
+      return '<div class="panel"><div class="panel-h">Test the bot (simulator)</div><div style="padding:14px 18px">'+
+        '<div class="convo-msgs" id="simLog"><div class="muted">Type as a farmer — e.g. <b>SELL TOMATOES</b> — then answer the prompts. Uses test number 254700000111. Needs MongoDB connected.</div></div>'+
+        '<div style="display:flex;gap:8px;margin-top:10px">'+
+          '<input id="simInput" class="panel-search" style="flex:1;max-width:none" placeholder="Type a message… e.g. SELL TOMATOES" onkeydown="if(event.key===&quot;Enter&quot;)simSend()" />'+
+          '<button class="act green" onclick="simSend()">Send</button>'+
+        '</div></div></div>';
+    }
+    function simAppend(dir, text){
+      var log = document.getElementById('simLog'); if(!log) return;
+      if (log.querySelector('.muted')) log.innerHTML = '';
+      log.innerHTML += '<div class="msg '+(dir==='out'?'out':'in')+'"><div class="who">'+(dir==='out'?'You (farmer)':'Bot')+'</div><div class="bub">'+esc(text)+'</div></div>';
+      log.scrollTop = log.scrollHeight;
+    }
+    function simSend(){
+      var inp = document.getElementById('simInput'); var text = (inp.value||'').trim(); if(!text) return;
+      inp.value = ''; simAppend('out', text);
+      fetch('/api/whatsapp/simulate', { method:'POST', headers:{ 'x-admin-key':KEY, 'Content-Type':'application/json' }, body:JSON.stringify({ phone:'254700000111', text:text }) })
+        .then(function(r){ return r.json(); })
+        .then(function(d){ simAppend('in', d.reply || d.error || '(no reply)'); })
+        .catch(function(){ simAppend('in', '(network error)'); });
     }
     function viewConvo(userId){
       api('/whatsapp/messages?userId='+userId).then(function(d){

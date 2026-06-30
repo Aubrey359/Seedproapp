@@ -23,6 +23,15 @@ export const env = {
   // Admin dashboard access key (set ADMIN_KEY in .env for production)
   adminKey:     optional("ADMIN_KEY") || "shamba-admin-2026",
 
+  // WhatsApp bot — leave provider empty to run in local-simulator mode
+  whatsapp: {
+    provider:    optional("WHATSAPP_PROVIDER"),                 // "meta" | "twilio" | ""
+    token:       optional("WHATSAPP_TOKEN"),                    // Meta access token, or Twilio "SID:AUTHTOKEN"
+    phoneId:     optional("WHATSAPP_PHONE_ID"),                 // Meta phone number id
+    number:      optional("WHATSAPP_NUMBER"),                   // sender number (Twilio / display)
+    verifyToken: optional("WHATSAPP_VERIFY_TOKEN") || "shamba-verify",
+  },
+
   // M-Pesa Daraja
   mpesa: {
     consumerKey:    optional("MPESA_CONSUMER_KEY"),

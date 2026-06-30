@@ -10,6 +10,7 @@ import { Paths } from "@contracts/constants";
 import { mpesaPayments, orders } from "@db/schema";
 import { connectDb } from "./lib/db";
 import adminRouter from "./admin-router";
+import whatsappRouter from "./whatsapp-router";
 
 // Connect to MongoDB and seed on first run (non-blocking for the frontend)
 connectDb();
@@ -91,6 +92,9 @@ app.use("/api/trpc/*", async (c) => {
 
 // Admin dashboard API (key-gated REST)
 app.route("/api/admin", adminRouter);
+
+// WhatsApp bot webhook + simulator
+app.route("/api/whatsapp", whatsappRouter);
 
 app.all("/api/*", (c) => c.json({ error: "Not Found" }, 404));
 
