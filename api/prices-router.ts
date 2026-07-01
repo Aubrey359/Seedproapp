@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createRouter, publicQuery, authedQuery } from "./middleware";
-import { marketPrices, priceAlerts, nextSeq } from "@db/schema";
+import { marketPrices, priceAlerts, nextSeq, omitMongo } from "@db/schema";
 
 export const pricesRouter = createRouter({
   // ─── Market Prices ───
@@ -8,10 +8,12 @@ export const pricesRouter = createRouter({
     .input(z.object({ town: z.string() }))
     .query(async ({ input }) => {
       const today = new Date().toISOString().split("T")[0];
-      return marketPrices
-        .find({ town: input.town, priceDate: today })
-        .sort({ cropName: 1 })
-        .lean();
+      return omitMongo(
+        await marketPrices
+          .find({ town: input.town, priceDate: today })
+          .sort({ cropName: 1 })
+          .lean(),
+      );
     }),
 
   getTrends: publicQuery
@@ -23,11 +25,13 @@ export const pricesRouter = createRouter({
       }),
     )
     .query(async ({ input }) => {
-      return marketPrices
-        .find({ cropName: input.cropName, town: input.town })
-        .sort({ priceDate: -1 })
-        .limit(input.days)
-        .lean();
+      return omitMongo(
+        await marketPrices
+          .find({ cropName: input.cropName, town: input.town })
+          .sort({ priceDate: -1 })
+          .limit(input.days)
+          .lean(),
+      );
     }),
 
   getTowns: publicQuery.query(async () => {
@@ -63,7 +67,7 @@ export const pricesRouter = createRouter({
     }),
 
   getMyAlerts: authedQuery.query(async ({ ctx }) => {
-    return priceAlerts.find({ userId: ctx.user.id }).sort({ createdAt: -1 }).lean();
+    return omitMongo(await priceAlerts.find({ userId: ctx.user.id }).sort({ createdAt: -1 }).lean());
   }),
 
   deleteAlert: authedQuery

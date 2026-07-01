@@ -1,18 +1,18 @@
 import { z } from "zod";
 import { createRouter, publicQuery, authedQuery } from "./middleware";
-import { crops, cropGuides, spraySchedules, diagnoses, advisoryMessages, nextSeq } from "@db/schema";
+import { crops, cropGuides, spraySchedules, diagnoses, advisoryMessages, nextSeq, omitMongo } from "@db/schema";
 
 export const advisoryRouter = createRouter({
   // ─── Crops ───
   listCrops: publicQuery.query(async () => {
-    return crops.find().sort({ name: 1 }).lean();
+    return omitMongo(await crops.find().sort({ name: 1 }).lean());
   }),
 
   getCrop: publicQuery
     .input(z.object({ id: z.number() }))
     .query(async ({ input }) => {
       const crop = await crops.findOne({ id: input.id }).lean();
-      return crop ?? null;
+      return crop ? omitMongo(crop) : null;
     }),
 
   // ─── Crop Guides ───
@@ -21,14 +21,14 @@ export const advisoryRouter = createRouter({
     .query(async ({ input }) => {
       const filter: any = { cropId: input.cropId };
       if (input.stage) filter.stage = input.stage;
-      return cropGuides.find(filter).sort({ stageOrder: 1 }).lean();
+      return omitMongo(await cropGuides.find(filter).sort({ stageOrder: 1 }).lean());
     }),
 
   // ─── Spray Schedules ───
   getSchedule: publicQuery
     .input(z.object({ cropId: z.number() }))
     .query(async ({ input }) => {
-      return spraySchedules.find({ cropId: input.cropId }).sort({ dayFrom: 1 }).lean();
+      return omitMongo(await spraySchedules.find({ cropId: input.cropId }).sort({ dayFrom: 1 }).lean());
     }),
 
   // ─── Diagnoses ───
@@ -54,16 +54,18 @@ export const advisoryRouter = createRouter({
     }),
 
   getMyDiagnoses: authedQuery.query(async ({ ctx }) => {
-    return diagnoses.find({ farmerId: ctx.user.id }).sort({ createdAt: -1 }).lean();
+    return omitMongo(await diagnoses.find({ farmerId: ctx.user.id }).sort({ createdAt: -1 }).lean());
   }),
 
   // ─── Advisory Messages (WhatsApp-style chat) ───
   getMessages: authedQuery.query(async ({ ctx }) => {
-    return advisoryMessages
-      .find({ userId: ctx.user.id })
-      .sort({ createdAt: 1 })
-      .limit(100)
-      .lean();
+    return omitMongo(
+      await advisoryMessages
+        .find({ userId: ctx.user.id })
+        .sort({ createdAt: 1 })
+        .limit(100)
+        .lean(),
+    );
   }),
 
   sendMessage: authedQuery

@@ -40,6 +40,18 @@ const toJSON = {
   },
 };
 
+// .lean() skips document construction entirely, so the toJSON transform above
+// never runs on lean() reads. Routes that return lean() results directly (not
+// hand-mapped to a plain object) should pass them through this first.
+export function omitMongo<T>(doc: T): T {
+  if (Array.isArray(doc)) return doc.map(omitMongo) as any;
+  if (doc && typeof doc === "object") {
+    const { _id, __v, ...rest } = doc as any;
+    return rest;
+  }
+  return doc;
+}
+
 // ─── Users ───
 const userSchema = new Schema(
   {

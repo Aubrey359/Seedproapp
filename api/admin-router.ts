@@ -11,6 +11,7 @@ import {
   mpesaPayments,
   marketPrices,
   advisoryMessages,
+  omitMongo,
 } from "@db/schema";
 
 const admin = new Hono();
@@ -85,7 +86,7 @@ admin.get(
   "/users",
   guard(async (c) => {
     const rows = await users.find({}).sort({ createdAt: -1 }).limit(300).lean();
-    return c.json({ dbConnected: true, users: rows });
+    return c.json({ dbConnected: true, users: omitMongo(rows) });
   }),
 );
 
@@ -102,7 +103,7 @@ admin.post(
 admin.get(
   "/listings",
   guard(async (c) => {
-    const rows = await listings.find({}).sort({ createdAt: -1 }).limit(300).lean();
+    const rows = omitMongo(await listings.find({}).sort({ createdAt: -1 }).limit(300).lean());
     const ids = [...new Set(rows.map((r: any) => r.farmerId))];
     const farmers = await users.find({ id: { $in: ids } }).lean();
     const byId = new Map(farmers.map((f: any) => [f.id, f]));
@@ -127,7 +128,7 @@ admin.get(
   "/orders",
   guard(async (c) => {
     const rows = await orders.find({}).sort({ createdAt: -1 }).limit(300).lean();
-    return c.json({ dbConnected: true, orders: rows });
+    return c.json({ dbConnected: true, orders: omitMongo(rows) });
   }),
 );
 
@@ -145,7 +146,7 @@ admin.get(
   "/payments",
   guard(async (c) => {
     const rows = await mpesaPayments.find({}).sort({ createdAt: -1 }).limit(300).lean();
-    return c.json({ dbConnected: true, payments: rows });
+    return c.json({ dbConnected: true, payments: omitMongo(rows) });
   }),
 );
 
@@ -156,7 +157,7 @@ admin.get(
     const today = new Date().toISOString().split("T")[0];
     let rows = await marketPrices.find({ priceDate: today }).sort({ town: 1, cropName: 1 }).lean();
     if (rows.length === 0) rows = await marketPrices.find({}).sort({ createdAt: -1 }).limit(120).lean();
-    return c.json({ dbConnected: true, prices: rows });
+    return c.json({ dbConnected: true, prices: omitMongo(rows) });
   }),
 );
 
@@ -225,7 +226,7 @@ admin.get(
       .sort({ createdAt: 1 })
       .limit(200)
       .lean();
-    return c.json({ dbConnected: true, messages: rows });
+    return c.json({ dbConnected: true, messages: omitMongo(rows) });
   }),
 );
 

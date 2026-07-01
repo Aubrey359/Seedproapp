@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createRouter, publicQuery, authedQuery } from "./middleware";
-import { ratings, users, nextSeq } from "@db/schema";
+import { ratings, users, nextSeq, omitMongo } from "@db/schema";
 
 function average(rows: any[]): number {
   if (rows.length === 0) return 0;
@@ -19,7 +19,7 @@ export const ratingsRouter = createRouter({
         .lean();
 
       return {
-        reviews,
+        reviews: omitMongo(reviews),
         averageRating: average(reviews),
         totalReviews: reviews.length,
       };

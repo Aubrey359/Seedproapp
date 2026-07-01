@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createRouter, publicQuery, authedQuery } from "./middleware";
-import { listings, orders, crops, users, nextSeq } from "@db/schema";
+import { listings, orders, crops, users, nextSeq, omitMongo } from "@db/schema";
 import { CURRENCY } from "@contracts/kenya";
 
 // Attach farmer info to a listing row (replaces the old SQL leftJoin on users).
@@ -109,7 +109,7 @@ export const marketRouter = createRouter({
     }),
 
   myListings: authedQuery.query(async ({ ctx }) => {
-    return listings.find({ farmerId: ctx.user.id }).sort({ createdAt: -1 }).lean();
+    return omitMongo(await listings.find({ farmerId: ctx.user.id }).sort({ createdAt: -1 }).lean());
   }),
 
   // ─── Orders ───
@@ -146,10 +146,12 @@ export const marketRouter = createRouter({
 
   myOrders: authedQuery.query(async ({ ctx }) => {
     const userId = ctx.user.id;
-    return orders
-      .find({ $or: [{ buyerId: userId }, { farmerId: userId }] })
-      .sort({ createdAt: -1 })
-      .lean();
+    return omitMongo(
+      await orders
+        .find({ $or: [{ buyerId: userId }, { farmerId: userId }] })
+        .sort({ createdAt: -1 })
+        .lean(),
+    );
   }),
 
   updateOrderStatus: authedQuery

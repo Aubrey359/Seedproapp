@@ -1,18 +1,64 @@
-/* ── PRODUCTS DATA ── */
-var PRODUCTS = [
-  {id:1,  name:'Tomatoes',      emoji:'🍅', img:'/images/crop-tomato.jpg',      cat:'vegetables', price:95,  old:120, unit:'kg',    farmer:'James M.', county:'Nakuru',   rating:4.9, ok:true,  disc:'-21%'},
-  {id:2,  name:'Maize',         emoji:'🌽', img:'/images/crop-maize.jpg',       cat:'grains',     price:42,  old:null,unit:'kg',    farmer:'Grace A.', county:'Kisumu',   rating:4.7, ok:true,  disc:null },
-  {id:3,  name:'Coffee AA',     emoji:'☕', img:'/images/crop-coffee.jpg',      cat:'cash',       price:320, old:null,unit:'kg',    farmer:'Mary W.',  county:'Thika',    rating:5.0, ok:true,  disc:null },
-  {id:4,  name:'Avocado Hass',  emoji:'🥑', img:'/images/crop-avocado.jpg',     cat:'fruits',     price:85,  old:110, unit:'kg',    farmer:'Peter N.', county:'Muranga',  rating:4.8, ok:true,  disc:'-23%'},
-  {id:5,  name:'Onions',        emoji:'🧅', img:'/images/crop-onion.jpg',       cat:'vegetables', price:110, old:null,unit:'kg',    farmer:'Aisha O.', county:'Naivasha', rating:4.6, ok:false, disc:null },
-  {id:6,  name:'Beans',         emoji:'🫘', img:'/images/crop-beans.jpg',       cat:'legumes',    price:135, old:null,unit:'kg',    farmer:'Simon K.', county:'Meru',     rating:4.5, ok:true,  disc:null },
-  {id:7,  name:'Sukuma Wiki',   emoji:'🥬', img:'/images/crop-sukuma.jpg',      cat:'vegetables', price:35,  old:null,unit:'bunch', farmer:'Faith M.', county:'Kiambu',   rating:4.4, ok:false, disc:null },
-  {id:8,  name:'Sweet Potato',  emoji:'🍠', img:'/images/crop-sweetpotato.jpg', cat:'vegetables', price:55,  old:null,unit:'kg',    farmer:'David O.', county:'Kakamega', rating:4.7, ok:true,  disc:null },
-  {id:9,  name:'Bananas',       emoji:'🍌', img:'/images/crop-banana.jpg',      cat:'fruits',     price:48,  old:null,unit:'bunch', farmer:'Ruth A.',  county:'Kisii',    rating:4.8, ok:true,  disc:null },
-  {id:10, name:'Pishori Rice',  emoji:'🍚', img:'/images/crop-rice.jpg',        cat:'grains',     price:185, old:220, unit:'kg',    farmer:'Hassan M.',county:'Mwea',     rating:4.9, ok:true,  disc:'-16%'},
-  {id:11, name:'Tea KTDA',      emoji:'🍵', img:'/images/crop-tea.jpg',         cat:'cash',       price:280, old:null,unit:'kg',    farmer:'CTC Farm', county:'Kericho',  rating:4.6, ok:true,  disc:null },
-  {id:12, name:'French Beans',  emoji:'🫛', img:'/images/crop-frenchbeans.jpg', cat:'vegetables', price:145, old:null,unit:'kg',    farmer:'Esther K.',county:'Meru',     rating:4.8, ok:true,  disc:null },
-];
+/* ── PRODUCTS: live listings from MongoDB via tRPC market.list ── */
+var PRODUCTS = [];
+var productsLoaded = false;
+
+/* Crop look (emoji + photo + category) isn't on a listing row, so it's
+   keyed by crop name here — mirrors the crop photos already shipped. */
+var CROP_META = {
+  'tomato':       { emoji:'🍅', img:'/images/crop-tomato.jpg',      cat:'vegetables' },
+  'onion':        { emoji:'🧅', img:'/images/crop-onion.jpg',       cat:'vegetables' },
+  'maize':        { emoji:'🌽', img:'/images/crop-maize.jpg',       cat:'grains' },
+  'coffee':       { emoji:'☕', img:'/images/crop-coffee.jpg',      cat:'cash' },
+  'potato':       { emoji:'🥔', img:'/images/crop-potato.jpg',      cat:'vegetables' },
+  'cabbage':      { emoji:'🥬', img:'/images/crop-cabbage.jpg',     cat:'vegetables' },
+  'beans':        { emoji:'🫘', img:'/images/crop-beans.jpg',       cat:'legumes' },
+  'pishori rice': { emoji:'🍚', img:'/images/crop-rice.jpg',        cat:'grains' },
+  'rice':         { emoji:'🍚', img:'/images/crop-rice.jpg',        cat:'grains' },
+  'tea':          { emoji:'🍵', img:'/images/crop-tea.jpg',         cat:'cash' },
+  'avocado':      { emoji:'🥑', img:'/images/crop-avocado.jpg',     cat:'fruits' },
+  'banana':       { emoji:'🍌', img:'/images/crop-banana.jpg',      cat:'fruits' },
+  'french beans': { emoji:'🫛', img:'/images/crop-frenchbeans.jpg', cat:'vegetables' },
+  'sukuma wiki':  { emoji:'🥬', img:'/images/crop-sukuma.jpg',      cat:'vegetables' },
+  'sweet potato': { emoji:'🍠', img:'/images/crop-sweetpotato.jpg', cat:'vegetables' },
+};
+function cropMeta(name) {
+  return CROP_META[(name||'').toLowerCase().trim()] || { emoji:'🌾', img:null, cat:'vegetables' };
+}
+
+/* Map a live listing (from market.list) into the shape cardHTML expects. */
+function mapListing(l) {
+  var meta = cropMeta(l.cropName);
+  return {
+    id: l.id,
+    name: l.cropName,
+    emoji: meta.emoji,
+    img: meta.img,
+    cat: meta.cat,
+    price: l.expectedPrice,
+    old: null,
+    unit: l.quantityUnit || 'kg',
+    farmer: l.farmerName || 'Verified Farmer',
+    county: l.location,
+    rating: l.farmerRating || 4.5,
+    ok: !!l.farmerVerified,
+    disc: null,
+  };
+}
+
+function loadProducts() {
+  return fetch('/api/trpc/market.list')
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var rows = (d && d.result && d.result.data && d.result.data.json) || [];
+      PRODUCTS = rows.map(mapListing);
+    })
+    .catch(function(err){ console.error('Failed to load listings', err); PRODUCTS = []; })
+    .then(function(){
+      productsLoaded = true;
+      renderHomeGrid();
+      renderShopGrid();
+    });
+}
 
 /* ── CART (localStorage-backed) ── */
 var cart = (function(){
@@ -62,15 +108,27 @@ function filtered() {
 
 function renderHomeGrid() {
   var el = document.getElementById('homeGrid'); if (!el) return;
-  el.innerHTML = PRODUCTS.slice(0,6).map(cardHTML).join('');
+  if (!productsLoaded) { el.innerHTML = loadingHTML(); return; }
+  el.innerHTML = PRODUCTS.length ? PRODUCTS.slice(0,6).map(cardHTML).join('') :
+    '<p style="grid-column:span 3;text-align:center;padding:24px;color:var(--grey-text)">No listings yet — be the first to sell!</p>';
 }
 
 function renderShopGrid() {
-  var f = filtered(), el = document.getElementById('shopGrid'); if (!el) return;
+  var el = document.getElementById('shopGrid'); if (!el) return;
+  if (!productsLoaded) {
+    el.innerHTML = loadingHTML();
+    var lc = document.getElementById('prodCount'); if (lc) lc.textContent = 'Loading…';
+    return;
+  }
+  var f = filtered();
   el.innerHTML = f.length ? f.map(cardHTML).join('') :
     '<p style="grid-column:span 2;text-align:center;padding:24px;color:var(--grey-text)">No products found</p>';
   var c = document.getElementById('prodCount');
   if (c) c.textContent = f.length + ' product' + (f.length!==1?'s':'');
+}
+
+function loadingHTML() {
+  return '<p style="grid-column:span 2;text-align:center;padding:24px;color:var(--grey-text)">🌾 Loading fresh produce…</p>';
 }
 
 /* ── CART ACTIONS ── */
@@ -141,7 +199,7 @@ function sortProds(v) {
   if (v==='price-asc')  PRODUCTS.sort(function(a,b){return a.price-b.price;});
   if (v==='price-desc') PRODUCTS.sort(function(a,b){return b.price-a.price;});
   if (v==='rating')     PRODUCTS.sort(function(a,b){return b.rating-a.rating;});
-  if (v==='default')    PRODUCTS.sort(function(a,b){return a.id-b.id;});
+  if (v==='default')    PRODUCTS.sort(function(a,b){return b.id-a.id;});
   renderShopGrid();
 }
 
@@ -429,5 +487,4 @@ function showToast(msg) {
 
 /* ── INIT ── */
 updateCart();
-renderHomeGrid();
-renderShopGrid();
+loadProducts();
