@@ -109,6 +109,7 @@
       <button class="nav-item" data-sec="payments" onclick="nav('payments')"><span class="nav-ico">💳</span> Payments</button>
       <button class="nav-item" data-sec="prices" onclick="nav('prices')"><span class="nav-ico">📈</span> Market Prices</button>
       <button class="nav-item" data-sec="whatsapp" onclick="nav('whatsapp')"><span class="nav-ico">💬</span> WhatsApp Bot</button>
+      <button class="nav-item" data-sec="disputes" onclick="nav('disputes')"><span class="nav-ico">🚩</span> Disputes</button>
       <div class="sb-foot">v1 · key-gated REST API</div>
     </aside>
     <main>
@@ -128,7 +129,7 @@
   <script>
     var KEY = localStorage.getItem('ss_admin_key') || '';
     var SECTION = 'overview';
-    var TITLES = { overview:'Overview', listings:'Listings', farmers:'Farmers & Users', orders:'Orders', payments:'Payments', prices:'Market Prices', whatsapp:'WhatsApp Bot' };
+    var TITLES = { overview:'Overview', listings:'Listings', farmers:'Farmers & Users', orders:'Orders', payments:'Payments', prices:'Market Prices', whatsapp:'WhatsApp Bot', disputes:'Disputes' };
 
     function api(path, opts){
       opts = opts || {};
@@ -179,7 +180,7 @@
     function refresh(){
       var v = document.getElementById('view');
       v.innerHTML = '<div class="loading">Loading…</div>';
-      var fn = { overview:renderOverview, listings:renderListings, farmers:renderFarmers, orders:renderOrders, payments:renderPayments, prices:renderPrices, whatsapp:renderWhatsapp }[SECTION];
+      var fn = { overview:renderOverview, listings:renderListings, farmers:renderFarmers, orders:renderOrders, payments:renderPayments, prices:renderPrices, whatsapp:renderWhatsapp, disputes:renderDisputes }[SECTION];
       fn().catch(function(e){
         if (e && e.unauth) return logout();
         v.innerHTML = '<div class="banner">Error loading data: '+esc(e&&e.message||e)+'</div>';
@@ -201,6 +202,7 @@
           ['Revenue (paid)', ksh(s.revenue), s.completedPayments+' payments'],
           ['Pending payments', s.pendingPayments, ''],
           ['WhatsApp chats', s.conversations, s.messages+' messages'],
+          ['Open disputes', s.openDisputes, ''],
         ].map(function(c){ return '<div class="stat"><div class="lbl">'+c[0]+'</div><div class="val">'+c[1]+'</div><div class="sub">'+c[2]+'</div></div>'; }).join('');
         var recentL = (L.listings||[]).slice(0,6).map(function(l){
           return '<tr><td><b>'+esc(l.cropName)+'</b></td><td>'+esc(l.farmerName||('#'+l.farmerId))+'</td><td>'+ksh(l.expectedPrice)+'</td><td>'+statusTag(l.status)+'</td></tr>';
@@ -266,6 +268,20 @@
         }).join('');
         setView(panel('M-Pesa payments ('+(d.payments||[]).length+')',
           table(['ID','Phone','Amount','Ref','Receipt','Created','Status'], rows, 7)));
+      });
+    }
+    function renderDisputes(){
+      return api('/disputes').then(function(d){
+        setDbPill(d.dbConnected);
+        if (!d.dbConnected) return setView(dbBanner());
+        var rows = (d.disputes||[]).map(function(x){
+          return '<tr><td>#'+x.id+'</td><td><b>'+esc(x.raisedByName||('user #'+x.raisedBy))+'</b><br><span class="muted" style="font-size:11px">'+esc(x.raisedByPhone||'—')+'</span></td><td>'+esc(x.source)+'</td><td style="max-width:280px">'+esc(x.reason)+'</td><td>'+when(x.createdAt)+'</td><td>'+
+            '<select onchange="setDisputeStatus('+x.id+',this.value)">'+
+              ['open','resolved','rejected'].map(function(s){return '<option'+(s===x.status?' selected':'')+'>'+s+'</option>';}).join('')+
+            '</select></td></tr>';
+        }).join('');
+        setView(panel('Disputes ('+(d.disputes||[]).length+')',
+          table(['ID','Raised by','Source','Reason','When','Status'], rows, 6)));
       });
     }
     function renderPrices(){
@@ -338,6 +354,7 @@
     function setVerify(id, v){ api('/users/verify',{method:'POST',body:JSON.stringify({id:id,verified:v})}).then(function(){ toast('✓ Farmer '+(v?'verified':'unverified')); refresh(); }).catch(function(){ toast('Update failed', true); }); }
     function setListingStatus(id, s){ api('/listings/status',{method:'POST',body:JSON.stringify({id:id,status:s})}).then(function(){ toast('✓ Listing set to '+s); }).catch(function(){ toast('Update failed', true); }); }
     function setOrderStatus(id, s){ api('/orders/status',{method:'POST',body:JSON.stringify({id:id,status:s})}).then(function(){ toast('✓ Order set to '+s); }).catch(function(){ toast('Update failed', true); }); }
+    function setDisputeStatus(id, s){ api('/disputes/status',{method:'POST',body:JSON.stringify({id:id,status:s})}).then(function(){ toast('✓ Dispute set to '+s); }).catch(function(){ toast('Update failed', true); }); }
     function savePrice(id){
       var w = document.getElementById('w'+id).value, r = document.getElementById('r'+id).value;
       api('/prices',{method:'POST',body:JSON.stringify({id:id,wholesalePrice:w,retailPrice:r})})

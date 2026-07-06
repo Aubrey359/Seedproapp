@@ -2,6 +2,8 @@ import { z } from "zod";
 import { createRouter, publicQuery, authedQuery } from "./middleware";
 import { listings, orders, crops, users, nextSeq, omitMongo } from "@db/schema";
 import { CURRENCY } from "@contracts/kenya";
+import { findOrCreateFarmerByPhone } from "./lib/identity";
+import { alertBuyersOfListing } from "./whatsapp/notify";
 
 // Attach farmer info to a listing row (replaces the old SQL leftJoin on users).
 function withFarmer(r: any, f: any, extra: "card" | "detail") {
@@ -89,7 +91,7 @@ export const marketRouter = createRouter({
       const cropId = crop?.id ?? 1;
       const id = await nextSeq("listings");
 
-      await listings.create({
+      const newListing = {
         id,
         farmerId: ctx.user.id,
         cropId,
@@ -103,7 +105,50 @@ export const marketRouter = createRouter({
         description: input.description ?? null,
         images: input.images ?? [],
         status: "active",
-      });
+      };
+      await listings.create(newListing);
+      alertBuyersOfListing(newListing).catch(() => {});
+
+      return { id };
+    }),
+
+  // Public equivalent of `create` for the website's Sell form, which has no
+  // login system — the farmer's phone number is their identity, same as the
+  // WhatsApp bot. Finds-or-creates the farmer, then creates the listing.
+  createPublic: publicQuery
+    .input(
+      z.object({
+        cropName: z.string().min(1),
+        quantity: z.number().positive(),
+        quantityUnit: z.string().default("kg"),
+        location: z.string().min(1),
+        expectedPrice: z.number().positive(),
+        description: z.string().optional(),
+        farmerName: z.string().min(1),
+        farmerPhone: z.string().min(9),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const farmer = await findOrCreateFarmerByPhone(input.farmerPhone, input.farmerName);
+      const crop: any = await crops.findOne({ name: input.cropName }).lean();
+      const id = await nextSeq("listings");
+
+      const newListing = {
+        id,
+        farmerId: farmer.id,
+        cropId: crop?.id ?? 1,
+        cropName: input.cropName,
+        quantity: input.quantity,
+        quantityUnit: input.quantityUnit,
+        location: input.location,
+        expectedPrice: input.expectedPrice,
+        currency: CURRENCY,
+        description: input.description ?? null,
+        images: [],
+        status: "active",
+      };
+      await listings.create(newListing);
+      alertBuyersOfListing(newListing).catch(() => {});
 
       return { id };
     }),

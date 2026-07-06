@@ -11,6 +11,7 @@ import {
   mpesaPayments,
   marketPrices,
   advisoryMessages,
+  disputes,
   omitMongo,
 } from "@db/schema";
 
@@ -48,7 +49,7 @@ admin.get(
       activeListings, totalListings,
       pendingOrders, totalOrders,
       paidAgg, pendingPayments,
-      msgCount, convoUsers,
+      msgCount, convoUsers, openDisputes,
     ] = await Promise.all([
       users.countDocuments({ userType: "farmer" }),
       users.countDocuments({ userType: "buyer" }),
@@ -64,6 +65,7 @@ admin.get(
       mpesaPayments.countDocuments({ status: "pending" }),
       advisoryMessages.countDocuments({}),
       advisoryMessages.distinct("userId"),
+      disputes.countDocuments({ status: "open" }),
     ]);
     return c.json({
       dbConnected: true,
@@ -76,6 +78,7 @@ admin.get(
         pendingPayments,
         messages: msgCount,
         conversations: convoUsers.length,
+        openDisputes,
       },
     });
   }),
@@ -147,6 +150,36 @@ admin.get(
   guard(async (c) => {
     const rows = await mpesaPayments.find({}).sort({ createdAt: -1 }).limit(300).lean();
     return c.json({ dbConnected: true, payments: omitMongo(rows) });
+  }),
+);
+
+// ── Disputes ─────────────────────────────────────────────────
+admin.get(
+  "/disputes",
+  guard(async (c) => {
+    const rows = omitMongo(await disputes.find({}).sort({ createdAt: -1 }).limit(300).lean());
+    const ids = [...new Set(rows.map((r: any) => r.raisedBy))];
+    const people = await users.find({ id: { $in: ids } }).lean();
+    const byId = new Map(people.map((p: any) => [p.id, p]));
+    return c.json({
+      dbConnected: true,
+      disputes: rows.map((r: any) => ({
+        ...r,
+        raisedByName: byId.get(r.raisedBy)?.name ?? null,
+        raisedByPhone: byId.get(r.raisedBy)?.phone ?? null,
+      })),
+    });
+  }),
+);
+
+admin.post(
+  "/disputes/status",
+  guard(async (c) => {
+    const { id, status, resolution } = await c.req.json();
+    const set: any = { status };
+    if (resolution != null) set.resolution = resolution;
+    await disputes.updateOne({ id: Number(id) }, { $set: set });
+    return c.json({ dbConnected: true, ok: true });
   }),
 );
 

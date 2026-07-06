@@ -11,6 +11,7 @@ import { mpesaPayments, orders } from "@db/schema";
 import { connectDb } from "./lib/db";
 import adminRouter from "./admin-router";
 import whatsappRouter from "./whatsapp-router";
+import { sendWhatsApp } from "./whatsapp/send";
 
 // Connect to MongoDB and seed on first run (non-blocking for the frontend)
 connectDb();
@@ -29,6 +30,12 @@ app.post("/api/mpesa/callback", async (c) => {
 
     const { CheckoutRequestID, ResultCode, ResultDesc, CallbackMetadata } = stk;
     await connectDb();
+
+    // Fetch first so we have the payer's phone number for the WhatsApp
+    // alert below regardless of which branch runs.
+    const payment: any = await mpesaPayments
+      .findOne({ checkoutRequestId: CheckoutRequestID })
+      .lean();
 
     if (ResultCode === 0) {
       // Successful payment — extract receipt & transaction date
@@ -53,12 +60,16 @@ app.post("/api/mpesa/callback", async (c) => {
       );
 
       // Mark associated order as confirmed
-      const payment: any = await mpesaPayments
-        .findOne({ checkoutRequestId: CheckoutRequestID })
-        .lean();
-
       if (payment?.orderId) {
         await orders.updateOne({ id: payment.orderId }, { $set: { status: "confirmed" } });
+      }
+
+      if (payment?.phone) {
+        const amount = payment.amount ? `KES ${Number(payment.amount).toLocaleString()}` : "your payment";
+        sendWhatsApp(
+          payment.phone,
+          `✅ Payment received!\n\n${amount} confirmed${receipt ? ` (M-Pesa receipt ${receipt})` : ""}. Thank you for using Shamba Pay.`,
+        ).catch(() => {});
       }
     } else {
       await mpesaPayments.updateOne(
@@ -72,6 +83,16 @@ app.post("/api/mpesa/callback", async (c) => {
           },
         },
       );
+
+      if (payment?.phone) {
+        const isCancelled = ResultCode === 1032;
+        sendWhatsApp(
+          payment.phone,
+          isCancelled
+            ? `⚠️ M-Pesa payment cancelled. Reply to try again when you're ready.`
+            : `❌ M-Pesa payment failed. ${ResultDesc || "Please try again."}`,
+        ).catch(() => {});
+      }
     }
 
     return c.json({ ResultCode: 0, ResultDesc: "Accepted" });

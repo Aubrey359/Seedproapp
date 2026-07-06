@@ -2,14 +2,17 @@
 // Stateless per call: loads the farmer (by phone) + their session from MongoDB,
 // processes one message, persists the new state, and returns the reply text.
 import {
-  users,
   listings,
   marketPrices,
   advisoryMessages,
   botSessions,
   crops,
+  disputes,
   nextSeq,
 } from "@db/schema";
+import { findOrCreateFarmerByPhone } from "../lib/identity";
+import { alertBuyersOfListing } from "./notify";
+import { generateAdvisoryResponse } from "../advisory-router";
 
 function titleCase(s: string): string {
   return s.trim().replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
@@ -130,7 +133,7 @@ async function route(user: any, session: any, msg: string): Promise<string> {
     if (lower === "yes" || lower === "y") {
       const crop: any = await crops.findOne({ name: draft.cropName }).lean();
       const id = await nextSeq("listings");
-      await listings.create({
+      const newListing = {
         id,
         farmerId: user.id,
         cropId: crop?.id ?? 1,
@@ -140,8 +143,11 @@ async function route(user: any, session: any, msg: string): Promise<string> {
         location: draft.location,
         expectedPrice: draft.expectedPrice,
         status: "active",
-      });
+      };
+      await listings.create(newListing);
       await setSession(session.phone, "idle", {});
+      // Fire-and-forget: don't make the farmer wait on however many buyers get notified.
+      alertBuyersOfListing(newListing).catch(() => {});
       return (
         `✅ Listed! Your *${draft.cropName}* is now live on Shamba Sokoni (ref #${id}). ` +
         `Buyers across Kenya can see it.\n\nReply *MY LISTINGS* to view, or *SELL* to add another.`
@@ -163,9 +169,25 @@ async function route(user: any, session: any, msg: string): Promise<string> {
   }
   if (lower.startsWith("price")) return pricesReply(msg);
   if (lower.includes("my listing") || lower === "listings") return myListingsReply(user);
+  if (lower.startsWith("dispute")) {
+    const reason = msg.replace(/^dispute/i, "").trim();
+    if (!reason) {
+      return "Please describe the issue after DISPUTE, e.g. *DISPUTE buyer did not pay for my tomatoes*.";
+    }
+    const id = await nextSeq("disputes");
+    await disputes.create({ id, raisedBy: user.id, source: "whatsapp", reason, status: "open" });
+    return `📮 Dispute #${id} received. Our team will review it and get back to you.\n\nReply *HELP* for other options.`;
+  }
   if (["help", "menu", "hi", "hello", "start", "habari"].indexOf(lower) >= 0) return menu(user);
 
-  return menu(user);
+  // Anything else: treat it as a farming question via the same advisory
+  // engine that powers the in-app chat, so WhatsApp gets real crop advice
+  // instead of always bouncing back to the main menu.
+  const advice = generateAdvisoryResponse(msg);
+  let out = advice.content;
+  if (advice.metadata?.quickReplies) out += `\n\nReply with: ${advice.metadata.quickReplies.join(", ")}`;
+  else if (advice.metadata?.actions) out += `\n\n(${advice.metadata.actions.join(" · ")})`;
+  return out;
 }
 
 // Entry point: process one inbound message from `phone`, return the reply text.
@@ -173,12 +195,7 @@ export async function handleMessage(phone: string, text: string): Promise<string
   const msg = (text || "").trim();
 
   // Find or create the farmer by phone (the WhatsApp number is their identity).
-  let user: any = await users.findOne({ phone }).lean();
-  if (!user) {
-    const id = await nextSeq("users");
-    const created = await users.create({ id, unionId: "wa_" + phone, phone, userType: "farmer" });
-    user = created.toObject();
-  }
+  const user = await findOrCreateFarmerByPhone(phone);
 
   let session: any = await botSessions.findOne({ phone });
   if (!session) session = await botSessions.create({ phone, userId: user.id, step: "idle", draft: {} });

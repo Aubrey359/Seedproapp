@@ -108,7 +108,7 @@ export const advisoryRouter = createRouter({
 });
 
 // Advisory response generator
-function generateAdvisoryResponse(content: string, _cropId?: number): {
+export function generateAdvisoryResponse(content: string, _cropId?: number): {
   content: string;
   messageType: string;
   metadata?: Record<string, any>;

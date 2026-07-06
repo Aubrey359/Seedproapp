@@ -293,6 +293,22 @@ const botSessionSchema = new Schema(
 );
 export const botSessions = model("BotSession", botSessionSchema);
 
+// ─── Disputes ───
+const disputeSchema = new Schema(
+  {
+    id: { type: Number, unique: true, index: true },
+    raisedBy: { type: Number, required: true },
+    listingId: Number,
+    orderId: Number,
+    source: { type: String, enum: ["web", "whatsapp", "admin"], default: "web" },
+    reason: { type: String, required: true },
+    status: { type: String, enum: ["open", "resolved", "rejected"], default: "open" },
+    resolution: String,
+  },
+  { timestamps: true, toJSON },
+);
+export const disputes = model("Dispute", disputeSchema);
+
 // ─── Types used across the API ───
 export interface User {
   id: number;

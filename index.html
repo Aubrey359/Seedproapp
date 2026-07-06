@@ -1223,6 +1223,7 @@ function submitListing() {
   var loc   = document.getElementById('fLocation').value;
   var name  = document.getElementById('fName').value.trim();
   var phone = document.getElementById('fPhone').value.trim();
+  var desc  = (document.getElementById('fDesc')||{}).value || '';
   if (!crop)  { showToast('⚠️ Please select a crop');     return; }
   if (!qty)   { showToast('⚠️ Please enter quantity');     return; }
   if (!price) { showToast('⚠️ Please enter a price');      return; }
@@ -1232,9 +1233,35 @@ function submitListing() {
   var btn = document.querySelector('.submit-btn');
   btn.textContent = '⏳ Publishing…';
   btn.disabled = true;
-  setTimeout(function() {
+
+  fetch('/api/trpc/market.createPublic', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      json: {
+        cropName: crop,
+        quantity: Number(qty),
+        quantityUnit: 'kg',
+        location: loc,
+        expectedPrice: Number(price),
+        description: desc || undefined,
+        farmerName: name,
+        farmerPhone: phone
+      }
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data) {
+    if (data.error) throw new Error(data.error.message || 'Could not publish listing');
     document.getElementById('successOverlay').classList.add('show');
-  }, 1200);
+    if (typeof loadProducts === 'function') loadProducts(); // refresh Shop/Home with the new live listing
+  })
+  .catch(function(err) {
+    btn.textContent = "🚀 Publish Listing — It's Free!";
+    btn.disabled = false;
+    showToast('❌ ' + (err.message || 'Could not publish listing. Please try again.'));
+    console.error('Publish listing error:', err);
+  });
 }
 
 function resetForm() {
