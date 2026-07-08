@@ -121,7 +121,12 @@ app.all("/api/*", (c) => c.json({ error: "Not Found" }, 404));
 
 export default app;
 
-if (env.isProduction) {
+// Start the standalone server whenever we're actually running outside Vite's
+// dev-server plugin. NODE_ENV=production is one signal, but relying on it
+// alone is fragile — it silently does nothing if a host forgets to set it.
+// PORT is injected by Render (and most PaaS hosts) unconditionally, so treat
+// its presence as an equally valid "start listening" signal.
+if (env.isProduction || process.env.PORT) {
   const { serve } = await import("@hono/node-server");
   const { serveStaticFiles } = await import("./lib/vite");
   serveStaticFiles(app);
