@@ -19,12 +19,28 @@ wa.get("/webhook", (c) => {
 });
 
 // ── Incoming messages (POST) ─────────────────────────────────
+// Meta sends JSON; Twilio sends application/x-www-form-urlencoded — the two
+// payload shapes are completely different, so branch on Content-Type.
 wa.post("/webhook", async (c) => {
   try {
     await connectDb();
-    const body: any = await c.req.json().catch(() => ({}));
+    const contentType = c.req.header("content-type") || "";
 
-    // Meta WhatsApp Cloud API payload shape.
+    if (contentType.includes("application/x-www-form-urlencoded")) {
+      // Twilio inbound message: From=whatsapp:+254...&Body=...
+      const form = await c.req.parseBody();
+      const from = String(form.From ?? "").replace(/^whatsapp:/, "");
+      const text = String(form.Body ?? "");
+      if (from) {
+        const reply = await handleMessage(from, text);
+        await sendWhatsApp(from, reply);
+      }
+      // Empty TwiML response — the actual reply is sent via sendWhatsApp() above.
+      return c.text("<Response></Response>", 200, { "Content-Type": "text/xml" });
+    }
+
+    // Meta WhatsApp Cloud API payload shape (JSON).
+    const body: any = await c.req.json().catch(() => ({}));
     const value = body?.entry?.[0]?.changes?.[0]?.value;
     const messages: any[] = value?.messages || [];
 
