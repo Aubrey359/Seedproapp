@@ -3,6 +3,7 @@
 // processes one message, persists the new state, and returns the reply text.
 import {
   listings,
+  orders,
   marketPrices,
   advisoryMessages,
   botSessions,
@@ -49,6 +50,7 @@ function menu(user: any): string {
     `• *SELL* — list produce for sale\n` +
     `• *PRICES* — today's market prices\n` +
     `• *MY LISTINGS* — your active listings\n` +
+    `• *MY SALES* — your sales summary\n` +
     `• *HELP* — show this menu`
   );
 }
@@ -80,6 +82,33 @@ async function myListingsReply(user: any): Promise<string> {
     rows
       .map((l: any) => `• #${l.id} ${l.cropName} — ${plural(l.quantity, l.quantityUnit || "kg")} @ KES ${l.expectedPrice} (${l.status})`)
       .join("\n")
+  );
+}
+
+async function mySalesReply(user: any): Promise<string> {
+  const allOrders = await orders.find({ farmerId: user.id }).lean();
+  if (!allOrders.length) {
+    return (
+      "📊 You haven't made any sales yet. Reply *SELL* to post your first listing " +
+      "and start reaching buyers across Kenya!"
+    );
+  }
+  const delivered = allOrders.filter((o: any) => o.status === "delivered");
+  const counted = allOrders.filter((o: any) =>
+    ["confirmed", "in_transit", "delivered"].includes(o.status),
+  );
+  const totalRevenue = counted.reduce((sum: number, o: any) => sum + (o.totalAmount || 0), 0);
+  const since = user.createdAt
+    ? new Date(user.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
+    : "you joined";
+
+  return (
+    `📊 *Your Sales Summary*\n\n` +
+    `Since ${since}:\n` +
+    `• Total orders: ${allOrders.length}\n` +
+    `• Delivered: ${delivered.length}\n` +
+    `• Total sales value: KES ${totalRevenue.toLocaleString()}\n\n` +
+    `Reply *MY LISTINGS* to see active listings, or *SELL* to list more.`
   );
 }
 
@@ -169,6 +198,7 @@ async function route(user: any, session: any, msg: string): Promise<string> {
   }
   if (lower.startsWith("price")) return pricesReply(msg);
   if (lower.includes("my listing") || lower === "listings") return myListingsReply(user);
+  if (lower.includes("my sales") || lower === "sales" || lower === "analytics") return mySalesReply(user);
   if (lower.startsWith("dispute")) {
     const reason = msg.replace(/^dispute/i, "").trim();
     if (!reason) {

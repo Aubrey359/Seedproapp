@@ -238,8 +238,11 @@
         setDbPill(d.dbConnected);
         if (!d.dbConnected) return setView(dbBanner());
         var rows = (d.users||[]).map(function(u){
-          return '<tr><td>#'+u.id+'</td><td><b>'+esc(u.name||'—')+'</b></td><td>'+esc(u.phone||'—')+'</td><td>'+esc(u.location||'—')+'</td><td><span class="tag t-grey">'+esc(u.userType)+'</span></td><td>'+(u.verified?'<span class="tag t-green">verified</span>':'<span class="tag t-amber">unverified</span>')+'</td><td>★ '+(u.rating||0)+'</td><td>'+
-            '<button class="act '+(u.verified?'line':'green')+'" onclick="setVerify('+u.id+','+(!u.verified)+')">'+(u.verified?'Unverify':'Verify')+'</button></td></tr>';
+          var status = (u.verified?'<span class="tag t-green">verified</span>':'<span class="tag t-amber">unverified</span>') +
+            (u.premium?' <span class="tag t-blue">⭐ premium</span>':'');
+          return '<tr><td>#'+u.id+'</td><td><b>'+esc(u.name||'—')+'</b></td><td>'+esc(u.phone||'—')+'</td><td>'+esc(u.location||'—')+'</td><td><span class="tag t-grey">'+esc(u.userType)+'</span></td><td>'+status+'</td><td>★ '+(u.rating||0)+'</td><td>'+
+            '<button class="act '+(u.verified?'line':'green')+'" onclick="setVerify('+u.id+','+(!u.verified)+')">'+(u.verified?'Unverify':'Verify')+'</button> '+
+            '<button class="act '+(u.premium?'line':'green')+'" onclick="setPremium('+u.id+','+(!u.premium)+')">'+(u.premium?'Revoke Premium':'Grant Premium')+'</button></td></tr>';
         }).join('');
         setView(panel('Users ('+(d.users||[]).length+')',
           table(['ID','Name','Phone','Location','Type','Status','Rating','Action'], rows, 8)));
@@ -352,6 +355,7 @@
 
     // ── Actions ──
     function setVerify(id, v){ api('/users/verify',{method:'POST',body:JSON.stringify({id:id,verified:v})}).then(function(){ toast('✓ Farmer '+(v?'verified':'unverified')); refresh(); }).catch(function(){ toast('Update failed', true); }); }
+    function setPremium(id, v){ api('/users/premium',{method:'POST',body:JSON.stringify({id:id,premium:v})}).then(function(){ toast('✓ Premium '+(v?'granted':'revoked')); refresh(); }).catch(function(){ toast('Update failed', true); }); }
     function setListingStatus(id, s){ api('/listings/status',{method:'POST',body:JSON.stringify({id:id,status:s})}).then(function(){ toast('✓ Listing set to '+s); }).catch(function(){ toast('Update failed', true); }); }
     function setOrderStatus(id, s){ api('/orders/status',{method:'POST',body:JSON.stringify({id:id,status:s})}).then(function(){ toast('✓ Order set to '+s); }).catch(function(){ toast('Update failed', true); }); }
     function setDisputeStatus(id, s){ api('/disputes/status',{method:'POST',body:JSON.stringify({id:id,status:s})}).then(function(){ toast('✓ Dispute set to '+s); }).catch(function(){ toast('Update failed', true); }); }

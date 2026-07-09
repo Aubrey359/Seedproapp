@@ -66,6 +66,7 @@ const userSchema = new Schema(
     location: String,
     bio: String,
     verified: { type: Boolean, default: false },
+    premium: { type: Boolean, default: false },
     rating: { type: Number, default: 0 },
     reviewCount: { type: Number, default: 0 },
     lastSignInAt: { type: Date, default: Date.now },

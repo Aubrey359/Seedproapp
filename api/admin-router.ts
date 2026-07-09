@@ -102,6 +102,17 @@ admin.post(
   }),
 );
 
+admin.post(
+  "/users/premium",
+  guard(async (c) => {
+    const { id, premium } = await c.req.json();
+    const set: any = { premium: !!premium };
+    if (premium) set.verified = true; // premium approval also confers verified status
+    await users.updateOne({ id: Number(id) }, { $set: set });
+    return c.json({ dbConnected: true, ok: true });
+  }),
+);
+
 // ── Listings ─────────────────────────────────────────────────
 admin.get(
   "/listings",

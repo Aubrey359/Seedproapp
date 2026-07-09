@@ -26,6 +26,7 @@ function withFarmer(r: any, f: any, extra: "card" | "detail") {
     farmerName: f?.name ?? null,
     farmerRating: f?.rating ?? null,
     farmerVerified: f?.verified ?? null,
+    farmerPremium: f?.premium ?? null,
   };
   return extra === "card"
     ? { ...base, farmerAvatar: f?.avatar ?? null }
@@ -60,7 +61,13 @@ export const marketRouter = createRouter({
       const farmerIds = [...new Set(rows.map((r: any) => r.farmerId))];
       const farmers = await users.find({ id: { $in: farmerIds } }).lean();
       const byId = new Map(farmers.map((f: any) => [f.id, f]));
-      return rows.map((r: any) => withFarmer(r, byId.get(r.farmerId), "card"));
+      const withFarmers = rows.map((r: any) => withFarmer(r, byId.get(r.farmerId), "card"));
+
+      // Premium sellers rank higher in search/browse results. Array.sort is
+      // stable, so listings keep their newest-first order within each tier.
+      return withFarmers.sort(
+        (a: any, b: any) => (b.farmerPremium ? 1 : 0) - (a.farmerPremium ? 1 : 0),
+      );
     }),
 
   getById: publicQuery

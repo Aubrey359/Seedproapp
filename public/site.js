@@ -41,6 +41,7 @@ function mapListing(l) {
     county: l.location,
     rating: l.farmerRating || 4.5,
     ok: !!l.farmerVerified,
+    premium: !!l.farmerPremium,
     disc: null,
   };
 }
@@ -82,7 +83,7 @@ function cardHTML(p) {
       '<button class="prod-fav" onclick="event.stopPropagation();showToast(\'❤️ Saved!\')">♡</button>' +
     '</div>' +
     '<div class="prod-body">' +
-      '<div class="prod-name">' + p.name + '</div>' +
+      '<div class="prod-name">' + p.name + (p.premium ? ' <span class="prod-premium-badge" title="Premium seller">⭐</span>' : '') + '</div>' +
       '<div class="prod-meta">📍 ' + p.county + ' · <span class="prod-rating">★ ' + p.rating + '</span></div>' +
       '<div class="prod-price-row">' +
         '<div class="prod-price">KSh ' + p.price + '</div>' +

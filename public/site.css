@@ -354,6 +354,7 @@ nav {
 .prod-fav:hover { transform: scale(1.2); }
 .prod-body { padding: 10px 12px 12px; }
 .prod-name { font-size: 13px; font-weight: 800; color: var(--dark); margin-bottom: 3px; line-height: 1.3; font-family:'Nunito',sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prod-premium-badge { font-size: 11px; filter: drop-shadow(0 0 2px rgba(255,193,7,.6)); }
 .prod-meta { font-size: 11px; color: var(--grey-text); margin-bottom: 6px; }
 .prod-rating { color: #F6AD55; font-weight: 700; }
 .prod-price-row { display: flex; align-items: baseline; gap: 5px; margin-bottom: 9px; }
@@ -865,7 +866,8 @@ footer::before { content: ''; position: absolute; right: -60px; top: -60px; widt
 .footer-rich .social-btn.wa:hover { background:#1ebe5d; }
 .footer-rich .social-btn.fb:hover { background:#1064d4; }
 .footer-rich .social-btn.x:hover  { background:#1a1a1a; }
-.footer-mpesa-badge { display:inline-flex; align-items:center; gap:6px; background:rgba(0,164,45,.2); border:1px solid rgba(0,164,45,.3); border-radius:100px; padding:5px 14px; font-size:11px; font-weight:800; color:#4CAF50; font-family:'Nunito',sans-serif; margin-bottom:16px; }
+.footer-mpesa-badge { display:inline-flex; align-items:center; gap:6px; background:rgba(0,164,45,.2); border:1px solid rgba(0,164,45,.3); border-radius:100px; padding:5px 14px; font-size:11px; font-weight:800; color:#4CAF50; font-family:'Nunito',sans-serif; margin-bottom:16px; text-decoration:none; cursor:pointer; }
+.footer-mpesa-badge:hover { background:rgba(0,164,45,.3); }
 
 /* ── Inner-page hero float emojis ── */
 .page-hero-floats {
