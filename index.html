@@ -750,9 +750,9 @@
 <div id="page-scan" class="page">
   <!-- HERO -->
   <div class="scan-hero">
-    <div class="scan-hero-badge">🤖 AI-Powered · Free for Farmers</div>
-    <h1>📸 AI Plant Scan</h1>
-    <p>Snap a photo to get a verified badge, health score and buyers' trust — instantly.</p>
+    <div class="scan-hero-badge">📸 Photo Verification · Free for Farmers</div>
+    <h1>📸 Verify Your Produce</h1>
+    <p>Snap a photo to get a verified badge and build buyers' trust — instantly.</p>
     <div class="page-hero-floats">
       <div class="phf-item">🍅</div>
       <div class="phf-item">🔬</div>
@@ -766,13 +766,13 @@
     <div class="steps">
       <div class="step">
         <div class="step-num">1</div>
-        <div class="step-icon">🌱</div>
+        <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22V12"/><path d="M12 12C12 8 9 5 5 5C5 9 8 12 12 12Z"/><path d="M12 12C12 8 15 5 19 5C19 9 16 12 12 12Z"/></svg></div>
         <h4>Select Crop</h4>
         <p>Choose what produce you are scanning</p>
       </div>
       <div class="step">
         <div class="step-num">2</div>
-        <div class="step-icon">📸</div>
+        <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
         <h4>Take Photo</h4>
         <p>Point your camera at the produce</p>
       </div>
@@ -800,9 +800,9 @@
 
   <!-- SCAN UPLOAD BOX -->
   <div class="scan-box" id="scanBox">
-    <div class="scan-icon">🔬</div>
-    <h2>2️⃣ Scan Your Produce</h2>
-    <p>Take a clear photo in good lighting. Our AI will verify the crop and assess quality.</p>
+    <div class="scan-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 18h8"/><path d="M3 22h18"/><path d="M14 22a7 7 0 1 0 0-14h-1"/><path d="M9 14h2"/><path d="M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2Z"/><path d="M12 6V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3"/></svg></div>
+    <h2>2️⃣ Add Your Photo</h2>
+    <p>Take a clear photo in good lighting. It'll be attached to your listing with a verified badge.</p>
     <div class="scan-btns">
       <input type="file" accept="image/*" capture="environment" id="cameraInput" style="display:none" onchange="handleCapture(this)" />
       <label for="cameraInput" class="scan-btn-camera">📷 Camera</label>
@@ -833,15 +833,10 @@
         </div>
       </div>
       <div class="result-body">
-        <div class="result-stats">
-          <div class="result-stat"><div class="val" id="resultConf">95%</div><div class="lbl">Confidence</div></div>
-          <div class="result-stat"><div class="val" id="resultHealth">Healthy</div><div class="lbl">Condition</div></div>
-          <div class="result-stat"><div class="val" id="resultGrade">Grade A</div><div class="lbl">Quality</div></div>
-        </div>
-        <div class="result-notes" id="resultNotes">Produce looks fresh and marketable. Good colour uniformity detected. Recommend listing within 2 days for best price.</div>
+        <div class="result-notes" id="resultNotes">Your photo has been attached to this listing. Verified listings build buyer trust and tend to sell faster.</div>
         <div class="result-actions">
           <button class="btn-sell" onclick="showPage('sell')">🌾 List with Verified Badge</button>
-          <button class="btn-retry" onclick="resetScan()">↩ Scan Again</button>
+          <button class="btn-retry" onclick="resetScan()">↩ Retake Photo</button>
         </div>
       </div>
     </div>
@@ -853,7 +848,7 @@
     <div class="benefit-list">
       <div class="benefit-item"><div class="benefit-icon">🏆</div><div><h4>Verified ✓ Badge on Your Listing</h4><p>Buyers trust verified listings 3× more. Stand out from unverified sellers.</p></div></div>
       <div class="benefit-item"><div class="benefit-icon">💰</div><div><h4>Command Higher Prices</h4><p>Verified farmers earn on average 18% more per kg than unverified listings.</p></div></div>
-      <div class="benefit-item"><div class="benefit-icon">🔬</div><div><h4>AI Health Report</h4><p>Know your crop's health status before listing. Catch disease early and take action.</p></div></div>
+      <div class="benefit-item"><div class="benefit-icon">📸</div><div><h4>Photo Verification</h4><p>Let buyers see exactly what they're getting before they commit to a purchase.</p></div></div>
       <div class="benefit-item"><div class="benefit-icon">⚡</div><div><h4>Instant Results</h4><p>Scan takes under 2 seconds. No waiting, no forms — just point, shoot and sell.</p></div></div>
     </div>
   </div>
@@ -1136,17 +1131,6 @@ function shopCat(cat) {
 }
 
 // ─── Scan page ───────────────────────────────────────────
-var SCAN_DATA = {
-  'Tomato':  { conf:95, health:'Healthy', grade:'Grade A',  notes:'Fresh cherry tomatoes detected. Good colour and firmity. Recommend listing within 48 hours.' },
-  'Maize':   { conf:92, health:'Healthy', grade:'Grade A',  notes:'Dry shelled maize confirmed. Moisture appears below 14%. Ready for milling or storage.' },
-  'Avocado': { conf:96, health:'Healthy', grade:'Grade A',  notes:'Hass avocado, mature stage detected. Will ripen in 3-4 days after harvest.' },
-  'Coffee':  { conf:94, health:'Healthy', grade:'AA Grade', notes:'Arabica cherry confirmed. Good density and uniform ripeness. Ideal for wet processing.' },
-  'Tea':     { conf:93, health:'Healthy', grade:'BOP',      notes:'Two-leaves-and-a-bud flush detected. Optimal harvest stage confirmed.' },
-  'Onion':   { conf:91, health:'Healthy', grade:'Medium',   notes:'Red onion, well-cured detected. Good shelf life expected. Outer skin intact.' },
-  'Beans':   { conf:89, health:'Healthy', grade:'Grade 1',  notes:'Rose coco bean pod confirmed. Seeds appear fully developed. Ready for harvest.' },
-  'default': { conf:90, health:'Healthy', grade:'Grade A',  notes:'Produce looks fresh and marketable. Good quality detected. Recommend listing soon.' },
-};
-
 function handleCapture(input) {
   var file = input.files && input.files[0];
   if (!file) return;
@@ -1170,7 +1154,7 @@ function startScan(dataUrl, crop) {
   var prog = document.getElementById('scanProgress');
   prog.classList.add('active');
   document.getElementById('previewImg').src = dataUrl;
-  var steps = ['Analysing image…','Detecting crop type…','Assessing health…','Grading quality…','Generating report…'];
+  var steps = ['Uploading photo…','Attaching to listing…','Adding verified badge…','Almost done…'];
   var pct = 0;
   var interval = setInterval(function() {
     pct = Math.min(100, pct + 4);
@@ -1186,15 +1170,10 @@ function startScan(dataUrl, crop) {
 
 function showResult(crop, dataUrl) {
   document.getElementById('scanProgress').classList.remove('active');
-  var data = SCAN_DATA[crop] || SCAN_DATA['default'];
-  document.getElementById('resultTitle').textContent  = crop + ' — Verified ✓';
-  document.getElementById('resultSub').textContent    = 'Scan complete · ' + data.conf + '% confidence';
-  document.getElementById('resultConf').textContent   = data.conf + '%';
-  document.getElementById('resultHealth').textContent = data.health;
-  document.getElementById('resultGrade').textContent  = data.grade;
-  document.getElementById('resultNotes').textContent  = data.notes;
+  document.getElementById('resultTitle').textContent = crop + ' — Verified ✓';
+  document.getElementById('resultSub').textContent   = 'Photo attached · Ready to list';
   document.getElementById('scanResult').classList.add('active');
-  showToast('✅ ' + crop + ' scan verified!');
+  showToast('✅ ' + crop + ' photo verified!');
 }
 
 function resetScan() {
