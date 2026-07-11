@@ -1,7 +1,7 @@
 import type { Context } from "hono";
 import { setCookie } from "hono/cookie";
 import * as jose from "jose";
-import * as cookie from "cookie";
+import * as cookie from "hono/utils/cookie";
 import { env } from "../lib/env";
 import { getSessionCookieOptions } from "../lib/cookies";
 import { Session } from "@contracts/constants";

@@ -56,7 +56,7 @@
       <button onclick="handleSearch()">🔍</button>
     </div>
     <div class="nav-actions">
-      <button class="icon-btn" onclick="enterApp()">
+      <button class="icon-btn" onclick="openSaved()">
         <span class="icon">❤️</span>
         <span class="label">Saved</span>
       </button>
@@ -65,7 +65,7 @@
         <span class="label">Cart</span>
         <span class="badge" id="cartBadge">0</span>
       </button>
-      <button class="btn-orange" onclick="enterApp()">Sign In</button>
+      <button class="btn-orange" id="signInBtn" onclick="enterApp()">Sign In</button>
     </div>
   </div>
   <div class="nav-bottom">
@@ -1321,6 +1321,7 @@ function resetForm() {
 document.addEventListener('DOMContentLoaded', function() {
   renderHomeGrid();
   updateCart();
+  checkAuthState();
   // Open the page named in the URL hash (e.g. index.html#prices), default home
   showPage(pageFromHash());
 });

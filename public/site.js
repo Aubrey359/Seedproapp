@@ -357,7 +357,11 @@ function pollMpesaStatus(checkoutId, attempts) {
   }, 5000);
 }
 
-/* ── SIGN-IN MODAL ── */
+/* ── SIGN-IN MODAL (phone + WhatsApp OTP — matches the identity model the
+   WhatsApp bot and Sell form already use, no separate password to manage) ── */
+var CURRENT_USER = null;
+var _authPhone = '';
+
 function enterApp() {
   var existing = document.getElementById('authModal');
   if (existing) { existing.classList.add('open'); return; }
@@ -371,28 +375,18 @@ function enterApp() {
       '<div class="auth-logo"><span>🌱</span></div>',
       '<h2 class="auth-title">Welcome to Shamba Sokoni</h2>',
       '<p class="auth-sub">Kenya\'s #1 Farm Marketplace</p>',
-      '<div class="auth-tabs">',
-        '<button class="auth-tab active" id="atab-login" onclick="switchAuthTab(\'login\')">Sign In</button>',
-        '<button class="auth-tab" id="atab-register" onclick="switchAuthTab(\'register\')">Register Free</button>',
-      '</div>',
-      /* LOGIN */
-      '<div id="auth-login">',
+      /* STEP 1: phone */
+      '<div id="auth-step-phone">',
         '<div class="auth-field"><label>Phone Number</label><input type="tel" id="authPhone" placeholder="e.g. 0712 345 678" /></div>',
-        '<div class="auth-field"><label>Password</label><div class="auth-pwd-wrap"><input type="password" id="authPass" placeholder="Your password" /><button class="pwd-eye" onclick="togglePwd()">👁</button></div></div>',
-        '<button class="auth-submit" onclick="doLogin()">🔐 Sign In</button>',
-        '<div class="auth-or"><span>or</span></div>',
-        '<button class="auth-mpesa" onclick="doMpesaLogin()">💳 Sign in with M-Pesa</button>',
-        '<div class="auth-forgot" onclick="showToast(\'📲 OTP sent to your phone\')">Forgot password?</div>',
+        '<button class="auth-submit" id="authSendBtn" onclick="requestOtpCode()">📲 Send Code via WhatsApp</button>',
       '</div>',
-      /* REGISTER */
-      '<div id="auth-register" style="display:none">',
-        '<div class="auth-field"><label>Full Name</label><input type="text" id="regName" placeholder="e.g. James Mwangi" /></div>',
-        '<div class="auth-field"><label>Phone Number</label><input type="tel" id="regPhone" placeholder="e.g. 0712 345 678" /></div>',
-        '<div class="auth-field"><label>County</label><select id="regCounty"><option value="">Select county…</option><option>Nairobi</option><option>Nakuru</option><option>Kisumu</option><option>Mombasa</option><option>Muranga</option><option>Thika</option><option>Meru</option><option>Kericho</option><option>Kakamega</option><option>Eldoret</option><option>Naivasha</option><option>Nyeri</option><option>Kisii</option><option>Kiambu</option><option>Embu</option><option>Mwea</option></select></div>',
-        '<div class="auth-field"><label>I am a…</label><div class="auth-role-row"><button class="role-btn active" id="role-farmer" onclick="setRole(\'farmer\')">🌾 Farmer</button><button class="role-btn" id="role-buyer" onclick="setRole(\'buyer\')">🛒 Buyer</button></div></div>',
-        '<div class="auth-field"><label>Password</label><input type="password" id="regPass" placeholder="Create a password" /></div>',
-        '<button class="auth-submit" onclick="doRegister()">🌱 Create Free Account</button>',
-        '<p class="auth-terms">By registering you agree to our <span onclick="showToast(\'Terms opening soon…\')">Terms</span> &amp; <span onclick="showToast(\'Privacy policy opening soon…\')">Privacy Policy</span></p>',
+      /* STEP 2: code */
+      '<div id="auth-step-code" style="display:none">',
+        '<p class="auth-sub" id="authCodeSentTo"></p>',
+        '<div class="auth-field"><label>Your Name <span style="font-weight:400">(first time only)</span></label><input type="text" id="authName" placeholder="e.g. James Mwangi" /></div>',
+        '<div class="auth-field"><label>6-Digit Code</label><input type="text" inputmode="numeric" maxlength="6" id="authCode" placeholder="123456" /></div>',
+        '<button class="auth-submit" id="authVerifyBtn" onclick="verifyOtpCode()">✅ Verify &amp; Continue</button>',
+        '<div class="auth-forgot" onclick="backToPhoneStep()">↩ Use a different number</div>',
       '</div>',
     '</div>'
   ].join('');
@@ -405,59 +399,93 @@ function closeAuth() {
   if (m) m.classList.remove('open');
 }
 
-function switchAuthTab(tab) {
-  document.getElementById('auth-login').style.display    = tab === 'login'    ? '' : 'none';
-  document.getElementById('auth-register').style.display = tab === 'register' ? '' : 'none';
-  document.getElementById('atab-login').classList.toggle('active',    tab === 'login');
-  document.getElementById('atab-register').classList.toggle('active', tab === 'register');
+function backToPhoneStep() {
+  document.getElementById('auth-step-code').style.display = 'none';
+  document.getElementById('auth-step-phone').style.display = '';
 }
 
-var _authRole = 'farmer';
-function setRole(r) {
-  _authRole = r;
-  document.getElementById('role-farmer').classList.toggle('active', r === 'farmer');
-  document.getElementById('role-buyer').classList.toggle('active',  r === 'buyer');
-}
-
-function togglePwd() {
-  var inp = document.getElementById('authPass');
-  inp.type = inp.type === 'password' ? 'text' : 'password';
-}
-
-function doLogin() {
-  var phone = (document.getElementById('authPhone')||{}).value||'';
-  var pass  = (document.getElementById('authPass')||{}).value||'';
+function requestOtpCode() {
+  var phone = (document.getElementById('authPhone')||{}).value || '';
   if (!phone.trim()) { showToast('⚠️ Please enter your phone number'); return; }
-  if (!pass.trim())  { showToast('⚠️ Please enter your password'); return; }
-  var btn = document.querySelector('#auth-login .auth-submit');
-  btn.textContent = '⏳ Signing in…'; btn.disabled = true;
-  setTimeout(function() {
-    btn.textContent = '🔐 Sign In'; btn.disabled = false;
-    closeAuth();
-    showToast('✅ Welcome back! Full app coming soon.');
-  }, 1200);
+  var btn = document.getElementById('authSendBtn');
+  btn.textContent = '⏳ Sending…'; btn.disabled = true;
+  fetch('/api/trpc/auth.requestOtp', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ json: { phone: phone } })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data) {
+    btn.textContent = '📲 Send Code via WhatsApp'; btn.disabled = false;
+    if (data.error) throw new Error(data.error.message || 'Could not send code');
+    _authPhone = phone;
+    document.getElementById('auth-step-phone').style.display = 'none';
+    document.getElementById('auth-step-code').style.display = '';
+    document.getElementById('authCodeSentTo').textContent = 'Code sent to ' + phone + ' via WhatsApp';
+    showToast('📲 Check WhatsApp for your code');
+  })
+  .catch(function(err) {
+    btn.textContent = '📲 Send Code via WhatsApp'; btn.disabled = false;
+    showToast('❌ ' + (err.message || 'Could not send code'));
+  });
 }
 
-function doMpesaLogin() {
-  showToast('📲 M-Pesa OTP sent — enter the code to continue');
+function verifyOtpCode() {
+  var code = (document.getElementById('authCode')||{}).value || '';
+  var name = (document.getElementById('authName')||{}).value || '';
+  if (!code.trim()) { showToast('⚠️ Please enter the code'); return; }
+  var btn = document.getElementById('authVerifyBtn');
+  btn.textContent = '⏳ Verifying…'; btn.disabled = true;
+  fetch('/api/trpc/auth.verifyOtp', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ json: { phone: _authPhone, code: code, name: name || undefined } })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data) {
+    btn.textContent = '✅ Verify & Continue'; btn.disabled = false;
+    if (data.error) throw new Error(data.error.message || 'Invalid code');
+    closeAuth();
+    checkAuthState();
+    showToast('✅ Welcome to Shamba Sokoni!');
+  })
+  .catch(function(err) {
+    btn.textContent = '✅ Verify & Continue'; btn.disabled = false;
+    showToast('❌ ' + (err.message || 'Invalid code'));
+  });
 }
 
-function doRegister() {
-  var name  = (document.getElementById('regName')||{}).value||'';
-  var phone = (document.getElementById('regPhone')||{}).value||'';
-  var county= (document.getElementById('regCounty')||{}).value||'';
-  var pass  = (document.getElementById('regPass')||{}).value||'';
-  if (!name.trim())   { showToast('⚠️ Please enter your name');     return; }
-  if (!phone.trim())  { showToast('⚠️ Please enter your phone');    return; }
-  if (!county)        { showToast('⚠️ Please select your county');  return; }
-  if (!pass.trim())   { showToast('⚠️ Please create a password');   return; }
-  var btn = document.querySelector('#auth-register .auth-submit');
-  btn.textContent = '⏳ Creating account…'; btn.disabled = true;
-  setTimeout(function() {
-    btn.textContent = '🌱 Create Free Account'; btn.disabled = false;
-    closeAuth();
-    showToast('🎉 Account created! Welcome to Shamba Sokoni, ' + name.split(' ')[0] + '!');
-  }, 1400);
+function checkAuthState() {
+  return fetch('/api/trpc/auth.me')
+    .then(function(r){ return r.json(); })
+    .then(function(d) {
+      CURRENT_USER = (d && d.result && d.result.data && d.result.data.json) || null;
+      renderAuthState();
+    })
+    .catch(function() { CURRENT_USER = null; renderAuthState(); });
+}
+
+function renderAuthState() {
+  var btn = document.getElementById('signInBtn');
+  if (!btn) return;
+  if (CURRENT_USER) {
+    btn.textContent = '👤 ' + (CURRENT_USER.name || CURRENT_USER.phone || 'Account');
+    btn.onclick = doLogout;
+  } else {
+    btn.textContent = 'Sign In';
+    btn.onclick = enterApp;
+  }
+}
+
+function doLogout() {
+  fetch('/api/trpc/auth.logout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+    .then(function(){ CURRENT_USER = null; renderAuthState(); showToast('👋 Signed out'); })
+    .catch(function(){ showToast('❌ Could not sign out, try again'); });
+}
+
+function openSaved() {
+  if (CURRENT_USER) { showToast('❤️ Saved items coming soon'); return; }
+  enterApp();
 }
 
 function openWA(name) { showToast('💬 Opening WhatsApp for ' + name + '…'); }

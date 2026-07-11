@@ -75,6 +75,17 @@ const userSchema = new Schema(
 );
 export const users = model("User", userSchema);
 
+// ─── OTP codes (phone sign-in) ───
+// Short-lived codes texted to a farmer/buyer over WhatsApp to prove phone
+// ownership. The TTL index below lets MongoDB delete expired codes itself.
+const otpCodeSchema = new Schema({
+  phone: { type: String, required: true, index: true },
+  code: { type: String, required: true },
+  expiresAt: { type: Date, required: true },
+});
+otpCodeSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+export const otpCodes = model("OtpCode", otpCodeSchema);
+
 // ─── Crops ───
 const cropSchema = new Schema(
   {
