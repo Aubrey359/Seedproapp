@@ -28,11 +28,13 @@ function cropMeta(name) {
 /* Map a live listing (from market.list) into the shape cardHTML expects. */
 function mapListing(l) {
   var meta = cropMeta(l.cropName);
+  var realPhoto = (l.images && l.images.length) ? l.images[0] : null;
   return {
     id: l.id,
     name: l.cropName,
     emoji: meta.emoji,
-    img: meta.img,
+    img: realPhoto || meta.img,
+    hasPhoto: !!realPhoto,
     cat: meta.cat,
     price: l.expectedPrice,
     old: null,
@@ -80,6 +82,7 @@ function cardHTML(p) {
       (p.img ? '<img class="prod-photo" src="' + p.img + '" alt="' + p.name + '" loading="lazy" onerror="this.remove()">' : '') +
       (p.disc ? '<div class="prod-discount">' + p.disc + '</div>' : '') +
       (p.ok   ? '<div class="prod-check">✓</div>' : '') +
+      (p.hasPhoto ? '<div class="prod-photo-badge" title="Real photo from farmer">📸 Verified</div>' : '') +
       '<button class="prod-fav" onclick="event.stopPropagation();showToast(\'❤️ Saved!\')">♡</button>' +
     '</div>' +
     '<div class="prod-body">' +

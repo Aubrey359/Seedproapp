@@ -1118,6 +1118,8 @@ function showPage(name) {
   }
   // Lazy render shop grid
   if (name === 'shop') { renderShopGrid(); }
+  // Reflect any pending scan photo into the Sell form
+  if (name === 'sell' && typeof renderScanAttach === 'function') { renderScanAttach(); }
 }
 
 function pageFromHash() {
@@ -1137,6 +1139,62 @@ function shopCat(cat) {
 }
 
 // ─── Scan page ───────────────────────────────────────────
+var PENDING_PHOTO_KEY = 'sp_pending_photo';
+
+// Downscale + re-encode so a multi-MB phone photo becomes a small JPEG
+// that's safe to send over a slow connection and store as a data URL.
+function compressImage(dataUrl, maxDim, quality) {
+  return new Promise(function(resolve) {
+    var img = new Image();
+    img.onload = function() {
+      var w = img.width, h = img.height;
+      if (w > maxDim || h > maxDim) {
+        if (w > h) { h = Math.round(h * maxDim / w); w = maxDim; }
+        else { w = Math.round(w * maxDim / h); h = maxDim; }
+      }
+      var canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = function() { resolve(dataUrl); };
+    img.src = dataUrl;
+  });
+}
+
+function getPendingPhoto() {
+  try {
+    var raw = sessionStorage.getItem(PENDING_PHOTO_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
+
+function clearPendingPhoto() {
+  try { sessionStorage.removeItem(PENDING_PHOTO_KEY); } catch (e) {}
+  renderScanAttach();
+  showToast('Photo removed');
+}
+
+// Reflects the current pending scan photo (if any) into the Sell form's
+// scan-attach box, so it doesn't just say "tap to scan" once one exists.
+function renderScanAttach() {
+  var el = document.getElementById('scanAttach');
+  if (!el) return;
+  var pending = getPendingPhoto();
+  if (pending && pending.photo) {
+    el.classList.add('attached');
+    el.innerHTML =
+      '<img class="scan-attach-thumb" src="' + pending.photo + '" alt="" />' +
+      '<p>✓ <strong>' + pending.crop + '</strong> photo attached<br/>' +
+      '<span class="scan-attach-link" onclick="event.stopPropagation();clearPendingPhoto()">Remove photo</span></p>';
+  } else {
+    el.classList.remove('attached');
+    el.innerHTML =
+      '<div style="font-size:28px">📸</div>' +
+      '<p>Tap to scan your produce for a verified badge.<br/>Verified listings earn 18% more on average.</p>';
+  }
+}
+
 function handleCapture(input) {
   var file = input.files && input.files[0];
   if (!file) return;
@@ -1151,7 +1209,11 @@ function handleCapture(input) {
     return;
   }
   var reader = new FileReader();
-  reader.onload = function(ev) { startScan(ev.target.result, crop); };
+  reader.onload = function(ev) {
+    compressImage(ev.target.result, 900, 0.65).then(function(compressed) {
+      startScan(compressed, crop);
+    });
+  };
   reader.readAsDataURL(file);
 }
 
@@ -1179,6 +1241,9 @@ function showResult(crop, dataUrl) {
   document.getElementById('resultTitle').textContent = crop + ' — Verified ✓';
   document.getElementById('resultSub').textContent   = 'Photo attached · Ready to list';
   document.getElementById('scanResult').classList.add('active');
+  try {
+    sessionStorage.setItem(PENDING_PHOTO_KEY, JSON.stringify({ crop: crop, photo: dataUrl, ts: Date.now() }));
+  } catch (e) {}
   showToast('✅ ' + crop + ' photo verified!');
 }
 
@@ -1209,6 +1274,7 @@ function submitListing() {
   btn.textContent = '⏳ Publishing…';
   btn.disabled = true;
 
+  var pendingPhoto = getPendingPhoto();
   fetch('/api/trpc/market.createPublic', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -1221,13 +1287,15 @@ function submitListing() {
         expectedPrice: Number(price),
         description: desc || undefined,
         farmerName: name,
-        farmerPhone: phone
+        farmerPhone: phone,
+        images: (pendingPhoto && pendingPhoto.photo) ? [pendingPhoto.photo] : undefined
       }
     })
   })
   .then(function(r){ return r.json(); })
   .then(function(data) {
     if (data.error) throw new Error(data.error.message || 'Could not publish listing');
+    try { sessionStorage.removeItem(PENDING_PHOTO_KEY); } catch (e) {}
     document.getElementById('successOverlay').classList.add('show');
     if (typeof loadProducts === 'function') loadProducts(); // refresh Shop/Home with the new live listing
   })

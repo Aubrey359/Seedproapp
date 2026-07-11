@@ -133,6 +133,14 @@ export const marketRouter = createRouter({
         description: z.string().optional(),
         farmerName: z.string().min(1),
         farmerPhone: z.string().min(9),
+        images: z
+          .array(
+            z.string().refine((s) => s.startsWith("data:image/") && s.length <= 400_000, {
+              message: "Photo must be a valid image under ~300KB",
+            }),
+          )
+          .max(1)
+          .optional(),
       }),
     )
     .mutation(async ({ input }) => {
@@ -151,7 +159,7 @@ export const marketRouter = createRouter({
         expectedPrice: input.expectedPrice,
         currency: CURRENCY,
         description: input.description ?? null,
-        images: [],
+        images: input.images ?? [],
         status: "active",
       };
       await listings.create(newListing);
