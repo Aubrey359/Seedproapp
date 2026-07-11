@@ -488,6 +488,8 @@ function checkAuthState() {
     .then(function(d) {
       CURRENT_USER = (d && d.result && d.result.data && d.result.data.json) || null;
       renderAuthState();
+      var chatPage = document.getElementById('page-chat');
+      if (chatPage && chatPage.classList.contains('active') && typeof loadChatMessages === 'function') loadChatMessages();
     })
     .catch(function() { CURRENT_USER = null; renderAuthState(); });
 }
@@ -513,6 +515,83 @@ function doLogout() {
 function openSaved() {
   if (CURRENT_USER) { showToast('❤️ Saved items coming soon'); return; }
   enterApp();
+}
+
+/* ── AI FARM ASSISTANT CHAT ── */
+function escChat(s) {
+  return String(s == null ? '' : s).replace(/[&<>"]/g, function(c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+  });
+}
+
+function renderChatMessage(m) {
+  var isOut = m.direction === 'outgoing'; // outgoing = farmer's message, incoming = assistant's reply
+  return '<div class="chat-msg ' + (isOut ? 'out' : 'in') + '">' +
+    (!isOut ? '<div class="chat-avatar">🤖</div>' : '') +
+    '<div class="chat-bubble">' + escChat(m.content) + '</div>' +
+  '</div>';
+}
+
+function showChatGate() {
+  var gate = document.getElementById('chatSignInGate'), wrap = document.getElementById('chatWrap');
+  if (gate) gate.style.display = '';
+  if (wrap) wrap.style.display = 'none';
+}
+
+function showChatUI() {
+  var gate = document.getElementById('chatSignInGate'), wrap = document.getElementById('chatWrap');
+  if (gate) gate.style.display = 'none';
+  if (wrap) wrap.style.display = '';
+}
+
+function loadChatMessages() {
+  return fetch('/api/trpc/advisory.getMessages')
+    .then(function(r){ return r.json(); })
+    .then(function(d) {
+      if (d.error) { showChatGate(); return; }
+      var msgs = (d.result && d.result.data && d.result.data.json) || [];
+      var el = document.getElementById('chatMessages');
+      if (!el) return;
+      el.innerHTML = msgs.length
+        ? msgs.map(renderChatMessage).join('')
+        : '<div class="chat-empty">👋 Ask me anything about your crops — try "Tomato" or "pests" to get started.</div>';
+      el.scrollTop = el.scrollHeight;
+      showChatUI();
+    })
+    .catch(function() { showChatGate(); });
+}
+
+function sendChatMessage() {
+  var input = document.getElementById('chatInput');
+  var text = (input.value || '').trim();
+  if (!text) return;
+  input.value = '';
+  input.disabled = true;
+  var el = document.getElementById('chatMessages');
+  var empty = el.querySelector('.chat-empty'); if (empty) empty.remove();
+  el.insertAdjacentHTML('beforeend', renderChatMessage({ direction: 'outgoing', content: text }));
+  el.scrollTop = el.scrollHeight;
+  fetch('/api/trpc/advisory.sendMessage', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ json: { content: text } })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d) {
+    input.disabled = false;
+    if (d.error) { showToast('❌ ' + (d.error.message || 'Could not send message')); return; }
+    return loadChatMessages();
+  })
+  .catch(function() {
+    input.disabled = false;
+    showToast('❌ Could not send message');
+  });
+}
+
+function quickChatSend(text) {
+  var input = document.getElementById('chatInput');
+  if (input) input.value = text;
+  sendChatMessage();
 }
 
 function openWA(name) { showToast('💬 Opening WhatsApp for ' + name + '…'); }
