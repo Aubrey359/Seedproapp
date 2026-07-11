@@ -92,6 +92,27 @@ const otpCodeSchema = new Schema(
 otpCodeSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 export const otpCodes = model("OtpCode", otpCodeSchema);
 
+// ─── Site settings ───
+// Singleton doc (key:"main") holding the handful of storefront text/links an
+// admin should be able to change without a code deploy — hero copy, social
+// links, footer text. The public site fetches this once and overlays it onto
+// the hardcoded defaults already baked into index.html.
+const siteSettingsSchema = new Schema(
+  {
+    key: { type: String, default: "main", unique: true },
+    heroHeadline: String,
+    heroSubtext: String,
+    whatsappNumber: String,
+    instagramUrl: String,
+    xUrl: String,
+    facebookUrl: String,
+    footerTagline: String,
+    footerAddress: String,
+  },
+  { timestamps: true },
+);
+export const siteSettings = model("SiteSettings", siteSettingsSchema);
+
 // ─── Crops ───
 const cropSchema = new Schema(
   {

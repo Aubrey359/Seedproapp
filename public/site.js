@@ -1,3 +1,30 @@
+/* ── SITE SETTINGS: admin-editable hero copy, social links, footer text ── */
+function applySiteSettings(s) {
+  if (!s) return;
+  if (s.heroHeadline) { var hh = document.getElementById('heroHeadline'); if (hh) hh.textContent = s.heroHeadline; }
+  if (s.heroSubtext)  { var hs = document.getElementById('heroSubtext');  if (hs) hs.textContent = s.heroSubtext; }
+  if (s.whatsappNumber) {
+    var waHref = 'https://wa.me/' + s.whatsappNumber.replace(/[^\d]/g, '');
+    document.querySelectorAll('.social-btn.wa').forEach(function(a) {
+      a.href = waHref;
+      a.title = 'WhatsApp ' + s.whatsappNumber;
+      a.setAttribute('aria-label', 'WhatsApp ' + s.whatsappNumber);
+    });
+  }
+  if (s.instagramUrl) document.querySelectorAll('.social-btn.ig').forEach(function(a){ a.href = s.instagramUrl; });
+  if (s.xUrl)         document.querySelectorAll('.social-btn.x').forEach(function(a){ a.href = s.xUrl; });
+  if (s.facebookUrl)  document.querySelectorAll('.social-btn.fb').forEach(function(a){ a.href = s.facebookUrl; });
+  if (s.footerTagline) document.querySelectorAll('.footer-tagline').forEach(function(el){ el.textContent = s.footerTagline; });
+  if (s.footerAddress) document.querySelectorAll('.footer-address-text').forEach(function(el){ el.textContent = s.footerAddress; });
+}
+
+function loadSiteSettings() {
+  return fetch('/api/trpc/settings.get')
+    .then(function(r){ return r.json(); })
+    .then(function(d){ applySiteSettings((d && d.result && d.result.data && d.result.data.json) || null); })
+    .catch(function(){});
+}
+
 /* ── PRODUCTS: live listings from MongoDB via tRPC market.list ── */
 var PRODUCTS = [];
 var productsLoaded = false;

@@ -67,6 +67,12 @@
     .act.green{ background:var(--green2); color:#fff; } .act.line{ background:#fff; border:1px solid var(--line); color:var(--dark); }
     .muted{ color:var(--muted); }
     .loading{ padding:40px; text-align:center; color:var(--muted); }
+    .settings-form{ padding:18px; display:flex; flex-direction:column; gap:16px; max-width:560px; }
+    .settings-field label{ display:block; font-weight:800; font-size:13px; margin-bottom:6px; }
+    .settings-field .hint{ display:block; font-weight:400; font-size:11px; color:var(--muted); margin-top:2px; }
+    .settings-input{ width:100%; border:1.5px solid var(--line); border-radius:10px; padding:9px 12px; font-size:13px; font-family:inherit; }
+    .settings-input:focus{ outline:none; border-color:var(--green3); }
+    textarea.settings-input{ resize:vertical; }
     .convo-msgs{ background:#f6f8f6; border-radius:10px; padding:12px; max-height:340px; overflow:auto; margin-top:10px; }
     .msg{ margin-bottom:8px; font-size:13px; } .msg .who{ font-size:10px; font-weight:800; text-transform:uppercase; color:var(--muted); }
     .msg.out .bub{ background:#dcf8c6; } .msg.in .bub{ background:#fff; border:1px solid var(--line); }
@@ -110,6 +116,7 @@
       <button class="nav-item" data-sec="prices" onclick="nav('prices')"><span class="nav-ico">📈</span> Market Prices</button>
       <button class="nav-item" data-sec="whatsapp" onclick="nav('whatsapp')"><span class="nav-ico">💬</span> WhatsApp Bot</button>
       <button class="nav-item" data-sec="disputes" onclick="nav('disputes')"><span class="nav-ico">🚩</span> Disputes</button>
+      <button class="nav-item" data-sec="content" onclick="nav('content')"><span class="nav-ico">📝</span> Site Content</button>
       <div class="sb-foot">v1 · key-gated REST API</div>
     </aside>
     <main>
@@ -129,7 +136,7 @@
   <script>
     var KEY = localStorage.getItem('ss_admin_key') || '';
     var SECTION = 'overview';
-    var TITLES = { overview:'Overview', listings:'Listings', farmers:'Farmers & Users', orders:'Orders', payments:'Payments', prices:'Market Prices', whatsapp:'WhatsApp Bot', disputes:'Disputes' };
+    var TITLES = { overview:'Overview', listings:'Listings', farmers:'Farmers & Users', orders:'Orders', payments:'Payments', prices:'Market Prices', whatsapp:'WhatsApp Bot', disputes:'Disputes', content:'Site Content' };
 
     function api(path, opts){
       opts = opts || {};
@@ -180,7 +187,7 @@
     function refresh(){
       var v = document.getElementById('view');
       v.innerHTML = '<div class="loading">Loading…</div>';
-      var fn = { overview:renderOverview, listings:renderListings, farmers:renderFarmers, orders:renderOrders, payments:renderPayments, prices:renderPrices, whatsapp:renderWhatsapp, disputes:renderDisputes }[SECTION];
+      var fn = { overview:renderOverview, listings:renderListings, farmers:renderFarmers, orders:renderOrders, payments:renderPayments, prices:renderPrices, whatsapp:renderWhatsapp, disputes:renderDisputes, content:renderContent }[SECTION];
       fn().catch(function(e){
         if (e && e.unauth) return logout();
         v.innerHTML = '<div class="banner">Error loading data: '+esc(e&&e.message||e)+'</div>';
@@ -304,6 +311,40 @@
         setView(panel('Disputes ('+(d.disputes||[]).length+')',
           table(['ID','Raised by','Source','Reason','When','Status'], rows, 6)));
       });
+    }
+    var SETTINGS_FIELDS = [
+      { key:'heroHeadline',   label:'Home hero headline',        hint:'Main heading on the homepage',                             type:'text' },
+      { key:'heroSubtext',    label:'Home hero subtext',          hint:'Paragraph under the headline',                              type:'textarea' },
+      { key:'whatsappNumber', label:'WhatsApp business number',   hint:'e.g. +254794446287 — updates every WhatsApp button site-wide', type:'text' },
+      { key:'instagramUrl',   label:'Instagram URL',              hint:'',                                                          type:'text' },
+      { key:'xUrl',           label:'X (Twitter) URL',            hint:'',                                                          type:'text' },
+      { key:'facebookUrl',    label:'Facebook URL',               hint:'',                                                          type:'text' },
+      { key:'footerTagline',  label:'Footer tagline',             hint:'Shown under the logo in every page footer',                type:'text' },
+      { key:'footerAddress',  label:'Footer address line',        hint:'Shown in the copyright line of every page footer',         type:'text' }
+    ];
+    function renderContent(){
+      return api('/settings').then(function(d){
+        setDbPill(d.dbConnected);
+        if (!d.dbConnected) return setView(dbBanner());
+        var s = d.settings || {};
+        var fields = SETTINGS_FIELDS.map(function(f){
+          var val = esc(s[f.key]||'');
+          var input = f.type==='textarea'
+            ? '<textarea class="settings-input" id="set_'+f.key+'" rows="2">'+val+'</textarea>'
+            : '<input class="settings-input" id="set_'+f.key+'" value="'+val+'">';
+          return '<div class="settings-field"><label>'+esc(f.label)+(f.hint?'<span class="hint">'+esc(f.hint)+'</span>':'')+'</label>'+input+'</div>';
+        }).join('');
+        var body = '<div class="settings-form">'+fields+
+          '<button class="act green" style="align-self:flex-start" onclick="saveSettings()">Save All Changes</button></div>';
+        setView(panel('Site Content <span class="muted" style="font-weight:600;font-size:12px">— changes go live immediately, no deploy needed</span>', body, false));
+      });
+    }
+    function saveSettings(){
+      var payload = {};
+      SETTINGS_FIELDS.forEach(function(f){ payload[f.key] = document.getElementById('set_'+f.key).value.trim(); });
+      api('/settings', { method:'POST', body: JSON.stringify(payload) })
+        .then(function(){ toast('✓ Site content saved'); })
+        .catch(function(){ toast('Save failed', true); });
     }
     function renderPrices(){
       return api('/prices').then(function(d){

@@ -12,8 +12,15 @@ import {
   marketPrices,
   advisoryMessages,
   disputes,
+  siteSettings,
   omitMongo,
 } from "@db/schema";
+
+const SETTINGS_FIELDS = [
+  "heroHeadline", "heroSubtext", "whatsappNumber",
+  "instagramUrl", "xUrl", "facebookUrl",
+  "footerTagline", "footerAddress",
+] as const;
 
 const admin = new Hono();
 
@@ -205,6 +212,30 @@ admin.post(
     const set: any = { status };
     if (resolution != null) set.resolution = resolution;
     await disputes.updateOne({ id: Number(id) }, { $set: set });
+    return c.json({ dbConnected: true, ok: true });
+  }),
+);
+
+// ── Site content (hero copy, social links, footer text) ──────
+admin.get(
+  "/settings",
+  guard(async (c) => {
+    const s: any = await siteSettings.findOne({ key: "main" }).lean();
+    const settings: any = {};
+    for (const f of SETTINGS_FIELDS) settings[f] = s?.[f] ?? "";
+    return c.json({ dbConnected: true, settings });
+  }),
+);
+
+admin.post(
+  "/settings",
+  guard(async (c) => {
+    const body = await c.req.json();
+    const set: any = {};
+    for (const f of SETTINGS_FIELDS) {
+      if (body[f] != null) set[f] = String(body[f]).trim();
+    }
+    await siteSettings.updateOne({ key: "main" }, { $set: set }, { upsert: true });
     return c.json({ dbConnected: true, ok: true });
   }),
 );
