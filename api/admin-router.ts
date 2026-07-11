@@ -113,6 +113,21 @@ admin.post(
   }),
 );
 
+// Editable profile fields only — phone is deliberately excluded since it
+// doubles as login identity (unionId is derived from it); changing it here
+// would desync WhatsApp/OTP sign-in from the user record.
+admin.post(
+  "/users/details",
+  guard(async (c) => {
+    const { id, name, location } = await c.req.json();
+    const set: any = {};
+    if (name != null) set.name = String(name).trim() || null;
+    if (location != null) set.location = String(location).trim() || null;
+    await users.updateOne({ id: Number(id) }, { $set: set });
+    return c.json({ dbConnected: true, ok: true });
+  }),
+);
+
 // ── Listings ─────────────────────────────────────────────────
 admin.get(
   "/listings",

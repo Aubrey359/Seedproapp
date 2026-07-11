@@ -1,4 +1,5 @@
 import * as cookie from "hono/utils/cookie";
+import { createHash } from "crypto";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { Session } from "@contracts/constants";
@@ -10,6 +11,12 @@ import { sendWhatsApp } from "./whatsapp/send";
 import { signSessionToken } from "./kimi/session";
 
 const OTP_TTL_MS = 5 * 60 * 1000;
+const OTP_RESEND_COOLDOWN_MS = 45 * 1000;
+const OTP_MAX_ATTEMPTS = 5;
+
+function hashCode(code: string): string {
+  return createHash("sha256").update(code).digest("hex");
+}
 
 // Kenyan numbers arrive as 0712…, 254712…, or +254712… depending on where the
 // form is used — normalize to +254… so a request/verify pair always matches
@@ -43,9 +50,16 @@ export const authRouter = createRouter({
     .input(z.object({ phone: z.string().min(9) }))
     .mutation(async ({ input }) => {
       const phone = normalizePhone(input.phone);
+      const existing: any = await otpCodes.findOne({ phone }).lean();
+      if (existing?.createdAt && Date.now() - new Date(existing.createdAt).getTime() < OTP_RESEND_COOLDOWN_MS) {
+        throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Please wait a moment before requesting another code" });
+      }
       const code = String(Math.floor(100000 + Math.random() * 900000));
-      await otpCodes.deleteMany({ phone });
-      await otpCodes.create({ phone, code, expiresAt: new Date(Date.now() + OTP_TTL_MS) });
+      await otpCodes.findOneAndUpdate(
+        { phone },
+        { phone, code: hashCode(code), attempts: 0, expiresAt: new Date(Date.now() + OTP_TTL_MS) },
+        { upsert: true },
+      );
       // Fire-and-forget, same convention as listing/order WhatsApp notifications —
       // sendWhatsApp already swallows its own errors and logs them.
       sendWhatsApp(phone, `Your Shamba Sokoni verification code is ${code}. It expires in 5 minutes.`).catch(() => {});
@@ -56,8 +70,16 @@ export const authRouter = createRouter({
     .input(z.object({ phone: z.string().min(9), code: z.string().min(4).max(8), name: z.string().optional() }))
     .mutation(async ({ input, ctx }) => {
       const phone = normalizePhone(input.phone);
-      const record: any = await otpCodes.findOne({ phone, code: input.code }).lean();
+      const record: any = await otpCodes.findOne({ phone }).lean();
       if (!record || new Date(record.expiresAt) < new Date()) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "That code is invalid or has expired" });
+      }
+      if (record.attempts >= OTP_MAX_ATTEMPTS) {
+        await otpCodes.deleteMany({ phone });
+        throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Too many attempts. Please request a new code." });
+      }
+      if (hashCode(input.code) !== record.code) {
+        await otpCodes.updateOne({ phone }, { $inc: { attempts: 1 } });
         throw new TRPCError({ code: "BAD_REQUEST", message: "That code is invalid or has expired" });
       }
       await otpCodes.deleteMany({ phone });
