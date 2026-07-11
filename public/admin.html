@@ -3,8 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#12181A" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="SS Admin" />
   <title>Shamba Sokoni — Admin Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+  <link rel="icon" type="image/svg+xml" href="/images/admin-icon.svg" />
+  <link rel="apple-touch-icon" href="/images/admin-icon.svg" />
+  <link rel="manifest" href="/admin-manifest.webmanifest" />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
     :root{ --green:#1B5E20; --green2:#2E7D32; --green3:#43A047; --bg:#eef1ee; --card:#fff; --line:#e2e6e2; --muted:#6b7a6e; --dark:#16321a; }
@@ -92,7 +99,7 @@
   <!-- LOGIN -->
   <div id="login">
     <div class="login-card">
-      <img src="/icon.svg" alt="" />
+      <img src="/images/admin-icon.svg" alt="" />
       <h1>Shamba Sokoni Admin</h1>
       <p>Enter your admin key to continue</p>
       <div class="login-err" id="loginErr"></div>
@@ -105,7 +112,7 @@
   <div class="shell" id="shell" hidden>
     <aside class="sidebar">
       <div class="sb-logo">
-        <img src="/icon.svg" alt="" />
+        <img src="/images/admin-icon.svg" alt="" />
         <div><b>Shamba Sokoni</b><span>ADMIN</span></div>
       </div>
       <button class="nav-item active" data-sec="overview" onclick="nav('overview')"><span class="nav-ico">📊</span> Overview</button>

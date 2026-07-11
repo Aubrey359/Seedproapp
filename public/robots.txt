@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /admin.html
+Disallow: /admin-manifest.webmanifest
+Disallow: /images/admin-icon.svg
+Allow: /

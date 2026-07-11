@@ -1,0 +1,13 @@
+{
+  "name": "Shamba Sokoni Admin",
+  "short_name": "SS Admin",
+  "description": "Admin dashboard for Shamba Sokoni — farmers, listings, orders, prices, WhatsApp bot",
+  "start_url": "/admin.html",
+  "scope": "/admin.html",
+  "display": "standalone",
+  "background_color": "#12181A",
+  "theme_color": "#12181A",
+  "icons": [
+    { "src": "/images/admin-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
