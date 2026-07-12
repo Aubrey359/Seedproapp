@@ -5,6 +5,8 @@ import { pricesRouter } from "./prices-router";
 import { ratingsRouter } from "./ratings-router";
 import { mpesaRouter } from "./mpesa-router";
 import { settingsRouter } from "./settings-router";
+import { paypalRouter } from "./paypal-router";
+import { pesapalRouter } from "./pesapal-router";
 import { createRouter, publicQuery } from "./middleware";
 
 export const appRouter = createRouter({
@@ -16,6 +18,8 @@ export const appRouter = createRouter({
   ratings:  ratingsRouter,
   mpesa:    mpesaRouter,
   settings: settingsRouter,
+  paypal:   paypalRouter,
+  pesapal:  pesapalRouter,
 });
 
 export type AppRouter = typeof appRouter;

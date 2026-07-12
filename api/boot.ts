@@ -7,11 +7,13 @@ import { createContext } from "./context";
 import { env } from "./lib/env";
 import { createOAuthCallbackHandler } from "./kimi/auth";
 import { Paths } from "@contracts/constants";
-import { mpesaPayments, orders } from "@db/schema";
+import { mpesaPayments, paypalPayments, pesapalPayments, orders } from "@db/schema";
 import { connectDb } from "./lib/db";
 import adminRouter from "./admin-router";
 import whatsappRouter from "./whatsapp-router";
 import { sendWhatsApp } from "./whatsapp/send";
+import { captureOrder } from "./lib/paypal";
+import { getTransactionStatus } from "./lib/pesapal";
 
 // Connect to MongoDB and seed on first run (non-blocking for the frontend)
 connectDb();
@@ -99,6 +101,111 @@ app.post("/api/mpesa/callback", async (c) => {
   } catch (err) {
     console.error("M-Pesa callback error:", err);
     return c.json({ ResultCode: 0, ResultDesc: "Accepted" }); // always 200 to Daraja
+  }
+});
+
+// ── PayPal: buyer's browser lands here after approving on PayPal's site ──
+app.get("/api/paypal/return", async (c) => {
+  const paymentId = Number(c.req.query("paymentId"));
+  await connectDb();
+  const payment: any = await paypalPayments.findOne({ id: paymentId }).lean();
+  if (!payment) return c.redirect("/?pay=error&provider=paypal", 302);
+
+  try {
+    const capture = await captureOrder(payment.paypalOrderId);
+    const completed = capture.status === "COMPLETED";
+    await paypalPayments.updateOne(
+      { id: paymentId },
+      {
+        $set: {
+          status: completed ? "completed" : "failed",
+          captureId: capture.captureId,
+          payerEmail: capture.payerEmail,
+          rawCapture: capture.raw,
+        },
+      },
+    );
+    if (completed && payment.orderId) {
+      await orders.updateOne({ id: payment.orderId }, { $set: { status: "confirmed" } });
+    }
+    return c.redirect(`/?pay=${completed ? "success" : "failed"}&provider=paypal`, 302);
+  } catch (err) {
+    console.error("PayPal capture error:", err);
+    await paypalPayments.updateOne({ id: paymentId }, { $set: { status: "failed" } });
+    return c.redirect("/?pay=failed&provider=paypal", 302);
+  }
+});
+
+// ── PayPal: buyer cancelled on PayPal's site ─────────────────────
+app.get("/api/paypal/cancel", async (c) => {
+  const paymentId = Number(c.req.query("paymentId"));
+  if (paymentId) {
+    await connectDb();
+    await paypalPayments.updateOne({ id: paymentId }, { $set: { status: "cancelled" } });
+  }
+  return c.redirect("/?pay=cancelled&provider=paypal", 302);
+});
+
+// ── Pesapal: buyer's browser lands here after their hosted payment page ──
+app.get("/api/pesapal/return", async (c) => {
+  const orderTrackingId = c.req.query("OrderTrackingId") || c.req.query("orderTrackingId");
+  if (!orderTrackingId) return c.redirect("/?pay=error&provider=pesapal", 302);
+
+  await connectDb();
+  try {
+    const result = await getTransactionStatus(orderTrackingId);
+    const completed = result.statusDescription === "COMPLETED";
+    const failed = result.statusDescription === "FAILED" || result.statusDescription === "INVALID";
+    const payment: any = await pesapalPayments.findOneAndUpdate(
+      { orderTrackingId },
+      {
+        $set: {
+          status: completed ? "completed" : failed ? "failed" : "pending",
+          paymentMethod: result.paymentMethod,
+          confirmationCode: result.confirmationCode,
+          rawStatus: result.raw,
+        },
+      },
+    );
+    if (completed && payment?.orderId) {
+      await orders.updateOne({ id: payment.orderId }, { $set: { status: "confirmed" } });
+    }
+    return c.redirect(`/?pay=${completed ? "success" : failed ? "failed" : "pending"}&provider=pesapal`, 302);
+  } catch (err) {
+    console.error("Pesapal return status check error:", err);
+    return c.redirect("/?pay=failed&provider=pesapal", 302);
+  }
+});
+
+// ── Pesapal: server-to-server IPN (source of truth, independent of the
+// buyer's browser actually completing the redirect back) ────────────────
+app.get("/api/pesapal/ipn", async (c) => {
+  const orderTrackingId = c.req.query("OrderTrackingId") || c.req.query("orderTrackingId");
+  if (!orderTrackingId) return c.json({ ok: false }, 400);
+
+  await connectDb();
+  try {
+    const result = await getTransactionStatus(orderTrackingId);
+    const completed = result.statusDescription === "COMPLETED";
+    const failed = result.statusDescription === "FAILED" || result.statusDescription === "INVALID";
+    const payment: any = await pesapalPayments.findOneAndUpdate(
+      { orderTrackingId },
+      {
+        $set: {
+          status: completed ? "completed" : failed ? "failed" : "pending",
+          paymentMethod: result.paymentMethod,
+          confirmationCode: result.confirmationCode,
+          rawStatus: result.raw,
+        },
+      },
+    );
+    if (completed && payment?.orderId) {
+      await orders.updateOne({ id: payment.orderId }, { $set: { status: "confirmed" } });
+    }
+    return c.json({ ok: true });
+  } catch (err) {
+    console.error("Pesapal IPN error:", err);
+    return c.json({ ok: false }, 500);
   }
 });
 

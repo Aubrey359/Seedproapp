@@ -41,4 +41,25 @@ export const env = {
     callbackUrl:    optional("MPESA_CALLBACK_URL") || "https://seedpro.ke/api/mpesa/callback",
     env:            (optional("MPESA_ENV") || "sandbox") as "sandbox" | "production",
   },
+
+  // PayPal (USD only — PayPal does not support KES as a currency)
+  paypal: {
+    clientId:     optional("PAYPAL_CLIENT_ID"),
+    clientSecret: optional("PAYPAL_CLIENT_SECRET"),
+    env:          (optional("PAYPAL_ENV") || "sandbox") as "sandbox" | "production",
+    returnUrl:    optional("PAYPAL_RETURN_URL") || "https://mkulima-sokoni.onrender.com/api/paypal/return",
+    cancelUrl:    optional("PAYPAL_CANCEL_URL") || "https://mkulima-sokoni.onrender.com/api/paypal/cancel",
+    // Approximate — PayPal has no KES support, so cart totals are converted to USD.
+    // Update periodically; this is not a live exchange-rate feed.
+    kesToUsdRate: Number(optional("KES_TO_USD_RATE") || "129"),
+  },
+
+  // Pesapal (KES — aggregates M-Pesa, Airtel Money, and cards behind one API)
+  pesapal: {
+    consumerKey:    optional("PESAPAL_CONSUMER_KEY"),
+    consumerSecret: optional("PESAPAL_CONSUMER_SECRET"),
+    env:            (optional("PESAPAL_ENV") || "sandbox") as "sandbox" | "production",
+    callbackUrl:    optional("PESAPAL_CALLBACK_URL") || "https://mkulima-sokoni.onrender.com/api/pesapal/return",
+    ipnUrl:         optional("PESAPAL_IPN_URL")      || "https://mkulima-sokoni.onrender.com/api/pesapal/ipn",
+  },
 };

@@ -1150,7 +1150,7 @@
   </div>
   <div class="cart-foot">
     <div class="cart-total-row"><span>Order Total</span><span id="cartTotal">KSh 0</span></div>
-    <button class="checkout-btn" onclick="checkout()">Pay with <img class="mpesa-icon" src="/images/mpesa-logo.png" alt="M-Pesa" /></button>
+    <button class="checkout-btn" onclick="checkout()">🔒 Proceed to Checkout</button>
     <div class="checkout-note">🔒 Secure · M-Pesa · Airtel Money · Card</div>
   </div>
 </div>
@@ -1399,6 +1399,7 @@ document.addEventListener('DOMContentLoaded', function() {
   updateCart();
   checkAuthState();
   loadSiteSettings();
+  handlePaymentRedirect();
   // Open the page named in the URL hash (e.g. index.html#prices), default home
   showPage(pageFromHash());
 });

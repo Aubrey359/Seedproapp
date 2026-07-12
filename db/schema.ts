@@ -320,6 +320,40 @@ const mpesaPaymentSchema = new Schema(
 );
 export const mpesaPayments = model("MpesaPayment", mpesaPaymentSchema);
 
+// ─── PayPal Payments (USD — PayPal does not support KES) ───
+const paypalPaymentSchema = new Schema(
+  {
+    id: { type: Number, unique: true, index: true },
+    orderId: Number,
+    paypalOrderId: { type: String, unique: true, sparse: true },
+    amountKes: { type: Number, required: true },
+    amountUsd: { type: Number, required: true },
+    status: { type: String, enum: ["pending", "completed", "failed", "cancelled"], default: "pending" },
+    payerEmail: String,
+    captureId: String,
+    rawCapture: Schema.Types.Mixed,
+  },
+  { timestamps: true, toJSON },
+);
+export const paypalPayments = model("PaypalPayment", paypalPaymentSchema);
+
+// ─── Pesapal Payments (KES — aggregates M-Pesa/Airtel Money/card) ───
+const pesapalPaymentSchema = new Schema(
+  {
+    id: { type: Number, unique: true, index: true },
+    orderId: Number,
+    orderTrackingId: { type: String, unique: true, sparse: true },
+    merchantReference: String,
+    amount: { type: Number, required: true },
+    status: { type: String, enum: ["pending", "completed", "failed", "cancelled"], default: "pending" },
+    paymentMethod: String,
+    confirmationCode: String,
+    rawStatus: Schema.Types.Mixed,
+  },
+  { timestamps: true, toJSON },
+);
+export const pesapalPayments = model("PesapalPayment", pesapalPaymentSchema);
+
 // ─── WhatsApp bot sessions (one per phone; tracks conversation state) ───
 const botSessionSchema = new Schema(
   {

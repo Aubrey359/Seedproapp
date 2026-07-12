@@ -260,12 +260,14 @@ function toggleCart() {
 function checkout() {
   if (!cart.length) { showToast('🛒 Your cart is empty'); return; }
   toggleCart();
-  openMpesaPayment();
+  openPaymentModal();
 }
 
-/* ── M-PESA PAYMENT MODAL ── */
-function openMpesaPayment() {
-  var total = cart.reduce(function(s,c){return s+c.price*c.qty;},0);
+/* ── PAYMENT MODAL (choose method, then per-method detail) ── */
+var PAY_TOTAL = 0;
+
+function openPaymentModal() {
+  PAY_TOTAL = cart.reduce(function(s,c){return s+c.price*c.qty;},0);
   var existing = document.getElementById('mpesaModal');
   if (existing) existing.remove();
 
@@ -275,19 +277,15 @@ function openMpesaPayment() {
     '<div class="mpesa-overlay" onclick="closeMpesa()"></div>',
     '<div class="mpesa-sheet">',
       '<button class="auth-close" onclick="closeMpesa()">✕</button>',
-      '<div class="mpesa-logo">💳</div>',
-      '<h2 class="auth-title">Lipa na M-Pesa</h2>',
-      '<p class="auth-sub">You will receive a prompt on your phone</p>',
-      '<div class="mpesa-amount">KSh <strong>' + total.toLocaleString() + '</strong></div>',
+      '<h2 class="auth-title">Choose Payment Method</h2>',
+      '<div class="mpesa-amount">KSh <strong>' + PAY_TOTAL.toLocaleString() + '</strong></div>',
       '<div class="mpesa-items">' + cart.map(function(c){ return '<span>' + c.emoji + ' ' + c.name + ' ×' + c.qty + '</span>'; }).join('') + '</div>',
-      '<div class="auth-field" style="margin-top:16px"><label>M-Pesa Phone Number</label>',
-        '<input type="tel" id="mpesaPhone" placeholder="e.g. 0712 345 678" />',
+      '<div id="payMethods">',
+        '<button class="pay-method-btn" onclick="selectPayMethod(\'mpesa\')"><img class="mpesa-icon" src="/images/mpesa-logo.png" alt="M-Pesa"><span>M-Pesa</span></button>',
+        '<button class="pay-method-btn" onclick="selectPayMethod(\'paypal\')"><span class="pay-method-icon paypal">P</span><span>PayPal</span></button>',
+        '<button class="pay-method-btn" onclick="selectPayMethod(\'pesapal\')"><span class="pay-method-icon pesapal">✓</span><span>Pesapal</span></button>',
       '</div>',
-      '<button class="auth-submit mpesa-pay-btn" onclick="initiateMpesa(' + total + ')">',
-        '📲 Send M-Pesa Request',
-      '</button>',
-      '<p style="text-align:center;font-size:11px;color:var(--grey-text);margin-top:10px">Powered by Safaricom Daraja · Secure · Instant</p>',
-      '<div id="mpesaStatus" style="display:none"></div>',
+      '<div id="payDetail"></div>',
     '</div>'
   ].join('');
   document.body.appendChild(modal);
@@ -297,6 +295,106 @@ function openMpesaPayment() {
 function closeMpesa() {
   var m = document.getElementById('mpesaModal');
   if (m) m.remove();
+}
+
+function backToMethods() {
+  var methods = document.getElementById('payMethods');
+  var detail = document.getElementById('payDetail');
+  if (methods) methods.style.display = '';
+  if (detail) detail.innerHTML = '';
+}
+
+function selectPayMethod(method) {
+  document.getElementById('payMethods').style.display = 'none';
+  var detail = document.getElementById('payDetail');
+  if (method === 'mpesa') {
+    detail.innerHTML = [
+      '<div class="auth-field" style="margin-top:4px"><label>M-Pesa Phone Number</label>',
+        '<input type="tel" id="mpesaPhone" placeholder="e.g. 0712 345 678" />',
+      '</div>',
+      '<button class="auth-submit mpesa-pay-btn" onclick="initiateMpesa(' + PAY_TOTAL + ')">📲 Send M-Pesa Request</button>',
+      '<p class="pay-back-link" onclick="backToMethods()">↩ Choose a different method</p>',
+      '<p style="text-align:center;font-size:11px;color:var(--grey-text);margin-top:10px">Powered by Safaricom Daraja · Secure · Instant</p>',
+      '<div id="mpesaStatus" style="display:none"></div>',
+    ].join('');
+  } else if (method === 'paypal') {
+    detail.innerHTML = [
+      '<p class="auth-sub" style="margin-top:4px">You\'ll be redirected to PayPal to complete payment in USD.</p>',
+      '<button class="auth-submit" id="paypalBtn" onclick="initiatePaypal()">Continue to PayPal →</button>',
+      '<p class="pay-back-link" onclick="backToMethods()">↩ Choose a different method</p>',
+    ].join('');
+  } else if (method === 'pesapal') {
+    detail.innerHTML = [
+      '<div class="auth-field" style="margin-top:4px"><label>Phone Number</label><input type="tel" id="pesapalPhone" placeholder="e.g. 0712 345 678" /></div>',
+      '<div class="auth-field"><label>Email (optional)</label><input type="email" id="pesapalEmail" placeholder="you@example.com" /></div>',
+      '<button class="auth-submit" id="pesapalBtn" onclick="initiatePesapal()">Continue to Pesapal →</button>',
+      '<p class="pay-back-link" onclick="backToMethods()">↩ Choose a different method</p>',
+      '<p style="text-align:center;font-size:11px;color:var(--grey-text);margin-top:10px">Accepts M-Pesa, Airtel Money &amp; cards</p>',
+    ].join('');
+  }
+}
+
+function initiatePaypal() {
+  var btn = document.getElementById('paypalBtn');
+  btn.textContent = '⏳ Creating order…'; btn.disabled = true;
+  fetch('/api/trpc/paypal.createOrder', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ json: { amountKes: PAY_TOTAL } })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data) {
+    if (data.error) throw new Error(data.error.message || 'Could not start PayPal checkout');
+    window.location.href = data.result.data.json.approveUrl;
+  })
+  .catch(function(err) {
+    btn.textContent = 'Continue to PayPal →'; btn.disabled = false;
+    showToast('❌ ' + (err.message || 'Could not start PayPal checkout'));
+  });
+}
+
+function initiatePesapal() {
+  var phone = (document.getElementById('pesapalPhone')||{}).value || '';
+  var email = (document.getElementById('pesapalEmail')||{}).value || '';
+  if (!phone.trim() && !email.trim()) { showToast('⚠️ Please enter your phone number or email'); return; }
+  var btn = document.getElementById('pesapalBtn');
+  btn.textContent = '⏳ Creating order…'; btn.disabled = true;
+  fetch('/api/trpc/pesapal.submitOrder', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ json: { amount: PAY_TOTAL, phone: phone.trim() || undefined, email: email.trim() || undefined } })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data) {
+    if (data.error) throw new Error(data.error.message || 'Could not start Pesapal checkout');
+    window.location.href = data.result.data.json.redirectUrl;
+  })
+  .catch(function(err) {
+    btn.textContent = 'Continue to Pesapal →'; btn.disabled = false;
+    showToast('❌ ' + (err.message || 'Could not start Pesapal checkout'));
+  });
+}
+
+/* ── Handle redirect back from PayPal / Pesapal (full page redirect) ── */
+function handlePaymentRedirect() {
+  var params = new URLSearchParams(location.search);
+  var pay = params.get('pay');
+  if (!pay) return;
+  var provider = params.get('provider') || 'payment';
+  var label = provider === 'paypal' ? 'PayPal' : provider === 'pesapal' ? 'Pesapal' : provider;
+  if (pay === 'success') {
+    cart = []; saveCart(); updateCart(); renderHomeGrid(); renderShopGrid();
+    showToast('✅ Payment received via ' + label + '! Order confirmed.');
+  } else if (pay === 'cancelled') {
+    showToast('🚫 ' + label + ' payment cancelled.');
+  } else if (pay === 'pending') {
+    showToast('⏳ ' + label + ' payment is still processing — we\'ll confirm once it clears.');
+  } else if (pay === 'failed') {
+    showToast('❌ ' + label + ' payment failed. Please try again.');
+  } else {
+    showToast('❌ Something went wrong. Contact support if you were charged.');
+  }
+  history.replaceState(null, '', location.pathname + location.hash);
 }
 
 function initiateMpesa(amount) {
