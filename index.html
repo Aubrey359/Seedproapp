@@ -1054,24 +1054,36 @@
     <p>Get instant advice on crop care, pests, planting schedules and more — any time.</p>
   </div>
 
-  <div class="chat-signin-gate" id="chatSignInGate">
-    <div style="font-size:40px">🔒</div>
-    <h3>Sign in to chat</h3>
-    <p>Your Farm Assistant remembers your conversation. Sign in with your phone number to get started — it's free.</p>
-    <button class="btn-sell" onclick="enterApp()">📱 Sign In</button>
-  </div>
+  <div class="chat-page-bg">
+    <div class="chat-card">
+      <div class="chat-card-head">
+        <div class="chat-card-avatar">🤖</div>
+        <div>
+          <div class="chat-card-title">Farm Assistant</div>
+          <div class="chat-card-status"><span class="chat-status-dot"></span>Online · Replies instantly</div>
+        </div>
+      </div>
 
-  <div class="chat-wrap" id="chatWrap" style="display:none">
-    <div class="chat-messages" id="chatMessages"></div>
-    <div class="chat-suggestions">
-      <button onclick="quickChatSend('Tomato')">🍅 Tomato advice</button>
-      <button onclick="quickChatSend('Maize')">🌽 Maize advice</button>
-      <button onclick="quickChatSend('pests')">🐛 Pest control</button>
-      <button onclick="quickChatSend('avocado')">🥑 Avocado tips</button>
-    </div>
-    <div class="chat-input-row">
-      <input type="text" id="chatInput" placeholder="Ask about your crop, e.g. tomato pests…" onkeydown="if(event.key==='Enter')sendChatMessage()" />
-      <button onclick="sendChatMessage()">➤</button>
+      <div class="chat-signin-gate" id="chatSignInGate">
+        <div class="chat-gate-icon">🔒</div>
+        <h3>Sign in to chat</h3>
+        <p>Your Farm Assistant remembers your conversation. Sign in with your phone number to get started — it's free.</p>
+        <button class="btn-sell" onclick="enterApp()">📱 Sign In</button>
+      </div>
+
+      <div class="chat-wrap" id="chatWrap" style="display:none">
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-suggestions">
+          <button onclick="quickChatSend('Tomato')">🍅 Tomato advice</button>
+          <button onclick="quickChatSend('Maize')">🌽 Maize advice</button>
+          <button onclick="quickChatSend('pests')">🐛 Pest control</button>
+          <button onclick="quickChatSend('avocado')">🥑 Avocado tips</button>
+        </div>
+        <div class="chat-input-row">
+          <input type="text" id="chatInput" placeholder="Ask about your crop, e.g. tomato pests…" onkeydown="if(event.key==='Enter')sendChatMessage()" />
+          <button onclick="sendChatMessage()">➤</button>
+        </div>
+      </div>
     </div>
   </div>
 
