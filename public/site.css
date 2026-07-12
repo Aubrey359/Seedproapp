@@ -879,8 +879,9 @@ footer::before { content: ''; position: absolute; right: -60px; top: -60px; widt
 .footer-rich .social-btn.fb:hover { background:#1064d4; }
 .footer-rich .social-btn.ig:hover { filter:brightness(1.12); }
 .footer-rich .social-btn.x:hover  { background:#1a1a1a; }
-.footer-mpesa-badge { display:inline-flex; align-items:center; gap:6px; background:rgba(0,164,45,.2); border:1px solid rgba(0,164,45,.3); border-radius:100px; padding:5px 14px; font-size:11px; font-weight:800; color:#4CAF50; font-family:'Nunito',sans-serif; margin-bottom:16px; text-decoration:none; cursor:pointer; }
-.footer-mpesa-badge:hover { background:rgba(0,164,45,.3); }
+.footer-payment-badge { display:inline-flex; align-items:center; gap:7px; background:rgba(0,164,45,.2); border:1px solid rgba(0,164,45,.3); border-radius:100px; padding:6px 14px; font-size:11px; font-weight:800; color:#4CAF50; font-family:'Nunito',sans-serif; margin-bottom:16px; }
+.footer-payment-badge .mpesa-icon { height:12px; }
+.footer-payment-badge .pay-logo-icon { height:12px; max-width:40px; object-fit:contain; }
 
 /* Real M-Pesa logo (replaces the generic 💳 credit-card emoji — M-Pesa is
    mobile money, not a card) sized per context; aspect ratio ~2.72:1. */
