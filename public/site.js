@@ -282,8 +282,8 @@ function openPaymentModal() {
       '<div class="mpesa-items">' + cart.map(function(c){ return '<span>' + c.emoji + ' ' + c.name + ' ×' + c.qty + '</span>'; }).join('') + '</div>',
       '<div id="payMethods">',
         '<button class="pay-method-btn" onclick="selectPayMethod(\'mpesa\')"><img class="mpesa-icon" src="/images/mpesa-logo.png" alt="M-Pesa"><span>M-Pesa</span></button>',
-        '<button class="pay-method-btn" onclick="selectPayMethod(\'paypal\')"><span class="pay-method-icon paypal">P</span><span>PayPal</span></button>',
-        '<button class="pay-method-btn" onclick="selectPayMethod(\'pesapal\')"><span class="pay-method-icon pesapal">✓</span><span>Pesapal</span></button>',
+        '<button class="pay-method-btn" onclick="selectPayMethod(\'paypal\')"><img class="pay-logo-icon" src="/images/paypal-logo.png" alt="PayPal"><span>PayPal</span></button>',
+        '<button class="pay-method-btn" onclick="selectPayMethod(\'pesapal\')"><img class="pay-logo-icon pesapal" src="/images/pesapal-logo.png" alt="Pesapal"><span>Pesapal</span></button>',
       '</div>',
       '<div id="payDetail"></div>',
     '</div>'
