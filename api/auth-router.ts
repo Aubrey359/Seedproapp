@@ -7,7 +7,7 @@ import { getSessionCookieOptions } from "./lib/cookies";
 import { createRouter, authedQuery, publicQuery } from "./middleware";
 import { otpCodes } from "@db/schema";
 import { findOrCreateFarmerByPhone } from "./lib/identity";
-import { sendWhatsApp } from "./whatsapp/send";
+import { sendWhatsApp, sendSms } from "./whatsapp/send";
 import { signSessionToken } from "./kimi/session";
 
 const OTP_TTL_MS = 5 * 60 * 1000;
@@ -47,7 +47,7 @@ export const authRouter = createRouter({
   me: authedQuery.query((opts) => opts.ctx.user),
 
   requestOtp: publicQuery
-    .input(z.object({ phone: z.string().min(9) }))
+    .input(z.object({ phone: z.string().min(9), channel: z.enum(["whatsapp", "sms"]).default("whatsapp") }))
     .mutation(async ({ input }) => {
       const phone = normalizePhone(input.phone);
       const existing: any = await otpCodes.findOne({ phone }).lean();
@@ -60,10 +60,12 @@ export const authRouter = createRouter({
         { phone, code: hashCode(code), attempts: 0, expiresAt: new Date(Date.now() + OTP_TTL_MS) },
         { upsert: true },
       );
+      const message = `Your Shamba Sokoni verification code is ${code}. It expires in 5 minutes.`;
       // Fire-and-forget, same convention as listing/order WhatsApp notifications —
-      // sendWhatsApp already swallows its own errors and logs them.
-      sendWhatsApp(phone, `Your Shamba Sokoni verification code is ${code}. It expires in 5 minutes.`).catch(() => {});
-      return { sent: true };
+      // both send functions already swallow their own errors and log them.
+      if (input.channel === "sms") sendSms(phone, message).catch(() => {});
+      else sendWhatsApp(phone, message).catch(() => {});
+      return { sent: true, channel: input.channel };
     }),
 
   verifyOtp: publicQuery

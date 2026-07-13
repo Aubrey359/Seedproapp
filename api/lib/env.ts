@@ -32,6 +32,16 @@ export const env = {
     verifyToken: optional("WHATSAPP_VERIFY_TOKEN") || "shamba-verify",
   },
 
+  // SMS fallback for OTP — for farmers on basic phones without WhatsApp.
+  // Token defaults to the same Twilio account as WhatsApp (SID:AUTHTOKEN),
+  // but SMS_NUMBER must be set separately — a WhatsApp Sandbox number is
+  // not a regular SMS sender.
+  sms: {
+    provider: optional("SMS_PROVIDER") || "twilio",
+    token:    optional("SMS_TWILIO_TOKEN") || optional("WHATSAPP_TOKEN"),
+    number:   optional("SMS_NUMBER"),
+  },
+
   // M-Pesa Daraja
   mpesa: {
     consumerKey:    optional("MPESA_CONSUMER_KEY"),

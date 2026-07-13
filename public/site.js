@@ -503,7 +503,8 @@ function enterApp() {
       /* STEP 1: phone */
       '<div id="auth-step-phone">',
         '<div class="auth-field"><label>Phone Number</label><input type="tel" id="authPhone" placeholder="e.g. 0712 345 678" /></div>',
-        '<button class="auth-submit" id="authSendBtn" onclick="requestOtpCode()">📲 Send Code via WhatsApp</button>',
+        '<button class="auth-submit" id="authSendBtn" onclick="requestOtpCode(\'whatsapp\')">📲 Send Code via WhatsApp</button>',
+        '<div class="auth-forgot" id="authSmsLink" onclick="requestOtpCode(\'sms\')">No smartphone or WhatsApp? <u>Send code via SMS instead</u></div>',
       '</div>',
       /* STEP 2: code */
       '<div id="auth-step-code" style="display:none">',
@@ -529,28 +530,35 @@ function backToPhoneStep() {
   document.getElementById('auth-step-phone').style.display = '';
 }
 
-function requestOtpCode() {
+function requestOtpCode(channel) {
+  channel = channel === 'sms' ? 'sms' : 'whatsapp';
   var phone = (document.getElementById('authPhone')||{}).value || '';
   if (!phone.trim()) { showToast('⚠️ Please enter your phone number'); return; }
   var btn = document.getElementById('authSendBtn');
-  btn.textContent = '⏳ Sending…'; btn.disabled = true;
+  var smsLink = document.getElementById('authSmsLink');
+  var defaultBtnText = '📲 Send Code via WhatsApp';
+  var sendingText = channel === 'sms' ? '⏳ Sending SMS…' : '⏳ Sending…';
+  btn.textContent = sendingText; btn.disabled = true;
+  if (smsLink) smsLink.style.pointerEvents = 'none';
   fetch('/api/trpc/auth.requestOtp', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ json: { phone: phone } })
+    body: JSON.stringify({ json: { phone: phone, channel: channel } })
   })
   .then(function(r){ return r.json(); })
   .then(function(data) {
-    btn.textContent = '📲 Send Code via WhatsApp'; btn.disabled = false;
+    btn.textContent = defaultBtnText; btn.disabled = false;
+    if (smsLink) smsLink.style.pointerEvents = '';
     if (data.error) throw new Error(data.error.message || 'Could not send code');
     _authPhone = phone;
     document.getElementById('auth-step-phone').style.display = 'none';
     document.getElementById('auth-step-code').style.display = '';
-    document.getElementById('authCodeSentTo').textContent = 'Code sent to ' + phone + ' via WhatsApp';
-    showToast('📲 Check WhatsApp for your code');
+    document.getElementById('authCodeSentTo').textContent = 'Code sent to ' + phone + (channel === 'sms' ? ' via SMS' : ' via WhatsApp');
+    showToast(channel === 'sms' ? '💬 Check your SMS inbox for your code' : '📲 Check WhatsApp for your code');
   })
   .catch(function(err) {
-    btn.textContent = '📲 Send Code via WhatsApp'; btn.disabled = false;
+    btn.textContent = defaultBtnText; btn.disabled = false;
+    if (smsLink) smsLink.style.pointerEvents = '';
     showToast('❌ ' + (err.message || 'Could not send code'));
   });
 }

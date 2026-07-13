@@ -35,3 +35,29 @@ export async function sendWhatsApp(to: string, text: string): Promise<void> {
     console.error("[whatsapp send error]", err);
   }
 }
+
+// Plain SMS — for farmers on basic/feature phones who can't run WhatsApp.
+// Reuses the same Twilio account as sendWhatsApp by default, but needs its
+// own SMS-capable "From" number: a WhatsApp Sandbox number is not a regular
+// SMS sender, so SMS_NUMBER must be a real Twilio phone number.
+export async function sendSms(to: string, text: string): Promise<void> {
+  const sms = env.sms;
+  try {
+    if (sms.provider === "twilio" && sms.token && sms.number) {
+      const [sid, auth] = sms.token.split(":");
+      const form = new URLSearchParams({ From: sms.number, To: to, Body: text });
+      await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
+        method: "POST",
+        headers: {
+          Authorization: "Basic " + Buffer.from(`${sid}:${auth}`).toString("base64"),
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: form.toString(),
+      });
+    } else {
+      console.log(`[sms:simulated → ${to}] ${text}`);
+    }
+  } catch (err) {
+    console.error("[sms send error]", err);
+  }
+}
