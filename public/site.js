@@ -497,7 +497,7 @@ var _authPhone = '';
    requestOtpCode()/verifyOtpCode() can restore the icon (not just plain
    text) when they reset button content after a request finishes. */
 var WHATSAPP_BTN_HTML = '<svg class="auth-submit-icon" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6 2 11c0 2 .8 3.8 2.1 5.3L3 21l5-1.3C9.2 20.2 10.6 20.5 12 20.5c5.5 0 10-4 10-9.5S17.5 2 12 2z" fill="rgba(255,255,255,.95)"/></svg>Send Code via WhatsApp';
-var VERIFY_BTN_HTML = '<svg class="auth-submit-icon" viewBox="0 0 24 24"><path d="M12 2l7 3v6c0 5-3 8.5-7 11-4-2.5-7-6-7-11V5l7-3z" fill="rgba(255,255,255,.95)"/><path d="M8.5 12.5l2.3 2.3 4.7-5" stroke="#2E7D32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>Verify &amp; Continue';
+var VERIFY_BTN_HTML = '<svg class="auth-submit-icon" viewBox="0 0 24 24"><path d="M12 2l7 3v6c0 5-3 8.5-7 11-4-2.5-7-6-7-11V5l7-3z" fill="rgba(255,255,255,.95)"/><path d="M8.5 12.5l2.3 2.3 4.7-5" stroke="#4A6B4D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>Verify &amp; Continue';
 
 function enterApp() {
   var existing = document.getElementById('authModal');
