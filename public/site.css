@@ -831,7 +831,10 @@ footer::before { content: ''; position: absolute; right: -60px; top: -60px; widt
 .hero-float-item:nth-child(3) { animation: float 3s ease-in-out 1.6s infinite; }
 
 /* ── Stat emoji icons ── */
-.stat-icon { font-size: 20px; margin-bottom: 4px; }
+.stat-icon { width: 24px; height: 24px; margin: 0 auto 6px; display: inline-flex; align-items: center; justify-content: center; color: var(--green); }
+.stat-item:nth-child(2) .stat-icon { color: #F5B942; }
+.stat-item:nth-child(3) .stat-icon { color: #B48EE0; }
+.stat-item:nth-child(4) .stat-icon { color: #5FD4E0; }
 
 /* ── Earthy farmer avatar gradients ── */
 .farmer-card:nth-child(1) .farmer-av { background: linear-gradient(135deg,#12301F,#1A3D28); border-color: #22E584; }
