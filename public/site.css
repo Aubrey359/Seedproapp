@@ -344,9 +344,21 @@ nav {
   position: absolute; top: 8px; right: 8px;
   width: 22px; height: 22px; background: var(--g-green);
   border-radius: 50%; display: flex; align-items: center;
-  justify-content: center; color: white; font-size: 10px; font-weight: 900;
-  box-shadow: var(--shadow-green);
+  justify-content: center; box-shadow: var(--shadow-green);
+  border: 1.5px solid rgba(255,255,255,.5);
 }
+.prod-check svg { width: 60%; height: 60%; }
+
+/* Instagram-style verified-seller badge, green instead of blue — earned
+   automatically once a farmer has enough completed sales, not a signup
+   checkbox. Reused wherever a farmer's name appears. */
+.verified-badge-inline {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 15px; height: 15px; border-radius: 50%; background: var(--g-green);
+  box-shadow: var(--shadow-green); border: 1.5px solid rgba(255,255,255,.5);
+  vertical-align: middle; margin-left: 3px; flex-shrink: 0;
+}
+.verified-badge-inline svg { width: 60%; height: 60%; }
 .prod-photo-badge {
   position: absolute; bottom: 6px; right: 6px; z-index: 2;
   background: rgba(0,0,0,.55); color: #fff; font-size: 10px;
@@ -674,7 +686,10 @@ footer::before { content: ''; position: absolute; right: -60px; top: -60px; widt
   background:var(--grey-bg); border:1px solid var(--grey-border);
   font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center;
 }
-.auth-logo { width:52px; height:52px; border-radius:14px; background:var(--g-green); display:flex; align-items:center; justify-content:center; font-size:26px; margin:0 auto 12px; box-shadow:var(--shadow-green); }
+.auth-logo { position:relative; width:56px; height:56px; border-radius:16px; background:var(--g-green); display:flex; align-items:center; justify-content:center; margin:0 auto 12px; box-shadow:var(--shadow-green); overflow:hidden; }
+.auth-logo::before { content:''; position:absolute; top:-10%; left:-10%; width:70%; height:55%; background:radial-gradient(ellipse at center, rgba(255,255,255,.55) 0%, rgba(255,255,255,0) 75%); border-radius:50%; pointer-events:none; }
+.auth-logo svg { width:30px; height:30px; position:relative; z-index:1; filter:drop-shadow(0 1px 1px rgba(0,0,0,.15)); }
+.auth-submit-icon { width:18px; height:18px; vertical-align:-4px; margin-right:2px; filter:drop-shadow(0 1px 1px rgba(0,0,0,.15)); }
 .auth-title { font-size:22px; font-weight:900; color:var(--dark); text-align:center; margin-bottom:4px; font-family:'Nunito',sans-serif; }
 .auth-sub { font-size:13px; color:var(--grey-text); text-align:center; margin-bottom:18px; }
 .auth-tabs { display:flex; background:var(--grey-bg); border-radius:100px; padding:3px; margin-bottom:20px; }

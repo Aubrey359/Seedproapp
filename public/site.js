@@ -100,6 +100,12 @@ function saveCart() {
   try { localStorage.setItem('sp_cart', JSON.stringify(cart)); } catch(e){}
 }
 
+/* Green "verified seller" checkmark (Instagram-badge style) — dropped into
+   a .prod-check or .verified-badge-inline wrapper wherever a farmer has
+   earned it via real completed sales (see VERIFIED_SELLER_ORDER_THRESHOLD
+   server-side). */
+var VERIFIED_BADGE_SVG = '<svg viewBox="0 0 24 24"><path d="M5 13l5 5L19 7" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
 /* ── CARD HTML ── */
 function cardHTML(p) {
   var inCart = cart.find(function(c){return c.id===p.id;});
@@ -108,7 +114,7 @@ function cardHTML(p) {
       '<span class="prod-emoji">' + p.emoji + '</span>' +
       (p.img ? '<img class="prod-photo" src="' + p.img + '" alt="' + p.name + '" loading="lazy" onerror="this.remove()">' : '') +
       (p.disc ? '<div class="prod-discount">' + p.disc + '</div>' : '') +
-      (p.ok   ? '<div class="prod-check">✓</div>' : '') +
+      (p.ok   ? '<div class="prod-check">' + VERIFIED_BADGE_SVG + '</div>' : '') +
       (p.hasPhoto ? '<div class="prod-photo-badge" title="Real photo from farmer">📸 Verified</div>' : '') +
       '<button class="prod-fav" onclick="event.stopPropagation();showToast(\'❤️ Saved!\')">♡</button>' +
     '</div>' +
@@ -487,6 +493,12 @@ function pollMpesaStatus(checkoutId, attempts) {
 var CURRENT_USER = null;
 var _authPhone = '';
 
+/* Shared 3D-style icon markup for the auth buttons — kept as constants so
+   requestOtpCode()/verifyOtpCode() can restore the icon (not just plain
+   text) when they reset button content after a request finishes. */
+var WHATSAPP_BTN_HTML = '<svg class="auth-submit-icon" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6 2 11c0 2 .8 3.8 2.1 5.3L3 21l5-1.3C9.2 20.2 10.6 20.5 12 20.5c5.5 0 10-4 10-9.5S17.5 2 12 2z" fill="rgba(255,255,255,.95)"/></svg>Send Code via WhatsApp';
+var VERIFY_BTN_HTML = '<svg class="auth-submit-icon" viewBox="0 0 24 24"><path d="M12 2l7 3v6c0 5-3 8.5-7 11-4-2.5-7-6-7-11V5l7-3z" fill="rgba(255,255,255,.95)"/><path d="M8.5 12.5l2.3 2.3 4.7-5" stroke="#2E7D32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>Verify &amp; Continue';
+
 function enterApp() {
   var existing = document.getElementById('authModal');
   if (existing) { existing.classList.add('open'); return; }
@@ -497,13 +509,17 @@ function enterApp() {
     '<div class="auth-overlay" onclick="closeAuth()"></div>',
     '<div class="auth-sheet">',
       '<button class="auth-close" onclick="closeAuth()">✕</button>',
-      '<div class="auth-logo"><span>🌱</span></div>',
+      '<div class="auth-logo"><svg viewBox="0 0 24 24">' +
+        '<path d="M12 21v-8" stroke="rgba(255,255,255,.95)" stroke-width="2.2" stroke-linecap="round" fill="none"/>' +
+        '<path d="M12 13c0-4.5-3.5-7-8-7 0 4.5 3.5 7 8 7z" fill="rgba(255,255,255,.95)"/>' +
+        '<path d="M12 13c0-4.5 3.5-7 8-7 0 4.5-3.5 7-8 7z" fill="rgba(255,255,255,.75)"/>' +
+      '</svg></div>',
       '<h2 class="auth-title">Welcome to Shamba Sokoni</h2>',
       '<p class="auth-sub">Kenya\'s #1 Farm Marketplace</p>',
       /* STEP 1: phone */
       '<div id="auth-step-phone">',
         '<div class="auth-field"><label>Phone Number</label><input type="tel" id="authPhone" placeholder="e.g. 0712 345 678" /></div>',
-        '<button class="auth-submit" id="authSendBtn" onclick="requestOtpCode(\'whatsapp\')">📲 Send Code via WhatsApp</button>',
+        '<button class="auth-submit" id="authSendBtn" onclick="requestOtpCode(\'whatsapp\')">' + WHATSAPP_BTN_HTML + '</button>',
         '<div class="auth-forgot" id="authSmsLink" onclick="requestOtpCode(\'sms\')">No smartphone or WhatsApp? <u>Send code via SMS instead</u></div>',
       '</div>',
       /* STEP 2: code */
@@ -511,7 +527,7 @@ function enterApp() {
         '<p class="auth-sub" id="authCodeSentTo"></p>',
         '<div class="auth-field"><label>Your Name <span style="font-weight:400">(first time only)</span></label><input type="text" id="authName" placeholder="e.g. James Mwangi" /></div>',
         '<div class="auth-field"><label>6-Digit Code</label><input type="text" inputmode="numeric" maxlength="6" id="authCode" placeholder="123456" /></div>',
-        '<button class="auth-submit" id="authVerifyBtn" onclick="verifyOtpCode()">✅ Verify &amp; Continue</button>',
+        '<button class="auth-submit" id="authVerifyBtn" onclick="verifyOtpCode()">' + VERIFY_BTN_HTML + '</button>',
         '<div class="auth-forgot" onclick="backToPhoneStep()">↩ Use a different number</div>',
       '</div>',
     '</div>'
@@ -536,7 +552,6 @@ function requestOtpCode(channel) {
   if (!phone.trim()) { showToast('⚠️ Please enter your phone number'); return; }
   var btn = document.getElementById('authSendBtn');
   var smsLink = document.getElementById('authSmsLink');
-  var defaultBtnText = '📲 Send Code via WhatsApp';
   var sendingText = channel === 'sms' ? '⏳ Sending SMS…' : '⏳ Sending…';
   btn.textContent = sendingText; btn.disabled = true;
   if (smsLink) smsLink.style.pointerEvents = 'none';
@@ -547,7 +562,7 @@ function requestOtpCode(channel) {
   })
   .then(function(r){ return r.json(); })
   .then(function(data) {
-    btn.textContent = defaultBtnText; btn.disabled = false;
+    btn.innerHTML = WHATSAPP_BTN_HTML; btn.disabled = false;
     if (smsLink) smsLink.style.pointerEvents = '';
     if (data.error) throw new Error(data.error.message || 'Could not send code');
     _authPhone = phone;
@@ -557,7 +572,7 @@ function requestOtpCode(channel) {
     showToast(channel === 'sms' ? '💬 Check your SMS inbox for your code' : '📲 Check WhatsApp for your code');
   })
   .catch(function(err) {
-    btn.textContent = defaultBtnText; btn.disabled = false;
+    btn.innerHTML = WHATSAPP_BTN_HTML; btn.disabled = false;
     if (smsLink) smsLink.style.pointerEvents = '';
     showToast('❌ ' + (err.message || 'Could not send code'));
   });
@@ -576,14 +591,14 @@ function verifyOtpCode() {
   })
   .then(function(r){ return r.json(); })
   .then(function(data) {
-    btn.textContent = '✅ Verify & Continue'; btn.disabled = false;
+    btn.innerHTML = VERIFY_BTN_HTML; btn.disabled = false;
     if (data.error) throw new Error(data.error.message || 'Invalid code');
     closeAuth();
     checkAuthState();
     showToast('✅ Welcome to Shamba Sokoni!');
   })
   .catch(function(err) {
-    btn.textContent = '✅ Verify & Continue'; btn.disabled = false;
+    btn.innerHTML = VERIFY_BTN_HTML; btn.disabled = false;
     showToast('❌ ' + (err.message || 'Invalid code'));
   });
 }

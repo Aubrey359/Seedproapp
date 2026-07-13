@@ -5,6 +5,10 @@ import { CURRENCY } from "@contracts/kenya";
 import { findOrCreateFarmerByPhone } from "./lib/identity";
 import { alertBuyersOfListing } from "./whatsapp/notify";
 
+// Farmers earn the green verified-seller badge automatically once they've
+// proven themselves with real completed sales — not just a signup checkbox.
+const VERIFIED_SELLER_ORDER_THRESHOLD = 5;
+
 // Attach farmer info to a listing row (replaces the old SQL leftJoin on users).
 function withFarmer(r: any, f: any, extra: "card" | "detail") {
   const base = {
@@ -222,7 +226,24 @@ export const marketRouter = createRouter({
       }),
     )
     .mutation(async ({ input }) => {
-      await orders.updateOne({ id: input.orderId }, { $set: { status: input.status } });
+      const order = await orders.findOneAndUpdate(
+        { id: input.orderId },
+        { $set: { status: input.status } },
+      ).lean();
+
+      if (input.status === "delivered" && order) {
+        const deliveredCount = await orders.countDocuments({
+          farmerId: (order as any).farmerId,
+          status: "delivered",
+        });
+        if (deliveredCount >= VERIFIED_SELLER_ORDER_THRESHOLD) {
+          await users.updateOne(
+            { id: (order as any).farmerId, verified: { $ne: true } },
+            { $set: { verified: true } },
+          );
+        }
+      }
+
       return { success: true };
     }),
 });
