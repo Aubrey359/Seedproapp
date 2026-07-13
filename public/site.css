@@ -302,11 +302,12 @@ nav {
 }
 .cat-icon-circle {
   width: 56px; height: 56px; border-radius: 50%;
-  background: var(--white);
+  background: var(--white); color: var(--green);
   display: flex; align-items: center; justify-content: center;
-  font-size: 26px; margin: 0 auto 8px;
+  margin: 0 auto 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,.08); transition: all .25s;
 }
+.cat-icon-circle svg { width: 27px; height: 27px; }
 .cat-card:hover { background: var(--green-pale); transform: translateY(-2px); }
 .cat-card.active { background: var(--green-pale); border-color: var(--green); }
 .cat-card.active .cat-icon-circle, .cat-card:hover .cat-icon-circle { box-shadow: 0 0 0 3px rgba(34,229,132,.18), 0 2px 8px rgba(0,0,0,.1); }
