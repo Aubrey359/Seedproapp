@@ -33,13 +33,13 @@ export const env = {
   },
 
   // SMS fallback for OTP — for farmers on basic phones without WhatsApp.
-  // Token defaults to the same Twilio account as WhatsApp (SID:AUTHTOKEN),
-  // but SMS_NUMBER must be set separately — a WhatsApp Sandbox number is
-  // not a regular SMS sender.
-  sms: {
-    provider: optional("SMS_PROVIDER") || "twilio",
-    token:    optional("SMS_TWILIO_TOKEN") || optional("WHATSAPP_TOKEN"),
-    number:   optional("SMS_NUMBER"),
+  // Via Africa's Talking, not Twilio: Twilio phone numbers can't send SMS
+  // to Kenya at all (see api/whatsapp/send.ts for why).
+  africastalking: {
+    username: optional("AT_USERNAME"),
+    apiKey:   optional("AT_API_KEY"),
+    senderId: optional("AT_SENDER_ID"), // optional — omit to use AT's shared shortcode
+    env:      (optional("AT_ENV") || "sandbox") as "sandbox" | "production",
   },
 
   // M-Pesa Daraja

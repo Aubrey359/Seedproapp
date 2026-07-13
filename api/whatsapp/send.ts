@@ -37,23 +37,37 @@ export async function sendWhatsApp(to: string, text: string): Promise<void> {
 }
 
 // Plain SMS — for farmers on basic/feature phones who can't run WhatsApp.
-// Reuses the same Twilio account as sendWhatsApp by default, but needs its
-// own SMS-capable "From" number: a WhatsApp Sandbox number is not a regular
-// SMS sender, so SMS_NUMBER must be a real Twilio phone number.
+// Uses Africa's Talking, not Twilio: standard Twilio phone numbers cannot
+// send SMS to Kenya at all (long codes are unsupported there; the only
+// permitted sender type, alphanumeric IDs, explicitly excludes P2P/OTP
+// messages). Africa's Talking has direct Safaricom/Airtel relationships
+// and is built for exactly this.
 export async function sendSms(to: string, text: string): Promise<void> {
-  const sms = env.sms;
+  const at = env.africastalking;
   try {
-    if (sms.provider === "twilio" && sms.token && sms.number) {
-      const [sid, auth] = sms.token.split(":");
-      const form = new URLSearchParams({ From: sms.number, To: to, Body: text });
-      await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
+    if (at.username && at.apiKey) {
+      const base = at.env === "production"
+        ? "https://api.africastalking.com"
+        : "https://api.sandbox.africastalking.com";
+
+      const form = new URLSearchParams({ username: at.username, to, message: text });
+      if (at.senderId) form.set("from", at.senderId);
+
+      const res = await fetch(`${base}/version1/messaging`, {
         method: "POST",
         headers: {
-          Authorization: "Basic " + Buffer.from(`${sid}:${auth}`).toString("base64"),
+          apiKey: at.apiKey,
+          Accept: "application/json",
           "Content-Type": "application/x-www-form-urlencoded",
         },
         body: form.toString(),
       });
+
+      const data: any = await res.json().catch(() => null);
+      const recipient = data?.SMSMessageData?.Recipients?.[0];
+      if (!res.ok || !recipient || recipient.status !== "Success") {
+        console.error("[sms send error]", JSON.stringify(data ?? { httpStatus: res.status }));
+      }
     } else {
       console.log(`[sms:simulated → ${to}] ${text}`);
     }
