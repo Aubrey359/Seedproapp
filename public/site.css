@@ -824,9 +824,10 @@ footer::before { content: ''; position: absolute; right: -60px; top: -60px; widt
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255,255,255,.25);
   display: flex; align-items: center; justify-content: center;
-  font-size: 28px;
+  color: rgba(255,255,255,.95);
   box-shadow: 0 4px 16px rgba(0,0,0,.12);
 }
+.hero-float-item svg { width: 26px; height: 26px; }
 .hero-float-item:nth-child(1) { animation: float 3s ease-in-out infinite; }
 .hero-float-item:nth-child(2) { animation: float 3s ease-in-out .8s infinite; }
 .hero-float-item:nth-child(3) { animation: float 3s ease-in-out 1.6s infinite; }
@@ -945,9 +946,11 @@ footer::before { content: ''; position: absolute; right: -60px; top: -60px; widt
   width:48px; height:48px; border-radius:14px;
   background:rgba(255,255,255,.14); backdrop-filter:blur(6px);
   border:1px solid rgba(255,255,255,.22);
-  display:flex; align-items:center; justify-content:center; font-size:24px;
+  display:flex; align-items:center; justify-content:center;
+  color: rgba(255,255,255,.95);
   box-shadow:0 4px 14px rgba(0,0,0,.1);
 }
+.phf-item svg { width: 23px; height: 23px; }
 .phf-item:nth-child(1){ animation:float 3.2s ease-in-out infinite; }
 .phf-item:nth-child(2){ animation:float 3.2s ease-in-out .9s infinite; }
 .phf-item:nth-child(3){ animation:float 3.2s ease-in-out 1.7s infinite; }
