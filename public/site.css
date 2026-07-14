@@ -833,12 +833,12 @@ footer::before { content: ''; position: absolute; right: -60px; top: -60px; widt
 }
 .hero-float-item {
   width: 54px; height: 54px; border-radius: 16px;
-  background: rgba(255,255,255,.15);
+  background: rgba(9,12,17,.55);
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,.25);
+  border: 1px solid rgba(255,255,255,.18);
   display: flex; align-items: center; justify-content: center;
-  color: rgba(255,255,255,.95);
-  box-shadow: 0 4px 16px rgba(0,0,0,.12);
+  color: var(--green);
+  box-shadow: 0 4px 16px rgba(0,0,0,.3);
 }
 .hero-float-item svg { width: 26px; height: 26px; }
 .hero-float-item:nth-child(1) { animation: float 3s ease-in-out infinite; }
@@ -925,25 +925,16 @@ footer::before { content: ''; position: absolute; right: -60px; top: -60px; widt
 .footer-rich .social-btn.ig:hover { filter:brightness(1.12); }
 .footer-rich .social-btn.x:hover  { background:#1a1a1a; }
 .footer-payment-badge {
-  display:inline-flex; align-items:center; gap:14px;
+  display:inline-flex; align-items:center; gap:16px;
   background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12);
-  border-radius:100px; padding:12px 22px 12px 18px;
-  font-size:13.5px; font-weight:800; color:rgba(255,255,255,.9);
-  font-family:'Nunito',sans-serif; margin-bottom:18px;
+  border-radius:100px; padding:12px 22px;
+  margin-bottom:18px;
   box-shadow:0 4px 20px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.06);
   backdrop-filter:blur(8px);
 }
 .footer-payment-badge .mpesa-icon { height:22px; }
 .footer-payment-badge .pay-logo-icon { height:22px; max-width:66px; object-fit:contain; }
 .footer-payment-badge .pay-logo-icon.pesapal { height:19px; }
-.footer-payment-badge span {
-  padding-left:12px; border-left:1px solid rgba(255,255,255,.15);
-  color:rgba(255,255,255,.65); font-weight:600;
-  font-family:ui-monospace,'SFMono-Regular','Courier New',monospace;
-  font-size:11px; letter-spacing:.06em; text-transform:uppercase;
-  display:inline-flex; align-items:center; gap:5px;
-}
-.badge-lock-icon { width:12px; height:12px; color:var(--green); filter:drop-shadow(0 0 4px rgba(34,229,132,.6)); flex-shrink:0; }
 
 /* Real M-Pesa logo (replaces the generic 💳 credit-card emoji — M-Pesa is
    mobile money, not a card) sized per context; aspect ratio ~2.72:1. */
@@ -959,11 +950,11 @@ footer::before { content: ''; position: absolute; right: -60px; top: -60px; widt
 }
 .phf-item {
   width:48px; height:48px; border-radius:14px;
-  background:rgba(255,255,255,.14); backdrop-filter:blur(6px);
-  border:1px solid rgba(255,255,255,.22);
+  background:rgba(9,12,17,.55); backdrop-filter:blur(6px);
+  border:1px solid rgba(255,255,255,.18);
   display:flex; align-items:center; justify-content:center;
-  color: rgba(255,255,255,.95);
-  box-shadow:0 4px 14px rgba(0,0,0,.1);
+  color: var(--green);
+  box-shadow:0 4px 14px rgba(0,0,0,.3);
 }
 .phf-item svg { width: 23px; height: 23px; }
 .phf-item:nth-child(1){ animation:float 3.2s ease-in-out infinite; }
