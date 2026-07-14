@@ -393,12 +393,27 @@
   <!-- TOOLBAR -->
   <div class="shop-bar">
     <span id="prodCount">12 products</span>
-    <select class="sort-sel" onchange="sortProds(this.value)">
-      <option value="default">Featured</option>
-      <option value="price-asc">Price: Low → High</option>
-      <option value="price-desc">Price: High → Low</option>
-      <option value="rating">Top Rated</option>
-    </select>
+    <div class="shop-bar-controls">
+      <select class="sort-sel" id="myLocationSel" onchange="setBuyerLocation(this.value)">
+        <option value="">📍 Shopping from…</option>
+        <option>Nairobi</option><option>Nakuru</option><option>Kisumu</option>
+        <option>Mombasa</option><option>Muranga</option><option>Thika</option>
+        <option>Meru</option><option>Kericho</option><option>Kakamega</option>
+        <option>Eldoret</option><option>Naivasha</option><option>Nyeri</option>
+        <option>Kisii</option><option>Kiambu</option><option>Embu</option>
+        <option>Mwea</option>
+      </select>
+      <select class="sort-sel" onchange="sortProds(this.value)">
+        <option value="default">Featured</option>
+        <option value="price-asc">Price: Low → High</option>
+        <option value="price-desc">Price: High → Low</option>
+        <option value="rating">Top Rated</option>
+      </select>
+    </div>
+  </div>
+  <div class="near-me-banner" id="nearMeBanner" style="display:none">
+    <span id="nearMeText"></span>
+    <button onclick="setBuyerLocation('')">✕ Clear</button>
   </div>
 
   <!-- PRODUCT GRID -->

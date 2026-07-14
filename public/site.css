@@ -525,9 +525,24 @@ nav {
 .flash-strip-txt span { font-size: 11px; font-weight: 400; opacity: .85; margin-left: 6px; }
 .flash-timer { display: flex; gap: 5px; position: relative; z-index: 1; }
 .flash-box { background: rgba(0,0,0,.2); border-radius: 6px; padding: 4px 8px; font-size: 13px; font-weight: 900; color: white; font-family:'Nunito',sans-serif; min-width: 32px; text-align: center; }
-.shop-bar { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background: var(--white); border-bottom: 1px solid var(--grey-border); }
+.shop-bar { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background: var(--white); border-bottom: 1px solid var(--grey-border); gap: 10px; flex-wrap: wrap; }
 .shop-bar span { font-size: 12px; color: var(--grey-text); }
+.shop-bar-controls { display: flex; gap: 8px; flex-wrap: wrap; }
 .sort-sel { font-size: 12px; font-weight: 800; color: var(--green); background: var(--green-pale); border: none; cursor: pointer; font-family:'Nunito',sans-serif; padding: 5px 12px; border-radius: 100px; }
+
+/* "Farmers near me" — buyer-picked town re-sorts the listings client-side. */
+.near-me-banner {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 8px 20px; background: var(--green-bg); border-bottom: 1px solid var(--green-pale);
+  font-size: 12px; font-weight: 700; color: var(--green); font-family:'Nunito',sans-serif;
+}
+.near-me-banner button { background: none; border: none; color: var(--grey-text); font-size: 11px; font-weight: 700; cursor: pointer; font-family:'Nunito',sans-serif; }
+.near-me-banner button:hover { color: var(--green); }
+.near-me-tag {
+  display: inline-block; background: var(--green-pale); color: var(--green);
+  font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .03em;
+  padding: 1px 6px; border-radius: 100px; margin-left: 3px; vertical-align: 1px;
+}
 
 /* ══ BLOG ══ */
 .blog-hero {

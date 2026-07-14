@@ -81,6 +81,7 @@ function loadProducts() {
     .then(function(d){
       var rows = (d && d.result && d.result.data && d.result.data.json) || [];
       PRODUCTS = rows.map(mapListing);
+      applyLocationSort();
     })
     .catch(function(err){ console.error('Failed to load listings', err); PRODUCTS = []; })
     .then(function(){
@@ -88,6 +89,48 @@ function loadProducts() {
       renderHomeGrid();
       renderShopGrid();
     });
+}
+
+/* ── "Farmers near me": buyer picks their town, matching listings float
+   to the top. Client-side only (no new profile field, no location
+   permission prompt) — just a stable sort over the already-fetched
+   PRODUCTS array, so it works for logged-out browsing too. ── */
+var BUYER_LOCATION = (function(){ try { return localStorage.getItem('sp_buyer_location') || ''; } catch(e){ return ''; } })();
+
+function applyLocationSort() {
+  if (!BUYER_LOCATION) return;
+  var loc = BUYER_LOCATION.toLowerCase();
+  PRODUCTS = PRODUCTS
+    .map(function(p, i){ return { p: p, i: i }; })
+    .sort(function(a, b){
+      var an = (a.p.county||'').toLowerCase() === loc ? 0 : 1;
+      var bn = (b.p.county||'').toLowerCase() === loc ? 0 : 1;
+      return an !== bn ? an - bn : a.i - b.i;
+    })
+    .map(function(x){ return x.p; });
+}
+
+function setBuyerLocation(loc) {
+  BUYER_LOCATION = loc || '';
+  try { localStorage.setItem('sp_buyer_location', BUYER_LOCATION); } catch(e){}
+  var sel = document.getElementById('myLocationSel');
+  if (sel) sel.value = BUYER_LOCATION;
+  updateNearMeBanner();
+  if (productsLoaded) {
+    loadProducts(); // re-fetch so the sort re-applies from a clean base order
+  }
+}
+
+function updateNearMeBanner() {
+  var banner = document.getElementById('nearMeBanner');
+  var text = document.getElementById('nearMeText');
+  if (!banner) return;
+  if (BUYER_LOCATION) {
+    if (text) text.textContent = '📍 Showing farmers near ' + BUYER_LOCATION + ' first';
+    banner.style.display = 'flex';
+  } else {
+    banner.style.display = 'none';
+  }
 }
 
 /* ── CART (localStorage-backed) ── */
@@ -122,7 +165,9 @@ function cardHTML(p) {
     '</div>' +
     '<div class="prod-body">' +
       '<div class="prod-name">' + p.name + (p.premium ? ' <span class="prod-premium-badge" title="Premium seller">⭐</span>' : '') + '</div>' +
-      '<div class="prod-meta">📍 ' + p.county + ' · <span class="prod-rating">★ ' + p.rating + '</span></div>' +
+      '<div class="prod-meta">📍 ' + p.county +
+        (BUYER_LOCATION && (p.county||'').toLowerCase() === BUYER_LOCATION.toLowerCase() ? ' <span class="near-me-tag">Near you</span>' : '') +
+        ' · <span class="prod-rating">★ ' + p.rating + '</span></div>' +
       '<div class="prod-price-row">' +
         '<div class="prod-price">KSh ' + p.price + '</div>' +
         '<div class="prod-unit">/' + p.unit + '</div>' +
@@ -748,4 +793,6 @@ function showToast(msg) {
 
 /* ── INIT ── */
 updateCart();
+(function(){ var sel = document.getElementById('myLocationSel'); if (sel) sel.value = BUYER_LOCATION; })();
+updateNearMeBanner();
 loadProducts();
