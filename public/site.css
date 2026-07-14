@@ -493,6 +493,29 @@ nav {
 .review-text  { font-size: 13px; color: var(--grey-text); line-height: 1.7; font-style: italic; position: relative; z-index: 1; }
 .review-tag   { margin-top: 10px; font-size: 11px; color: var(--green); font-weight: 700; display: flex; align-items: center; gap: 4px; }
 
+/* ══ CHALLENGE / SOLUTION ══ */
+.cs-section { padding: 8px 20px 28px; }
+.cs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+.cs-card {
+  background: var(--white); border: 1px solid var(--grey-border); border-radius: var(--radius-lg);
+  padding: 18px 16px; box-shadow: var(--shadow-xs);
+}
+.cs-icon {
+  width: 40px; height: 40px; border-radius: 12px; background: var(--green-bg);
+  display: flex; align-items: center; justify-content: center; color: var(--green);
+  margin-bottom: 12px;
+}
+.cs-icon svg { width: 21px; height: 21px; }
+.cs-label {
+  display: block; font-size: 9.5px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .06em; font-family: 'Nunito', sans-serif; margin-bottom: 3px;
+}
+.cs-challenge { font-size: 12.5px; color: var(--grey-text); line-height: 1.5; padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px dashed var(--grey-border); }
+.cs-challenge .cs-label { color: #E0796B; }
+.cs-solution { font-size: 12.5px; color: var(--text); line-height: 1.5; font-weight: 600; }
+.cs-solution .cs-label { color: var(--green); }
+@media (max-width: 480px) { .cs-grid { grid-template-columns: 1fr; } }
+
 /* ══ HOME CTA ══ */
 .home-cta {
   background: var(--g-hero); padding: 36px 20px; text-align: center;
