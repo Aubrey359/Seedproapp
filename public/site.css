@@ -369,23 +369,21 @@ nav {
 }
 .prod-check {
   position: absolute; top: 8px; right: 8px;
-  width: 22px; height: 22px; background: var(--g-green);
-  border-radius: 50%; display: flex; align-items: center;
-  justify-content: center; box-shadow: var(--shadow-green);
-  border: 1.5px solid rgba(255,255,255,.5);
+  width: 22px; height: 22px;
 }
-.prod-check svg { width: 60%; height: 60%; }
+.prod-check svg { width: 100%; height: 100%; filter: drop-shadow(0 2px 4px rgba(0,0,0,.35)) drop-shadow(0 0 6px rgba(34,229,132,.45)); }
 
-/* Instagram-style verified-seller badge, green instead of blue — earned
-   automatically once a farmer has enough completed sales, not a signup
-   checkbox. Reused wherever a farmer's name appears. */
+/* Instagram/Twitter-style scalloped verified-seller seal, green instead of
+   blue — earned automatically once a farmer has enough completed sales,
+   not a signup checkbox. Reused wherever a farmer's name appears. The SVG
+   (see VERIFIED_BADGE_SVG in site.js) draws its own seal shape now, so
+   this wrapper is just a sizing box, not a circle background anymore. */
 .verified-badge-inline {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 15px; height: 15px; border-radius: 50%; background: var(--g-green);
-  box-shadow: var(--shadow-green); border: 1.5px solid rgba(255,255,255,.5);
+  width: 16px; height: 16px;
   vertical-align: middle; margin-left: 3px; flex-shrink: 0;
 }
-.verified-badge-inline svg { width: 60%; height: 60%; }
+.verified-badge-inline svg { width: 100%; height: 100%; filter: drop-shadow(0 1px 2px rgba(0,0,0,.35)); }
 .prod-photo-badge {
   position: absolute; bottom: 6px; right: 6px; z-index: 2;
   background: rgba(0,0,0,.55); color: #fff; font-size: 10px;

@@ -100,11 +100,13 @@ function saveCart() {
   try { localStorage.setItem('sp_cart', JSON.stringify(cart)); } catch(e){}
 }
 
-/* Green "verified seller" checkmark (Instagram-badge style) — dropped into
-   a .prod-check or .verified-badge-inline wrapper wherever a farmer has
-   earned it via real completed sales (see VERIFIED_SELLER_ORDER_THRESHOLD
-   server-side). */
-var VERIFIED_BADGE_SVG = '<svg viewBox="0 0 24 24"><path d="M5 13l5 5L19 7" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+/* Green "verified seller" seal (Instagram/Twitter scalloped-badge style) —
+   dropped into a .prod-check or .verified-badge-inline wrapper wherever a
+   farmer has earned it via real completed sales (see
+   VERIFIED_SELLER_ORDER_THRESHOLD server-side). The 16-point outline is a
+   computed polygon (8 outer/8 inner vertices, alternating r=10.5/9.0 from
+   center 12,12), not a hand-drawn curve — exact trig, not eyeballed. */
+var VERIFIED_BADGE_SVG = '<svg viewBox="0 0 24 24"><defs><linearGradient id="vbg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#4AF0A0"/><stop offset="100%" stop-color="#16A863"/></linearGradient></defs><polygon points="12,1.5 15.44,3.69 19.42,4.58 20.32,8.56 22.5,12 20.32,15.44 19.42,19.42 15.44,20.32 12,22.5 8.56,20.32 4.58,19.42 3.69,15.44 1.5,12 3.69,8.56 4.58,4.58 8.56,3.69" fill="url(#vbg)"/><path d="M5 13l5 5L19 7" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
 /* ── CARD HTML ── */
 function cardHTML(p) {
