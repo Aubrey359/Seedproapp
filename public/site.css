@@ -921,7 +921,14 @@ footer::before { content: ''; position: absolute; right: -60px; top: -60px; widt
 .footer-payment-badge .mpesa-icon { height:22px; }
 .footer-payment-badge .pay-logo-icon { height:22px; max-width:66px; object-fit:contain; }
 .footer-payment-badge .pay-logo-icon.pesapal { height:19px; }
-.footer-payment-badge span { padding-left:12px; border-left:1px solid rgba(255,255,255,.15); color:rgba(255,255,255,.65); font-weight:700; }
+.footer-payment-badge span {
+  padding-left:12px; border-left:1px solid rgba(255,255,255,.15);
+  color:rgba(255,255,255,.65); font-weight:600;
+  font-family:ui-monospace,'SFMono-Regular','Courier New',monospace;
+  font-size:11px; letter-spacing:.06em; text-transform:uppercase;
+  display:inline-flex; align-items:center; gap:5px;
+}
+.badge-lock-icon { width:12px; height:12px; color:var(--green); filter:drop-shadow(0 0 4px rgba(34,229,132,.6)); flex-shrink:0; }
 
 /* Real M-Pesa logo (replaces the generic 💳 credit-card emoji — M-Pesa is
    mobile money, not a card) sized per context; aspect ratio ~2.72:1. */
