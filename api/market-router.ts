@@ -83,6 +83,31 @@ export const marketRouter = createRouter({
       return withFarmer(r, f, "detail");
     }),
 
+  // "Farmer Next Door" — real verified farmers with real listing counts (via
+  // aggregation, not a hardcoded number), for a homepage discovery section.
+  // Sorting by the buyer's chosen location happens client-side, same as the
+  // Shop page's "near me" sort — no separate server-side geo logic to keep
+  // in sync with it.
+  nearbyFarmers: publicQuery.query(async () => {
+    const farmers = await users.find({ userType: "farmer", verified: true }).lean();
+    const farmerIds = farmers.map((f: any) => f.id);
+    const counts = await listings.aggregate([
+      { $match: { farmerId: { $in: farmerIds }, status: "active" } },
+      { $group: { _id: "$farmerId", n: { $sum: 1 } } },
+    ]);
+    const countMap = new Map(counts.map((c: any) => [c._id, c.n]));
+    return farmers.map((f: any) => ({
+      id: f.id,
+      name: f.name,
+      location: f.location,
+      avatar: f.avatar ?? null,
+      rating: f.rating ?? 0,
+      reviewCount: f.reviewCount ?? 0,
+      listingCount: countMap.get(f.id) ?? 0,
+      phone: f.phone ?? null,
+    }));
+  }),
+
   create: authedQuery
     .input(
       z.object({

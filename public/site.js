@@ -119,6 +119,7 @@ function setBuyerLocation(loc) {
   if (productsLoaded) {
     loadProducts(); // re-fetch so the sort re-applies from a clean base order
   }
+  renderNearbyFarmers();
 }
 
 function updateNearMeBanner() {
@@ -131,6 +132,67 @@ function updateNearMeBanner() {
   } else {
     banner.style.display = 'none';
   }
+}
+
+/* ── "Farmer Next Door" — real verified farmers (market.nearbyFarmers),
+   not the 5 hardcoded demo cards this used to be. Reuses BUYER_LOCATION
+   from the near-me picker above so the same "near you" choice affects
+   both listings and farmers. ── */
+var NEARBY_FARMERS = [];
+
+function loadNearbyFarmers() {
+  return fetch('/api/trpc/market.nearbyFarmers')
+    .then(function(r){ return r.json(); })
+    .then(function(d) {
+      NEARBY_FARMERS = (d && d.result && d.result.data && d.result.data.json) || [];
+      renderNearbyFarmers();
+    })
+    .catch(function(err){ console.error('Failed to load nearby farmers', err); NEARBY_FARMERS = []; renderNearbyFarmers(); });
+}
+
+function renderNearbyFarmers() {
+  var el = document.getElementById('nearbyFarmersRow');
+  if (!el) return;
+
+  var list = NEARBY_FARMERS.slice();
+  if (BUYER_LOCATION) {
+    var loc = BUYER_LOCATION.toLowerCase();
+    list = list
+      .map(function(f, i){ return { f: f, i: i }; })
+      .sort(function(a, b){
+        var an = (a.f.location||'').toLowerCase() === loc ? 0 : 1;
+        var bn = (b.f.location||'').toLowerCase() === loc ? 0 : 1;
+        return an !== bn ? an - bn : a.i - b.i;
+      })
+      .map(function(x){ return x.f; });
+  }
+
+  if (!list.length) {
+    el.innerHTML = '<p style="padding:12px 4px;color:var(--grey-text);font-size:12.5px">No verified farmers yet — check back soon.</p>';
+    return;
+  }
+
+  el.innerHTML = list.slice(0, 8).map(function(f) {
+    var near = BUYER_LOCATION && (f.location||'').toLowerCase() === BUYER_LOCATION.toLowerCase();
+    var rating = f.rating || 0;
+    var fullStars = Math.round(rating);
+    var stars = '★'.repeat(fullStars) + '☆'.repeat(Math.max(0, 5 - fullStars));
+    var nameEsc = (f.name || 'Farmer').replace(/'/g, "\\'");
+    return '<div class="farmer-card" onclick="contactFarmer(\'' + (f.phone || '') + '\',\'' + nameEsc + '\')">' +
+      '<div class="farmer-av">' + (f.avatar ? '<img class="farmer-photo" src="' + f.avatar + '" alt="" loading="lazy" onerror="this.remove()">' : '<span class="fa-emoji">🧑‍🌾</span>') + '</div>' +
+      '<div class="farmer-name">' + (f.name || 'Farmer') + '<span class="verified-badge-inline" title="Verified Seller">' + VERIFIED_BADGE_SVG + '</span></div>' +
+      (near ? '<div class="near-me-tag" style="display:inline-block;margin:2px 0 3px">Near you</div>' : '') +
+      '<div class="farmer-loc">📍 ' + (f.location || 'Kenya') + '</div>' +
+      '<div class="farmer-stars">' + stars + ' ' + rating.toFixed(1) + '</div>' +
+      '<div class="farmer-count">' + f.listingCount + ' Listing' + (f.listingCount === 1 ? '' : 's') + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function contactFarmer(phone, name) {
+  if (!phone) { showToast('📵 No contact number on file for ' + name); return; }
+  var digits = phone.replace(/[^\d]/g, '');
+  window.open('https://wa.me/' + digits, '_blank', 'noopener');
 }
 
 /* ── CART (localStorage-backed) ── */
@@ -796,3 +858,4 @@ updateCart();
 (function(){ var sel = document.getElementById('myLocationSel'); if (sel) sel.value = BUYER_LOCATION; })();
 updateNearMeBanner();
 loadProducts();
+loadNearbyFarmers();

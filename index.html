@@ -221,48 +221,17 @@
     <div class="products-grid" id="homeGrid"></div>
   </div>
 
-  <!-- VERIFIED FARMERS -->
+  <!-- FARMER NEXT DOOR — real verified farmers, sorted by the buyer's chosen
+       location if one is set (see BUYER_LOCATION in site.js). Replaces what
+       used to be 5 hardcoded demo farmer cards. -->
   <div class="section" style="background:var(--white);padding:20px 20px">
     <div class="section-head">
-      <div class="section-title">Verified Farmers</div>
-      <button class="see-all" onclick="enterApp()">All Farmers →</button>
+      <div class="section-title">🏡 Farmer Next Door</div>
+      <button class="see-all" onclick="showPage('shop')">See All →</button>
     </div>
-    <div class="farmer-row">
-      <div class="farmer-card" onclick="enterApp()">
-        <div class="farmer-av"><span class="fa-emoji">👩🏾‍🌾</span><img class="farmer-photo" src="/images/farmer-avatar-1.jpg" alt="" loading="lazy" onerror="this.remove()"></div>
-        <div class="farmer-name">Grace Achieng<span class="verified-badge-inline" title="Verified Seller"><svg viewBox="0 0 24 24"><defs><linearGradient id="vbg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#4AF0A0"/><stop offset="100%" stop-color="#16A863"/></linearGradient></defs><polygon points="12,1.5 15.44,3.69 19.42,4.58 20.32,8.56 22.5,12 20.32,15.44 19.42,19.42 15.44,20.32 12,22.5 8.56,20.32 4.58,19.42 3.69,15.44 1.5,12 3.69,8.56 4.58,4.58 8.56,3.69" fill="url(#vbg)"/><path d="M5 13l5 5L19 7" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
-        <div class="farmer-loc">📍 Kisumu</div>
-        <div class="farmer-stars">★★★★★ 4.9</div>
-        <div class="farmer-count">28 Listings</div>
-      </div>
-      <div class="farmer-card" onclick="enterApp()">
-        <div class="farmer-av"><span class="fa-emoji">👨🏿‍🌾</span><img class="farmer-photo" src="/images/farmer-avatar-2.jpg" alt="" loading="lazy" onerror="this.remove()"></div>
-        <div class="farmer-name">James Mwangi<span class="verified-badge-inline" title="Verified Seller"><svg viewBox="0 0 24 24"><defs><linearGradient id="vbg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#4AF0A0"/><stop offset="100%" stop-color="#16A863"/></linearGradient></defs><polygon points="12,1.5 15.44,3.69 19.42,4.58 20.32,8.56 22.5,12 20.32,15.44 19.42,19.42 15.44,20.32 12,22.5 8.56,20.32 4.58,19.42 3.69,15.44 1.5,12 3.69,8.56 4.58,4.58 8.56,3.69" fill="url(#vbg)"/><path d="M5 13l5 5L19 7" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
-        <div class="farmer-loc">📍 Nakuru</div>
-        <div class="farmer-stars">★★★★★ 4.8</div>
-        <div class="farmer-count">45 Listings</div>
-      </div>
-      <div class="farmer-card" onclick="enterApp()">
-        <div class="farmer-av"><span class="fa-emoji">👩🏽‍🌾</span><img class="farmer-photo" src="/images/buyer-avatar-1.jpg" alt="" loading="lazy" onerror="this.remove()"></div>
-        <div class="farmer-name">Mary Wanjiku<span class="verified-badge-inline" title="Verified Seller"><svg viewBox="0 0 24 24"><defs><linearGradient id="vbg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#4AF0A0"/><stop offset="100%" stop-color="#16A863"/></linearGradient></defs><polygon points="12,1.5 15.44,3.69 19.42,4.58 20.32,8.56 22.5,12 20.32,15.44 19.42,19.42 15.44,20.32 12,22.5 8.56,20.32 4.58,19.42 3.69,15.44 1.5,12 3.69,8.56 4.58,4.58 8.56,3.69" fill="url(#vbg)"/><path d="M5 13l5 5L19 7" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
-        <div class="farmer-loc">📍 Thika</div>
-        <div class="farmer-stars">★★★★★ 5.0</div>
-        <div class="farmer-count">19 Listings</div>
-      </div>
-      <div class="farmer-card" onclick="enterApp()">
-        <div class="farmer-av"><span class="fa-emoji">👨🏾‍🌾</span><img class="farmer-photo" src="/images/farmer-avatar-3.jpg" alt="" loading="lazy" onerror="this.remove()"></div>
-        <div class="farmer-name">Peter Njoroge<span class="verified-badge-inline" title="Verified Seller"><svg viewBox="0 0 24 24"><defs><linearGradient id="vbg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#4AF0A0"/><stop offset="100%" stop-color="#16A863"/></linearGradient></defs><polygon points="12,1.5 15.44,3.69 19.42,4.58 20.32,8.56 22.5,12 20.32,15.44 19.42,19.42 15.44,20.32 12,22.5 8.56,20.32 4.58,19.42 3.69,15.44 1.5,12 3.69,8.56 4.58,4.58 8.56,3.69" fill="url(#vbg)"/><path d="M5 13l5 5L19 7" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
-        <div class="farmer-loc">📍 Muranga</div>
-        <div class="farmer-stars">★★★★☆ 4.6</div>
-        <div class="farmer-count">33 Listings</div>
-      </div>
-      <div class="farmer-card" onclick="enterApp()">
-        <div class="farmer-av">👩🏿‍🌾</div>
-        <div class="farmer-name">Aisha Omar<span class="verified-badge-inline" title="Verified Seller"><svg viewBox="0 0 24 24"><defs><linearGradient id="vbg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#4AF0A0"/><stop offset="100%" stop-color="#16A863"/></linearGradient></defs><polygon points="12,1.5 15.44,3.69 19.42,4.58 20.32,8.56 22.5,12 20.32,15.44 19.42,19.42 15.44,20.32 12,22.5 8.56,20.32 4.58,19.42 3.69,15.44 1.5,12 3.69,8.56 4.58,4.58 8.56,3.69" fill="url(#vbg)"/><path d="M5 13l5 5L19 7" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
-        <div class="farmer-loc">📍 Naivasha</div>
-        <div class="farmer-stars">★★★★★ 4.7</div>
-        <div class="farmer-count">22 Listings</div>
-      </div>
+    <p class="fnd-sub">Verified farmers near you — buy straight from the source.</p>
+    <div class="farmer-row" id="nearbyFarmersRow">
+      <p style="padding:12px 4px;color:var(--grey-text);font-size:12.5px">Loading farmers…</p>
     </div>
   </div>
 

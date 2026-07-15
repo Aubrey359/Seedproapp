@@ -426,6 +426,7 @@ nav {
 }
 
 /* ══ FARMER CARDS ══ */
+.fnd-sub { font-size: 12px; color: var(--grey-text); margin: -6px 0 12px; line-height: 1.5; }
 .farmer-row { display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
 .farmer-row::-webkit-scrollbar { display: none; }
 .farmer-card {
