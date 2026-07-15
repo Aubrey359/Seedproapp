@@ -106,6 +106,7 @@ export const marketRouter = createRouter({
       reviewCount: f.reviewCount ?? 0,
       listingCount: countMap.get(f.id) ?? 0,
       phone: f.phone ?? null,
+      premium: !!f.premium,
     }));
   }),
 

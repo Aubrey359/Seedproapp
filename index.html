@@ -487,6 +487,15 @@
     <button onclick="setBuyerLocation('')">✕ Clear</button>
   </div>
 
+  <!-- FEATURED FARMERS — premium-tier verified farmers only, hidden entirely
+       when none exist rather than showing an empty section. -->
+  <div id="featuredFarmersWrap" style="padding:16px 0 4px;display:none">
+    <div class="section-head" style="padding:0 16px">
+      <div class="section-title">⭐ Featured Farms</div>
+    </div>
+    <div class="featured-farmers-scroll" id="featuredFarmersRow"></div>
+  </div>
+
   <!-- FARMERS GRID -->
   <div style="padding:16px">
     <div class="farmers-grid" id="farmersGrid"></div>

@@ -454,6 +454,34 @@ nav {
 .farmer-stars { font-size: 11px; color: #F5B942; }
 .farmer-count { font-size: 10px; color: var(--green); font-weight: 700; margin-top: 3px; font-family:'Nunito',sans-serif; background: var(--green-pale); padding: 2px 8px; border-radius: 100px; display: inline-block; }
 
+/* ── Featured Farmers — premium-tier farmers get a distinct gradient
+   carousel above the regular grid, not just a spot in the same list.
+   Same idea as Shamba Direct's "Featured Farm Advertisements", built
+   with this site's own dark palette instead of that prototype's light
+   cream/emerald one so it doesn't clash with the rest of the app. ── */
+.featured-farmers-scroll { display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; margin: 0 -18px 4px; padding-left: 18px; padding-right: 18px; }
+.featured-farmers-scroll::-webkit-scrollbar { display: none; }
+.featured-farmer-card {
+  flex-shrink: 0; width: 172px; cursor: pointer;
+  background: linear-gradient(150deg, var(--green-dark), var(--green-mid) 70%, var(--green));
+  border-radius: var(--radius-lg); padding: 16px 14px; position: relative; overflow: hidden;
+  box-shadow: 0 8px 22px rgba(0,0,0,.35); transition: transform .2s;
+}
+.featured-farmer-card:hover { transform: translateY(-3px); }
+.featured-farmer-card::after { content:''; position:absolute; right:-24px; top:-24px; width:100px; height:100px; border-radius:50%; background:rgba(255,255,255,.08); }
+.ff-badge {
+  display: inline-flex; align-items: center; gap: 4px; background: rgba(0,0,0,.22);
+  color: var(--orange-light); font-size: 9.5px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .04em; padding: 3px 9px; border-radius: 100px; margin-bottom: 10px;
+  position: relative; z-index: 1;
+}
+.ff-badge svg { width: 11px; height: 11px; }
+.ff-name { font-size: 14.5px; font-weight: 800; color: #fff; margin-bottom: 3px; position: relative; z-index: 1; display: flex; align-items: center; gap: 4px; }
+.ff-loc { display: flex; align-items: center; gap: 4px; font-size: 10.5px; color: rgba(255,255,255,.75); margin-bottom: 10px; position: relative; z-index: 1; }
+.ff-stats { display: flex; gap: 10px; position: relative; z-index: 1; }
+.ff-stat { font-size: 10px; color: rgba(255,255,255,.9); font-weight: 700; }
+.ff-stat b { display: block; font-size: 15px; font-weight: 800; }
+
 /* ══ PRICES TABLE ══ */
 .prices-table { background: var(--white); border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--grey-border); box-shadow: var(--shadow-xs); }
 .price-head {
