@@ -113,25 +113,27 @@ function applyLocationSort() {
 function setBuyerLocation(loc) {
   BUYER_LOCATION = loc || '';
   try { localStorage.setItem('sp_buyer_location', BUYER_LOCATION); } catch(e){}
-  var sel = document.getElementById('myLocationSel');
-  if (sel) sel.value = BUYER_LOCATION;
+  // Multiple pages (Shop, Farmer Next Door) each have their own copy of this
+  // picker — keep them all in sync rather than relying on one #id.
+  document.querySelectorAll('.buyer-location-sel').forEach(function(sel){ sel.value = BUYER_LOCATION; });
   updateNearMeBanner();
   if (productsLoaded) {
     loadProducts(); // re-fetch so the sort re-applies from a clean base order
   }
   renderNearbyFarmers();
+  renderFarmersPage();
 }
 
 function updateNearMeBanner() {
-  var banner = document.getElementById('nearMeBanner');
-  var text = document.getElementById('nearMeText');
-  if (!banner) return;
-  if (BUYER_LOCATION) {
-    if (text) text.textContent = '📍 Showing farmers near ' + BUYER_LOCATION + ' first';
-    banner.style.display = 'flex';
-  } else {
-    banner.style.display = 'none';
-  }
+  document.querySelectorAll('.near-me-banner').forEach(function(banner){
+    var text = banner.querySelector('.near-me-text');
+    if (BUYER_LOCATION) {
+      if (text) text.textContent = '📍 Showing farmers near ' + BUYER_LOCATION + ' first';
+      banner.style.display = 'flex';
+    } else {
+      banner.style.display = 'none';
+    }
+  });
 }
 
 /* ── "Farmer Next Door" — real verified farmers (market.nearbyFarmers),
@@ -145,48 +147,64 @@ function loadNearbyFarmers() {
     .then(function(r){ return r.json(); })
     .then(function(d) {
       NEARBY_FARMERS = (d && d.result && d.result.data && d.result.data.json) || [];
-      renderNearbyFarmers();
     })
-    .catch(function(err){ console.error('Failed to load nearby farmers', err); NEARBY_FARMERS = []; renderNearbyFarmers(); });
+    .catch(function(err){ console.error('Failed to load nearby farmers', err); NEARBY_FARMERS = []; })
+    .then(function(){
+      renderNearbyFarmers();
+      renderFarmersPage();
+    });
+}
+
+function sortedNearbyFarmers() {
+  var list = NEARBY_FARMERS.slice();
+  if (!BUYER_LOCATION) return list;
+  var loc = BUYER_LOCATION.toLowerCase();
+  return list
+    .map(function(f, i){ return { f: f, i: i }; })
+    .sort(function(a, b){
+      var an = (a.f.location||'').toLowerCase() === loc ? 0 : 1;
+      var bn = (b.f.location||'').toLowerCase() === loc ? 0 : 1;
+      return an !== bn ? an - bn : a.i - b.i;
+    })
+    .map(function(x){ return x.f; });
+}
+
+function farmerCardHTML(f) {
+  var near = BUYER_LOCATION && (f.location||'').toLowerCase() === BUYER_LOCATION.toLowerCase();
+  var rating = f.rating || 0;
+  var fullStars = Math.round(rating);
+  var stars = '★'.repeat(fullStars) + '☆'.repeat(Math.max(0, 5 - fullStars));
+  var nameEsc = (f.name || 'Farmer').replace(/'/g, "\\'");
+  return '<div class="farmer-card" onclick="contactFarmer(\'' + (f.phone || '') + '\',\'' + nameEsc + '\')">' +
+    '<div class="farmer-av">' + (f.avatar ? '<img class="farmer-photo" src="' + f.avatar + '" alt="" loading="lazy" onerror="this.remove()">' : '<span class="fa-emoji">🧑‍🌾</span>') + '</div>' +
+    '<div class="farmer-name">' + (f.name || 'Farmer') + '<span class="verified-badge-inline" title="Verified Seller">' + VERIFIED_BADGE_SVG + '</span></div>' +
+    (near ? '<div class="near-me-tag" style="display:inline-block;margin:2px 0 3px">Near you</div>' : '') +
+    '<div class="farmer-loc">📍 ' + (f.location || 'Kenya') + '</div>' +
+    '<div class="farmer-stars">' + stars + ' ' + rating.toFixed(1) + '</div>' +
+    '<div class="farmer-count">' + f.listingCount + ' Listing' + (f.listingCount === 1 ? '' : 's') + '</div>' +
+  '</div>';
 }
 
 function renderNearbyFarmers() {
   var el = document.getElementById('nearbyFarmersRow');
   if (!el) return;
+  var list = sortedNearbyFarmers();
+  el.innerHTML = list.length
+    ? list.slice(0, 8).map(farmerCardHTML).join('')
+    : '<p style="padding:12px 4px;color:var(--grey-text);font-size:12.5px">No verified farmers yet — check back soon.</p>';
+}
 
-  var list = NEARBY_FARMERS.slice();
-  if (BUYER_LOCATION) {
-    var loc = BUYER_LOCATION.toLowerCase();
-    list = list
-      .map(function(f, i){ return { f: f, i: i }; })
-      .sort(function(a, b){
-        var an = (a.f.location||'').toLowerCase() === loc ? 0 : 1;
-        var bn = (b.f.location||'').toLowerCase() === loc ? 0 : 1;
-        return an !== bn ? an - bn : a.i - b.i;
-      })
-      .map(function(x){ return x.f; });
-  }
-
-  if (!list.length) {
-    el.innerHTML = '<p style="padding:12px 4px;color:var(--grey-text);font-size:12.5px">No verified farmers yet — check back soon.</p>';
-    return;
-  }
-
-  el.innerHTML = list.slice(0, 8).map(function(f) {
-    var near = BUYER_LOCATION && (f.location||'').toLowerCase() === BUYER_LOCATION.toLowerCase();
-    var rating = f.rating || 0;
-    var fullStars = Math.round(rating);
-    var stars = '★'.repeat(fullStars) + '☆'.repeat(Math.max(0, 5 - fullStars));
-    var nameEsc = (f.name || 'Farmer').replace(/'/g, "\\'");
-    return '<div class="farmer-card" onclick="contactFarmer(\'' + (f.phone || '') + '\',\'' + nameEsc + '\')">' +
-      '<div class="farmer-av">' + (f.avatar ? '<img class="farmer-photo" src="' + f.avatar + '" alt="" loading="lazy" onerror="this.remove()">' : '<span class="fa-emoji">🧑‍🌾</span>') + '</div>' +
-      '<div class="farmer-name">' + (f.name || 'Farmer') + '<span class="verified-badge-inline" title="Verified Seller">' + VERIFIED_BADGE_SVG + '</span></div>' +
-      (near ? '<div class="near-me-tag" style="display:inline-block;margin:2px 0 3px">Near you</div>' : '') +
-      '<div class="farmer-loc">📍 ' + (f.location || 'Kenya') + '</div>' +
-      '<div class="farmer-stars">' + stars + ' ' + rating.toFixed(1) + '</div>' +
-      '<div class="farmer-count">' + f.listingCount + ' Listing' + (f.listingCount === 1 ? '' : 's') + '</div>' +
-    '</div>';
-  }).join('');
+/* Full, uncapped version for the dedicated Farmer Next Door page (as
+   opposed to the 8-card homepage teaser row above). */
+function renderFarmersPage() {
+  var el = document.getElementById('farmersGrid');
+  if (!el) return;
+  var list = sortedNearbyFarmers();
+  var count = document.getElementById('farmersCount');
+  if (count) count.textContent = NEARBY_FARMERS.length ? (list.length + ' verified farmer' + (list.length !== 1 ? 's' : '')) : 'Loading…';
+  el.innerHTML = list.length
+    ? list.map(farmerCardHTML).join('')
+    : '<p style="grid-column:1/-1;text-align:center;padding:24px;color:var(--grey-text)">No verified farmers yet — check back soon.</p>';
 }
 
 function contactFarmer(phone, name) {
@@ -855,7 +873,7 @@ function showToast(msg) {
 
 /* ── INIT ── */
 updateCart();
-(function(){ var sel = document.getElementById('myLocationSel'); if (sel) sel.value = BUYER_LOCATION; })();
+document.querySelectorAll('.buyer-location-sel').forEach(function(sel){ sel.value = BUYER_LOCATION; });
 updateNearMeBanner();
 loadProducts();
 loadNearbyFarmers();

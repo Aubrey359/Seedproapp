@@ -429,6 +429,10 @@ nav {
 .fnd-sub { font-size: 12px; color: var(--grey-text); margin: -6px 0 12px; line-height: 1.5; }
 .farmer-row { display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
 .farmer-row::-webkit-scrollbar { display: none; }
+/* Full-page browse grid (Farmer Next Door page) vs. the horizontal-scroll
+   teaser row (.farmer-row) above — same card, different container. */
+.farmers-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.farmers-grid .farmer-card { width: auto; }
 .farmer-card {
   flex-shrink: 0; width: 136px; background: var(--white);
   border-radius: var(--radius-lg); border: 1px solid var(--grey-border);
