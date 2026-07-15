@@ -64,6 +64,7 @@ const userSchema = new Schema(
     userType: { type: String, enum: ["farmer", "buyer", "aggregator"], default: "farmer" },
     phone: String,
     location: String,
+    ward: String,
     bio: String,
     verified: { type: Boolean, default: false },
     premium: { type: Boolean, default: false },
@@ -393,6 +394,7 @@ export interface User {
   userType: "farmer" | "buyer" | "aggregator";
   phone?: string | null;
   location?: string | null;
+  ward?: string | null;
   bio?: string | null;
   verified?: boolean;
   rating?: number;

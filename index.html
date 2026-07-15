@@ -477,6 +477,9 @@
         <option>Tharaka-Nithi</option><option>Trans Nzoia</option><option>Turkana</option><option>Uasin Gishu</option>
         <option>Vihiga</option><option>Wajir</option><option>West Pokot</option>
       </select>
+      <select class="sort-sel buyer-ward-sel" onchange="setBuyerWard(this.value)" disabled>
+        <option value="">Pick a county first</option>
+      </select>
     </div>
   </div>
   <div class="near-me-banner" style="display:none">
@@ -958,7 +961,7 @@
       </div>
 
       <div class="form-group">
-        <label>County / Town *</label>
+        <label>County *</label>
         <select id="fLocation" required>
           <option value="">Select location…</option>
           <option>Baringo</option><option>Bomet</option><option>Bungoma</option><option>Busia</option>
@@ -974,6 +977,11 @@
           <option>Tharaka-Nithi</option><option>Trans Nzoia</option><option>Turkana</option><option>Uasin Gishu</option>
           <option>Vihiga</option><option>Wajir</option><option>West Pokot</option>
         </select>
+      </div>
+
+      <div class="form-group">
+        <label>Ward <span style="font-weight:400">(optional — helps nearby buyers find you)</span></label>
+        <input type="text" id="fWard" placeholder="e.g. Kikuyu" />
       </div>
 
       <div class="form-row">
@@ -1302,6 +1310,7 @@ function submitListing() {
   var qty   = document.getElementById('fQty').value;
   var price = document.getElementById('fPrice').value;
   var loc   = document.getElementById('fLocation').value;
+  var ward  = (document.getElementById('fWard')||{}).value || '';
   var name  = document.getElementById('fName').value.trim();
   var phone = document.getElementById('fPhone').value.trim();
   var desc  = (document.getElementById('fDesc')||{}).value || '';
@@ -1325,6 +1334,7 @@ function submitListing() {
         quantity: Number(qty),
         quantityUnit: 'kg',
         location: loc,
+        ward: ward.trim() || undefined,
         expectedPrice: Number(price),
         description: desc || undefined,
         farmerName: name,
@@ -1350,7 +1360,7 @@ function submitListing() {
 
 function resetForm() {
   document.getElementById('successOverlay').classList.remove('show');
-  ['fCrop','fQty','fPrice','fLocation','fName','fPhone','fDesc'].forEach(function(id){
+  ['fCrop','fQty','fPrice','fLocation','fWard','fName','fPhone','fDesc'].forEach(function(id){
     var el = document.getElementById(id); if (el) el.value = '';
   });
   var btn = document.querySelector('.submit-btn');

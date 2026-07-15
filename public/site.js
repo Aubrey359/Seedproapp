@@ -116,19 +116,56 @@ function setBuyerLocation(loc) {
   // Multiple pages (Shop, Farmer Next Door) each have their own copy of this
   // picker — keep them all in sync rather than relying on one #id.
   document.querySelectorAll('.buyer-location-sel').forEach(function(sel){ sel.value = BUYER_LOCATION; });
-  updateNearMeBanner();
   if (productsLoaded) {
     loadProducts(); // re-fetch so the sort re-applies from a clean base order
   }
+  populateWardOptions(); // ward choices depend on which county is selected — may clear a stale BUYER_WARD
+  updateNearMeBanner(); // must run after populateWardOptions so it reflects any ward reset above
   renderNearbyFarmers();
   renderFarmersPage();
+}
+
+/* ── Ward-level filtering, layered on top of the county picker above.
+   Farmer Next Door only (not Shop) — a farmer's ward isn't collected
+   anywhere yet, so options are built from whatever real farmers actually
+   have on file rather than a fixed master list of Kenya's ~1,450 wards. ── */
+var BUYER_WARD = (function(){ try { return localStorage.getItem('sp_buyer_ward') || ''; } catch(e){ return ''; } })();
+
+function setBuyerWard(ward) {
+  BUYER_WARD = ward || '';
+  try { localStorage.setItem('sp_buyer_ward', BUYER_WARD); } catch(e){}
+  document.querySelectorAll('.buyer-ward-sel').forEach(function(sel){ sel.value = BUYER_WARD; });
+  updateNearMeBanner();
+  renderNearbyFarmers();
+  renderFarmersPage();
+}
+
+function populateWardOptions() {
+  var sels = document.querySelectorAll('.buyer-ward-sel');
+  if (!sels.length) return;
+
+  var inCounty = NEARBY_FARMERS.filter(function(f){
+    return !BUYER_LOCATION || (f.location||'').toLowerCase() === BUYER_LOCATION.toLowerCase();
+  });
+  var wards = [];
+  inCounty.forEach(function(f){
+    if (f.ward && wards.indexOf(f.ward) === -1) wards.push(f.ward);
+  });
+
+  // The selected ward may not belong to the newly-selected county anymore.
+  if (BUYER_WARD && wards.indexOf(BUYER_WARD) === -1) { BUYER_WARD = ''; try { localStorage.setItem('sp_buyer_ward', ''); } catch(e){} }
+
+  var optionsHTML = '<option value="">' + (wards.length ? 'Any ward' : 'No wards on file yet') + '</option>' +
+    wards.map(function(w){ return '<option>' + w + '</option>'; }).join('');
+  sels.forEach(function(sel){ sel.innerHTML = optionsHTML; sel.value = BUYER_WARD; sel.disabled = !wards.length; });
 }
 
 function updateNearMeBanner() {
   document.querySelectorAll('.near-me-banner').forEach(function(banner){
     var text = banner.querySelector('.near-me-text');
     if (BUYER_LOCATION) {
-      if (text) text.textContent = '📍 Showing farmers near ' + BUYER_LOCATION + ' first';
+      var place = BUYER_WARD ? (BUYER_WARD + ', ' + BUYER_LOCATION) : BUYER_LOCATION;
+      if (text) text.textContent = '📍 Showing farmers near ' + place + ' first';
       banner.style.display = 'flex';
     } else {
       banner.style.display = 'none';
@@ -150,36 +187,47 @@ function loadNearbyFarmers() {
     })
     .catch(function(err){ console.error('Failed to load nearby farmers', err); NEARBY_FARMERS = []; })
     .then(function(){
+      populateWardOptions();
       renderNearbyFarmers();
       renderFarmersPage();
     });
 }
 
+/* Ranks a ward match above a county-only match above no match at all —
+   sort, not filter, since most farmers won't have a ward on file yet and
+   a strict filter would too easily show an empty page. */
+function farmerLocationRank(f) {
+  if (BUYER_WARD && (f.ward||'').toLowerCase() === BUYER_WARD.toLowerCase()) return 0;
+  if (BUYER_LOCATION && (f.location||'').toLowerCase() === BUYER_LOCATION.toLowerCase()) return 1;
+  return 2;
+}
+
 function sortedNearbyFarmers() {
   var list = NEARBY_FARMERS.slice();
-  if (!BUYER_LOCATION) return list;
-  var loc = BUYER_LOCATION.toLowerCase();
+  if (!BUYER_LOCATION && !BUYER_WARD) return list;
   return list
     .map(function(f, i){ return { f: f, i: i }; })
     .sort(function(a, b){
-      var an = (a.f.location||'').toLowerCase() === loc ? 0 : 1;
-      var bn = (b.f.location||'').toLowerCase() === loc ? 0 : 1;
+      var an = farmerLocationRank(a.f), bn = farmerLocationRank(b.f);
       return an !== bn ? an - bn : a.i - b.i;
     })
     .map(function(x){ return x.f; });
 }
 
 function farmerCardHTML(f) {
-  var near = BUYER_LOCATION && (f.location||'').toLowerCase() === BUYER_LOCATION.toLowerCase();
+  var rank = farmerLocationRank(f);
+  var wardMatch = rank === 0;
+  var countyMatch = rank === 1;
   var rating = f.rating || 0;
   var fullStars = Math.round(rating);
   var stars = '★'.repeat(fullStars) + '☆'.repeat(Math.max(0, 5 - fullStars));
   var nameEsc = (f.name || 'Farmer').replace(/'/g, "\\'");
+  var placeText = f.ward ? (f.ward + ', ' + (f.location || 'Kenya')) : (f.location || 'Kenya');
   return '<div class="farmer-card" onclick="contactFarmer(\'' + (f.phone || '') + '\',\'' + nameEsc + '\')">' +
     '<div class="farmer-av">' + (f.avatar ? '<img class="farmer-photo" src="' + f.avatar + '" alt="" loading="lazy" onerror="this.remove()">' : '<span class="fa-emoji">🧑‍🌾</span>') + '</div>' +
     '<div class="farmer-name">' + (f.name || 'Farmer') + '<span class="verified-badge-inline" title="Verified Seller">' + VERIFIED_BADGE_SVG + '</span></div>' +
-    (near ? '<div class="near-me-tag" style="display:inline-block;margin:2px 0 3px">Near you</div>' : '') +
-    '<div class="farmer-loc">📍 ' + (f.location || 'Kenya') + '</div>' +
+    (wardMatch ? '<div class="near-me-tag" style="display:inline-block;margin:2px 0 3px">Same ward</div>' : countyMatch ? '<div class="near-me-tag" style="display:inline-block;margin:2px 0 3px">Near you</div>' : '') +
+    '<div class="farmer-loc">📍 ' + placeText + '</div>' +
     '<div class="farmer-stars">' + stars + ' ' + rating.toFixed(1) + '</div>' +
     '<div class="farmer-count">' + f.listingCount + ' Listing' + (f.listingCount === 1 ? '' : 's') + '</div>' +
   '</div>';

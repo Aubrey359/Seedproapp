@@ -247,7 +247,7 @@
           table(['ID','Crop','Farmer','Qty','Price','Location','Status'], rows, 7)));
       });
     }
-    var KENYA_COUNTIES = ['Nairobi','Nakuru','Kisumu','Mombasa','Muranga','Thika','Meru','Kericho','Kakamega','Eldoret','Naivasha','Nyeri','Kisii','Kiambu','Embu','Mwea'];
+    var KENYA_COUNTIES = ['Baringo','Bomet','Bungoma','Busia','Elgeyo-Marakwet','Embu','Garissa','Homa Bay','Isiolo','Kajiado','Kakamega','Kericho','Kiambu','Kilifi','Kirinyaga','Kisii','Kisumu','Kitui','Kwale','Laikipia','Lamu','Machakos','Makueni','Mandera','Marsabit','Meru','Migori','Mombasa',"Murang'a",'Nairobi','Nakuru','Nandi','Narok','Nyamira','Nyandarua','Nyeri','Samburu','Siaya','Taita-Taveta','Tana River','Tharaka-Nithi','Trans Nzoia','Turkana','Uasin Gishu','Vihiga','Wajir','West Pokot'];
     function renderFarmers(){
       return api('/users').then(function(d){
         setDbPill(d.dbConnected);
@@ -260,23 +260,26 @@
           }).join('');
           if (u.location && KENYA_COUNTIES.indexOf(u.location) < 0) locOpts += '<option selected>'+esc(u.location)+'</option>';
           var locSelect = '<select class="cell-input" style="width:110px" id="uloc'+u.id+'">'+locOpts+'</select>';
+          var wardInput = '<input class="cell-input" style="width:100px" id="uward'+u.id+'" value="'+esc(u.ward||'')+'" placeholder="Ward">';
           return '<tr><td>#'+u.id+'</td>'+
             '<td><input class="cell-input" style="width:120px" id="uname'+u.id+'" value="'+esc(u.name||'')+'" placeholder="Name"></td>'+
             '<td>'+esc(u.phone||'—')+'</td>'+
             '<td>'+locSelect+'</td>'+
+            '<td>'+wardInput+'</td>'+
             '<td><span class="tag t-grey">'+esc(u.userType)+'</span></td><td>'+status+'</td><td>★ '+(u.rating||0)+'</td><td>'+
             '<button class="act green" onclick="saveFarmerDetails('+u.id+')">Save</button> '+
             '<button class="act '+(u.verified?'line':'green')+'" onclick="setVerify('+u.id+','+(!u.verified)+')">'+(u.verified?'Unverify':'Verify')+'</button> '+
             '<button class="act '+(u.premium?'line':'green')+'" onclick="setPremium('+u.id+','+(!u.premium)+')">'+(u.premium?'Revoke Premium':'Grant Premium')+'</button></td></tr>';
         }).join('');
         setView(panel('Users ('+(d.users||[]).length+')',
-          table(['ID','Name','Phone','Region','Type','Status','Rating','Action'], rows, 8)));
+          table(['ID','Name','Phone','Region','Ward','Type','Status','Rating','Action'], rows, 9)));
       });
     }
     function saveFarmerDetails(id){
       var name = document.getElementById('uname'+id).value.trim();
       var location = document.getElementById('uloc'+id).value;
-      api('/users/details',{method:'POST',body:JSON.stringify({id:id,name:name,location:location})})
+      var ward = document.getElementById('uward'+id).value.trim();
+      api('/users/details',{method:'POST',body:JSON.stringify({id:id,name:name,location:location,ward:ward})})
         .then(function(){ toast('✓ Details saved'); refresh(); })
         .catch(function(){ toast('Update failed', true); });
     }

@@ -100,6 +100,7 @@ export const marketRouter = createRouter({
       id: f.id,
       name: f.name,
       location: f.location,
+      ward: f.ward ?? null,
       avatar: f.avatar ?? null,
       rating: f.rating ?? 0,
       reviewCount: f.reviewCount ?? 0,
@@ -115,6 +116,7 @@ export const marketRouter = createRouter({
         quantity: z.number().positive(),
         quantityUnit: z.string().default("kg"),
         location: z.string().min(1),
+        ward: z.string().optional(),
         harvestDate: z.string().optional(),
         expectedPrice: z.number().positive(),
         currency: z.string().default(CURRENCY),
@@ -158,6 +160,7 @@ export const marketRouter = createRouter({
         quantity: z.number().positive(),
         quantityUnit: z.string().default("kg"),
         location: z.string().min(1),
+        ward: z.string().optional(),
         expectedPrice: z.number().positive(),
         description: z.string().optional(),
         farmerName: z.string().min(1),
@@ -193,6 +196,14 @@ export const marketRouter = createRouter({
       };
       await listings.create(newListing);
       alertBuyersOfListing(newListing).catch(() => {});
+
+      // A farmer's ward doesn't change listing-to-listing, and there's no
+      // separate profile-edit screen on the website yet — piggyback on
+      // whatever they enter here so Farmer Next Door's ward filter has
+      // real data to work with, not just an empty dropdown.
+      if (input.ward && input.ward.trim()) {
+        await users.updateOne({ id: farmer.id }, { $set: { ward: input.ward.trim() } });
+      }
 
       return { id };
     }),

@@ -126,10 +126,11 @@ admin.post(
 admin.post(
   "/users/details",
   guard(async (c) => {
-    const { id, name, location } = await c.req.json();
+    const { id, name, location, ward } = await c.req.json();
     const set: any = {};
     if (name != null) set.name = String(name).trim() || null;
     if (location != null) set.location = String(location).trim() || null;
+    if (ward != null) set.ward = String(ward).trim() || null;
     await users.updateOne({ id: Number(id) }, { $set: set });
     return c.json({ dbConnected: true, ok: true });
   }),
