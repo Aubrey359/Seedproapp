@@ -67,6 +67,7 @@ function mapListing(l) {
     old: null,
     unit: l.quantityUnit || 'kg',
     farmer: l.farmerName || 'Verified Farmer',
+    farmerId: l.farmerId,
     county: l.location,
     rating: l.farmerRating || 4.5,
     ok: !!l.farmerVerified,
@@ -223,13 +224,14 @@ function farmerCardHTML(f) {
   var stars = '★'.repeat(fullStars) + '☆'.repeat(Math.max(0, 5 - fullStars));
   var nameEsc = (f.name || 'Farmer').replace(/'/g, "\\'");
   var placeText = f.ward ? (f.ward + ', ' + (f.location || 'Kenya')) : (f.location || 'Kenya');
-  return '<div class="farmer-card" onclick="contactFarmer(\'' + (f.phone || '') + '\',\'' + nameEsc + '\')">' +
+  return '<div class="farmer-card" onclick="showFarmerShop(' + f.id + ')">' +
     '<div class="farmer-av">' + (f.avatar ? '<img class="farmer-photo" src="' + f.avatar + '" alt="" loading="lazy" onerror="this.remove()">' : '<span class="fa-emoji">🧑‍🌾</span>') + '</div>' +
     '<div class="farmer-name">' + (f.name || 'Farmer') + '<span class="verified-badge-inline" title="Verified Seller">' + VERIFIED_BADGE_SVG + '</span></div>' +
     (wardMatch ? '<div class="near-me-tag" style="display:inline-block;margin:2px 0 3px">Same ward</div>' : countyMatch ? '<div class="near-me-tag" style="display:inline-block;margin:2px 0 3px">Near you</div>' : '') +
     '<div class="farmer-loc">📍 ' + placeText + '</div>' +
     '<div class="farmer-stars">' + stars + ' ' + rating.toFixed(1) + '</div>' +
     '<div class="farmer-count">' + f.listingCount + ' Listing' + (f.listingCount === 1 ? '' : 's') + '</div>' +
+    '<button class="farmer-card-wa" onclick="event.stopPropagation();contactFarmer(\'' + (f.phone || '') + '\',\'' + nameEsc + '\')">💬 Message</button>' +
   '</div>';
 }
 
@@ -247,9 +249,8 @@ function renderNearbyFarmers() {
    gradient carousel, echoing Shamba Direct's "Featured Farm
    Advertisements" reserved for farmers who'd hit the 5-sale milestone. */
 function featuredFarmerCardHTML(f) {
-  var nameEsc = (f.name || 'Farmer').replace(/'/g, "\\'");
   var placeText = f.ward ? (f.ward + ', ' + (f.location || 'Kenya')) : (f.location || 'Kenya');
-  return '<div class="featured-farmer-card" onclick="contactFarmer(\'' + (f.phone || '') + '\',\'' + nameEsc + '\')">' +
+  return '<div class="featured-farmer-card" onclick="showFarmerShop(' + f.id + ')">' +
     '<div class="ff-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526"/><circle cx="12" cy="8" r="6"/></svg>Featured Farm</div>' +
     '<div class="ff-name">' + (f.name || 'Farmer') + '<span class="verified-badge-inline" title="Verified Seller">' + VERIFIED_BADGE_SVG + '</span></div>' +
     '<div class="ff-loc">📍 ' + placeText + '</div>' +
@@ -292,6 +293,73 @@ function contactFarmer(phone, name) {
   window.open('https://wa.me/' + digits, '_blank', 'noopener');
 }
 
+/* ── FARMER SHOP (a farmer's own storefront — their profile + everything
+   they currently have listed) ── */
+function renderFarmerShopHeader(f) {
+  var avatarEl = document.getElementById('fsAvatar');
+  if (avatarEl) avatarEl.innerHTML = f.avatar
+    ? '<img class="farmer-photo" src="' + f.avatar + '" alt="" loading="lazy" onerror="this.remove()">'
+    : '<span class="fa-emoji">🧑‍🌾</span>';
+
+  var nameEl = document.getElementById('fsName');
+  if (nameEl) nameEl.textContent = f.name || 'Farmer';
+
+  var badgesEl = document.getElementById('fsBadges');
+  if (badgesEl) {
+    var badges = '';
+    if (f.verified) badges += '<span class="verified-badge-inline" title="Verified Seller">' + VERIFIED_BADGE_SVG + '</span>';
+    if (f.premium) badges += '<span class="fs-premium-tag">⭐ Premium Seller</span>';
+    badgesEl.innerHTML = badges;
+  }
+
+  var metaEl = document.getElementById('fsMeta');
+  if (metaEl) {
+    var placeText = f.ward ? (f.ward + ', ' + (f.location || 'Kenya')) : (f.location || 'Kenya');
+    var rating = f.rating || 0;
+    metaEl.innerHTML =
+      '<span>📍 ' + placeText + '</span>' +
+      '<span>★ ' + rating.toFixed(1) + ' (' + f.reviewCount + ' review' + (f.reviewCount === 1 ? '' : 's') + ')</span>' +
+      '<span>' + f.listings.length + ' listing' + (f.listings.length === 1 ? '' : 's') + '</span>';
+  }
+
+  var waBtn = document.getElementById('fsWaBtn');
+  if (waBtn) {
+    waBtn.style.display = '';
+    waBtn.onclick = function() { contactFarmer(f.phone, f.name || 'this farmer'); };
+  }
+}
+
+function renderFarmerShop(farmerId) {
+  var grid = document.getElementById('farmerShopGrid');
+  if (grid) grid.innerHTML = loadingHTML();
+
+  fetch('/api/trpc/market.farmerProfile?input=' + encodeURIComponent(JSON.stringify({ json: { farmerId: farmerId } })))
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      var f = data && data.result && data.result.data && data.result.data.json;
+      if (!f) {
+        document.getElementById('fsName').textContent = 'Farmer not found';
+        document.getElementById('fsMeta').innerHTML = '';
+        document.getElementById('fsBadges').innerHTML = '';
+        var waBtn = document.getElementById('fsWaBtn'); if (waBtn) waBtn.style.display = 'none';
+        if (grid) grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:24px;color:var(--grey-text)">This farmer couldn\'t be found.</p>';
+        return;
+      }
+      renderFarmerShopHeader(f);
+      var titleEl = document.getElementById('fsListingsTitle');
+      var products = f.listings.map(mapListing);
+      if (titleEl) titleEl.textContent = '🌾 Listings (' + products.length + ')';
+      if (grid) {
+        grid.innerHTML = products.length
+          ? products.map(cardHTML).join('')
+          : '<p style="grid-column:1/-1;text-align:center;padding:24px;color:var(--grey-text)">No active listings right now — check back soon.</p>';
+      }
+    })
+    .catch(function() {
+      if (grid) grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:24px;color:var(--grey-text)">Couldn\'t load this shop. Try again shortly.</p>';
+    });
+}
+
 /* ── CART (localStorage-backed) ── */
 var cart = (function(){
   try { return JSON.parse(localStorage.getItem('sp_cart')||'[]'); } catch(e){ return []; }
@@ -324,6 +392,7 @@ function cardHTML(p) {
     '</div>' +
     '<div class="prod-body">' +
       '<div class="prod-name">' + p.name + (p.premium ? ' <span class="prod-premium-badge" title="Premium seller">⭐</span>' : '') + '</div>' +
+      (p.farmerId ? '<div class="prod-farmer" onclick="event.stopPropagation();showFarmerShop(' + p.farmerId + ')">🧑‍🌾 ' + p.farmer + '</div>' : '') +
       '<div class="prod-meta">📍 ' + p.county +
         (BUYER_LOCATION && (p.county||'').toLowerCase() === BUYER_LOCATION.toLowerCase() ? ' <span class="near-me-tag">Near you</span>' : '') +
         ' · <span class="prod-rating">★ ' + p.rating + '</span></div>' +
@@ -1088,5 +1157,3 @@ document.querySelectorAll('.buyer-location-sel').forEach(function(sel){ sel.valu
 updateNearMeBanner();
 loadProducts();
 loadNearbyFarmers();
-checkAuthState(); // so a returning visitor with a valid session cookie shows as signed in, not just after a fresh login
-handlePaymentRedirect(); // was defined but never called — buyers landing back from PayPal/Pesapal saw no confirmation toast at all

@@ -401,6 +401,11 @@ nav {
 .prod-body { padding: 10px 12px 12px; }
 .prod-name { font-size: 13px; font-weight: 800; color: var(--dark); margin-bottom: 3px; line-height: 1.3; font-family:'Nunito',sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .prod-premium-badge { font-size: 11px; filter: drop-shadow(0 0 2px rgba(255,193,7,.6)); }
+.prod-farmer {
+  font-size: 10.5px; font-weight: 700; color: var(--green); margin-bottom: 4px; cursor: pointer;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.prod-farmer:hover { text-decoration: underline; }
 .prod-meta { font-size: 11px; color: var(--grey-text); margin-bottom: 6px; }
 .prod-rating { color: #F5B942; font-weight: 700; }
 .prod-price-row { display: flex; align-items: baseline; gap: 5px; margin-bottom: 9px; }
@@ -453,6 +458,13 @@ nav {
 .farmer-loc  { font-size: 10px; color: var(--grey-text); margin-bottom: 5px; }
 .farmer-stars { font-size: 11px; color: #F5B942; }
 .farmer-count { font-size: 10px; color: var(--green); font-weight: 700; margin-top: 3px; font-family:'Nunito',sans-serif; background: var(--green-pale); padding: 2px 8px; border-radius: 100px; display: inline-block; }
+.farmer-card-wa {
+  margin-top: 8px; width: 100%; height: 28px; border-radius: 100px;
+  background: linear-gradient(135deg, #25D366, #128C7E); color: white; border: none; cursor: pointer;
+  font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 4px;
+  box-shadow: 0 2px 8px rgba(37,211,102,.25); transition: all .2s; font-family:'Nunito',sans-serif;
+}
+.farmer-card-wa:hover { transform: translateY(-1px); }
 
 /* ── Featured Farmers — premium-tier farmers get a distinct gradient
    carousel above the regular grid, not just a spot in the same list.
@@ -528,6 +540,31 @@ nav {
   box-shadow: var(--shadow-green); transition: transform .2s;
 }
 .order-action-btn:hover { transform: translateY(-1px); }
+
+/* ══ FARMER SHOP PAGE (a farmer's own storefront) ══ */
+.fs-back-btn {
+  background: rgba(255,255,255,.15); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.25);
+  color: white; font-size: 12px; font-weight: 800; font-family:'Nunito',sans-serif;
+  padding: 6px 14px; border-radius: 100px; cursor: pointer; margin-bottom: 16px;
+  position: relative; z-index: 1; transition: background .2s; display: block;
+}
+.fs-back-btn:hover { background: rgba(255,255,255,.25); }
+.fs-header { display: flex; align-items: center; gap: 14px; position: relative; z-index: 1; margin-bottom: 16px; }
+.fs-avatar {
+  width: 72px; height: 72px; border-radius: 50%; flex-shrink: 0; position: relative; overflow: hidden;
+  background: rgba(255,255,255,.15); border: 2.5px solid rgba(255,255,255,.5);
+  display: flex; align-items: center; justify-content: center; font-size: 34px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.2);
+}
+.fs-avatar .farmer-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.fs-header-info h1 { display: flex; align-items: center; }
+.fs-badges { display: flex; align-items: center; gap: 6px; margin: 2px 0 6px; position: relative; z-index: 1; }
+.fs-premium-tag {
+  display: inline-flex; align-items: center; gap: 3px; font-size: 10px; font-weight: 800;
+  background: rgba(245,185,66,.22); color: #FFD98A; padding: 2px 9px; border-radius: 100px;
+  text-transform: uppercase; letter-spacing: .03em;
+}
+.fs-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: rgba(255,255,255,.82); position: relative; z-index: 1; }
 
 /* ══ PRICES TABLE ══ */
 .prices-table { background: var(--white); border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--grey-border); box-shadow: var(--shadow-xs); }

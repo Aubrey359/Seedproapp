@@ -110,6 +110,38 @@ export const marketRouter = createRouter({
     }));
   }),
 
+  // A farmer's own shop — their profile plus every active listing they
+  // have, in the same shape market.list already returns (reuses
+  // withFarmer) so the frontend can render these with its existing
+  // product-card code unchanged. Not gated on `verified` like
+  // nearbyFarmers — a brand-new farmer's listings already show in the
+  // main Shop grid, so their shop page should be reachable too.
+  farmerProfile: publicQuery
+    .input(z.object({ farmerId: z.number() }))
+    .query(async ({ input }) => {
+      const farmer: any = await users.findOne({ id: input.farmerId }).lean();
+      if (!farmer) return null;
+
+      const rows = await listings
+        .find({ farmerId: input.farmerId, status: "active" })
+        .sort({ createdAt: -1 })
+        .lean();
+
+      return {
+        id: farmer.id,
+        name: farmer.name ?? "Farmer",
+        avatar: farmer.avatar ?? null,
+        location: farmer.location ?? null,
+        ward: farmer.ward ?? null,
+        rating: farmer.rating ?? 0,
+        reviewCount: farmer.reviewCount ?? 0,
+        verified: !!farmer.verified,
+        premium: !!farmer.premium,
+        phone: farmer.phone ?? null,
+        listings: rows.map((r: any) => withFarmer(r, farmer, "card")),
+      };
+    }),
+
   create: authedQuery
     .input(
       z.object({
