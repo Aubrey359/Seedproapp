@@ -7,7 +7,7 @@ import { env } from "./lib/env";
 export const paypalRouter = createRouter({
   // ── Create order, get the buyer's approval redirect URL ────────
   createOrder: publicQuery
-    .input(z.object({ amountKes: z.number().positive(), orderId: z.number().optional() }))
+    .input(z.object({ amountKes: z.number().positive(), orderIds: z.array(z.number()).optional() }))
     .mutation(async ({ input }) => {
       const paymentId = await nextSeq("paypal_payments");
       const amountUsd = Math.round((input.amountKes / env.paypal.kesToUsdRate) * 100) / 100;
@@ -21,7 +21,7 @@ export const paypalRouter = createRouter({
 
       await paypalPayments.create({
         id: paymentId,
-        orderId: input.orderId ?? null,
+        orderIds: input.orderIds ?? [],
         paypalOrderId: result.orderId,
         amountKes: input.amountKes,
         amountUsd,

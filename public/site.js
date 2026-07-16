@@ -471,8 +471,29 @@ function toggleCart() {
 
 function checkout() {
   if (!cart.length) { showToast('🛒 Your cart is empty'); return; }
+  if (!CURRENT_USER) {
+    showToast('👤 Please sign in to complete checkout');
+    enterApp();
+    return;
+  }
   toggleCart();
   openPaymentModal();
+}
+
+/* Turns the current cart into real `orders` records (one per line item) so
+   a purchase actually shows up in My Orders / Farmer Next Door's flow —
+   used by all three payment methods right before they charge the buyer. */
+function createOrdersFromCart() {
+  return fetch('/api/trpc/market.createOrders', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ json: { items: cart.map(function(c){ return { listingId: c.id, quantity: c.qty }; }) } })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data) {
+    if (data.error) throw new Error(data.error.message || 'Could not create your order');
+    return data.result.data.json.orderIds;
+  });
 }
 
 /* ── PAYMENT MODAL (choose method, then per-method detail) ── */
@@ -519,10 +540,11 @@ function backToMethods() {
 function selectPayMethod(method) {
   document.getElementById('payMethods').style.display = 'none';
   var detail = document.getElementById('payDetail');
+  var knownPhone = (CURRENT_USER && CURRENT_USER.phone) ? CURRENT_USER.phone : '';
   if (method === 'mpesa') {
     detail.innerHTML = [
       '<div class="auth-field" style="margin-top:4px"><label>M-Pesa Phone Number</label>',
-        '<input type="tel" id="mpesaPhone" placeholder="e.g. 0712 345 678" />',
+        '<input type="tel" id="mpesaPhone" placeholder="e.g. 0712 345 678" value="' + knownPhone + '" />',
       '</div>',
       '<button class="auth-submit mpesa-pay-btn" onclick="initiateMpesa(' + PAY_TOTAL + ')">📲 Send M-Pesa Request</button>',
       '<p class="pay-back-link" onclick="backToMethods()">↩ Choose a different method</p>',
@@ -537,7 +559,7 @@ function selectPayMethod(method) {
     ].join('');
   } else if (method === 'pesapal') {
     detail.innerHTML = [
-      '<div class="auth-field" style="margin-top:4px"><label>Phone Number</label><input type="tel" id="pesapalPhone" placeholder="e.g. 0712 345 678" /></div>',
+      '<div class="auth-field" style="margin-top:4px"><label>Phone Number</label><input type="tel" id="pesapalPhone" placeholder="e.g. 0712 345 678" value="' + knownPhone + '" /></div>',
       '<div class="auth-field"><label>Email (optional)</label><input type="email" id="pesapalEmail" placeholder="you@example.com" /></div>',
       '<button class="auth-submit" id="pesapalBtn" onclick="initiatePesapal()">Continue to Pesapal →</button>',
       '<p class="pay-back-link" onclick="backToMethods()">↩ Choose a different method</p>',
@@ -549,10 +571,13 @@ function selectPayMethod(method) {
 function initiatePaypal() {
   var btn = document.getElementById('paypalBtn');
   btn.textContent = '⏳ Creating order…'; btn.disabled = true;
-  fetch('/api/trpc/paypal.createOrder', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ json: { amountKes: PAY_TOTAL } })
+  createOrdersFromCart()
+  .then(function(orderIds) {
+    return fetch('/api/trpc/paypal.createOrder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ json: { amountKes: PAY_TOTAL, orderIds: orderIds } })
+    });
   })
   .then(function(r){ return r.json(); })
   .then(function(data) {
@@ -571,10 +596,13 @@ function initiatePesapal() {
   if (!phone.trim() && !email.trim()) { showToast('⚠️ Please enter your phone number or email'); return; }
   var btn = document.getElementById('pesapalBtn');
   btn.textContent = '⏳ Creating order…'; btn.disabled = true;
-  fetch('/api/trpc/pesapal.submitOrder', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ json: { amount: PAY_TOTAL, phone: phone.trim() || undefined, email: email.trim() || undefined } })
+  createOrdersFromCart()
+  .then(function(orderIds) {
+    return fetch('/api/trpc/pesapal.submitOrder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ json: { amount: PAY_TOTAL, orderIds: orderIds, phone: phone.trim() || undefined, email: email.trim() || undefined } })
+    });
   })
   .then(function(r){ return r.json(); })
   .then(function(data) {
@@ -622,18 +650,22 @@ function initiateMpesa(amount) {
   statusEl.className = 'mpesa-status pending';
   statusEl.innerHTML = '📲 <strong>Check your phone</strong><br>Enter your M-Pesa PIN when prompted.';
 
-  // Call the tRPC STK Push endpoint
-  fetch('/api/trpc/mpesa.stkPush', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      json: {
-        phone:       phone,
-        amount:      amount,
-        accountRef:  'Shamba Sokoni',
-        description: 'Farm Produce'
-      }
-    })
+  // Create the real order records first, then request the STK push
+  createOrdersFromCart()
+  .then(function(orderIds) {
+    return fetch('/api/trpc/mpesa.stkPush', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        json: {
+          phone:       phone,
+          amount:      amount,
+          orderIds:    orderIds,
+          accountRef:  'Shamba Sokoni',
+          description: 'Farm Produce'
+        }
+      })
+    });
   })
   .then(function(r){ return r.json(); })
   .then(function(data) {
@@ -817,6 +849,8 @@ function checkAuthState() {
       renderAuthState();
       var chatPage = document.getElementById('page-chat');
       if (chatPage && chatPage.classList.contains('active') && typeof loadChatMessages === 'function') loadChatMessages();
+      var ordersPage = document.getElementById('page-orders');
+      if (ordersPage && ordersPage.classList.contains('active') && typeof renderOrdersPage === 'function') renderOrdersPage();
     })
     .catch(function() { CURRENT_USER = null; renderAuthState(); });
 }
@@ -921,6 +955,104 @@ function quickChatSend(text) {
   sendChatMessage();
 }
 
+/* ── MY ORDERS (watch the flow of a sale from pending → delivered) ── */
+var ORDER_STEPS = ['pending', 'confirmed', 'in_transit', 'delivered'];
+var ORDER_STEP_LABELS = { pending: 'Pending', confirmed: 'Confirmed', in_transit: 'In Transit', delivered: 'Delivered' };
+var ORDER_NEXT_STATUS = { pending: 'confirmed', confirmed: 'in_transit', in_transit: 'delivered' };
+var ORDER_NEXT_LABEL  = { pending: '✓ Confirm Order', confirmed: '🚚 Mark In Transit', in_transit: '📦 Mark Delivered' };
+
+function orderStepperHTML(status) {
+  if (status === 'cancelled') return '<div class="order-cancelled-tag">✕ Order Cancelled</div>';
+  var idx = ORDER_STEPS.indexOf(status);
+  var html = '<div class="order-stepper">';
+  ORDER_STEPS.forEach(function(s, i) {
+    if (i > 0) html += '<span class="order-step-line' + (i <= idx ? ' filled' : '') + '"></span>';
+    var cls = i < idx ? 'done' : (i === idx ? 'current' : '');
+    html += '<div class="order-step ' + cls + '"><span class="order-step-dot">' + (i < idx ? '✓' : '') + '</span><span class="order-step-label">' + ORDER_STEP_LABELS[s] + '</span></div>';
+  });
+  return html + '</div>';
+}
+
+function orderCardHTML(o) {
+  var meta = cropMeta(o.cropName);
+  var dateStr = o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+  var counterpartyLabel = o.role === 'farmer' ? 'Buyer' : 'Farmer';
+  var roleTag = o.role === 'farmer'
+    ? '<span class="order-role-tag seller">You\'re selling</span>'
+    : '<span class="order-role-tag buyer">You\'re buying</span>';
+  var actionBtn = (o.role === 'farmer' && ORDER_NEXT_STATUS[o.status])
+    ? '<button class="order-action-btn" onclick="advanceOrderStatus(' + o.id + ',\'' + ORDER_NEXT_STATUS[o.status] + '\')">' + ORDER_NEXT_LABEL[o.status] + '</button>'
+    : '';
+  return '<div class="order-card">' +
+    '<div class="order-card-top">' +
+      '<div class="order-crop"><span class="order-crop-emoji">' + meta.emoji + '</span>' +
+        '<div><div class="order-crop-name">' + o.cropName + ' · ' + o.quantity + o.quantityUnit + '</div>' +
+        '<div class="order-crop-sub">' + counterpartyLabel + ': ' + o.counterpartyName + ' · ' + dateStr + '</div></div>' +
+      '</div>' +
+      roleTag +
+    '</div>' +
+    orderStepperHTML(o.status) +
+    '<div class="order-card-bottom">' +
+      '<div class="order-total">KSh ' + o.totalAmount.toLocaleString() + '</div>' +
+      actionBtn +
+    '</div>' +
+  '</div>';
+}
+
+function showOrdersGate() {
+  var gate = document.getElementById('ordersSignInGate'), wrap = document.getElementById('ordersWrap');
+  if (gate) gate.style.display = '';
+  if (wrap) wrap.style.display = 'none';
+}
+
+function showOrdersUI() {
+  var gate = document.getElementById('ordersSignInGate'), wrap = document.getElementById('ordersWrap');
+  if (gate) gate.style.display = 'none';
+  if (wrap) wrap.style.display = '';
+}
+
+function renderOrdersPage() {
+  if (!CURRENT_USER) { showOrdersGate(); return; }
+  showOrdersUI();
+  var list = document.getElementById('ordersList');
+  var empty = document.getElementById('ordersEmpty');
+  if (!list) return;
+  list.innerHTML = '<p style="text-align:center;padding:24px;color:var(--grey-text)">Loading your orders…</p>';
+  if (empty) empty.style.display = 'none';
+  fetch('/api/trpc/market.myOrders')
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      if (data.error) { showOrdersGate(); return; }
+      var rows = (data.result && data.result.data && data.result.data.json) || [];
+      if (!rows.length) {
+        list.innerHTML = '';
+        if (empty) empty.style.display = '';
+        return;
+      }
+      list.innerHTML = rows.map(orderCardHTML).join('');
+    })
+    .catch(function() {
+      list.innerHTML = '<p style="text-align:center;padding:24px;color:var(--grey-text)">Couldn\'t load your orders. Try again shortly.</p>';
+    });
+}
+
+function advanceOrderStatus(orderId, newStatus) {
+  fetch('/api/trpc/market.updateOrderStatus', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ json: { orderId: orderId, status: newStatus } })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data) {
+    if (data.error) throw new Error(data.error.message || 'Could not update order');
+    showToast('✅ Order updated');
+    renderOrdersPage();
+  })
+  .catch(function(err) {
+    showToast('❌ ' + (err.message || 'Could not update order'));
+  });
+}
+
 function openWA(name) { showToast('💬 Opening WhatsApp for ' + name + '…'); }
 function openBlog(url) { window.location.href = url || 'blog.html'; }
 function setBlogTab(el) {
@@ -956,3 +1088,5 @@ document.querySelectorAll('.buyer-location-sel').forEach(function(sel){ sel.valu
 updateNearMeBanner();
 loadProducts();
 loadNearbyFarmers();
+checkAuthState(); // so a returning visitor with a valid session cookie shows as signed in, not just after a fresh login
+handlePaymentRedirect(); // was defined but never called — buyers landing back from PayPal/Pesapal saw no confirmation toast at all

@@ -10,7 +10,7 @@ export const mpesaRouter = createRouter({
       z.object({
         phone: z.string().min(9, "Invalid phone number"),
         amount: z.number().positive("Amount must be positive"),
-        orderId: z.number().optional(),
+        orderIds: z.array(z.number()).optional(),
         accountRef: z.string().default("ShambaSokoni"),
         description: z.string().default("Farm Produce Payment"),
       }),
@@ -27,7 +27,7 @@ export const mpesaRouter = createRouter({
       const paymentId = await nextSeq("mpesa_payments");
       await mpesaPayments.create({
         id: paymentId,
-        orderId: input.orderId ?? null,
+        orderIds: input.orderIds ?? [],
         checkoutRequestId: result.checkoutRequestId,
         merchantRequestId: result.merchantRequestId,
         phone: normalizePhone(input.phone),
@@ -74,7 +74,9 @@ export const mpesaRouter = createRouter({
   getByOrder: publicQuery
     .input(z.object({ orderId: z.number() }))
     .query(async ({ input }) => {
-      const payment = await mpesaPayments.findOne({ orderId: input.orderId }).lean();
+      // Mongo matches array-contains for equality queries, so this finds any
+      // payment whose orderIds includes this order — no $in needed.
+      const payment = await mpesaPayments.findOne({ orderIds: input.orderId }).lean();
       return payment ?? null;
     }),
 });

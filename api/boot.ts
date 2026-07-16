@@ -61,9 +61,9 @@ app.post("/api/mpesa/callback", async (c) => {
         },
       );
 
-      // Mark associated order as confirmed
-      if (payment?.orderId) {
-        await orders.updateOne({ id: payment.orderId }, { $set: { status: "confirmed" } });
+      // Mark associated orders as confirmed
+      if (payment?.orderIds?.length) {
+        await orders.updateMany({ id: { $in: payment.orderIds } }, { $set: { status: "confirmed" } });
       }
 
       if (payment?.phone) {
@@ -85,6 +85,12 @@ app.post("/api/mpesa/callback", async (c) => {
           },
         },
       );
+
+      // A failed/cancelled payment shouldn't leave its orders stuck at
+      // "pending" forever — the buyer never actually paid for them.
+      if (payment?.orderIds?.length) {
+        await orders.updateMany({ id: { $in: payment.orderIds } }, { $set: { status: "cancelled" } });
+      }
 
       if (payment?.phone) {
         const isCancelled = ResultCode === 1032;
@@ -125,13 +131,19 @@ app.get("/api/paypal/return", async (c) => {
         },
       },
     );
-    if (completed && payment.orderId) {
-      await orders.updateOne({ id: payment.orderId }, { $set: { status: "confirmed" } });
+    if (payment.orderIds?.length) {
+      await orders.updateMany(
+        { id: { $in: payment.orderIds } },
+        { $set: { status: completed ? "confirmed" : "cancelled" } },
+      );
     }
     return c.redirect(`/?pay=${completed ? "success" : "failed"}&provider=paypal`, 302);
   } catch (err) {
     console.error("PayPal capture error:", err);
     await paypalPayments.updateOne({ id: paymentId }, { $set: { status: "failed" } });
+    if (payment.orderIds?.length) {
+      await orders.updateMany({ id: { $in: payment.orderIds } }, { $set: { status: "cancelled" } });
+    }
     return c.redirect("/?pay=failed&provider=paypal", 302);
   }
 });
@@ -141,7 +153,13 @@ app.get("/api/paypal/cancel", async (c) => {
   const paymentId = Number(c.req.query("paymentId"));
   if (paymentId) {
     await connectDb();
-    await paypalPayments.updateOne({ id: paymentId }, { $set: { status: "cancelled" } });
+    const payment: any = await paypalPayments.findOneAndUpdate(
+      { id: paymentId },
+      { $set: { status: "cancelled" } },
+    ).lean();
+    if (payment?.orderIds?.length) {
+      await orders.updateMany({ id: { $in: payment.orderIds } }, { $set: { status: "cancelled" } });
+    }
   }
   return c.redirect("/?pay=cancelled&provider=paypal", 302);
 });
@@ -167,8 +185,11 @@ app.get("/api/pesapal/return", async (c) => {
         },
       },
     );
-    if (completed && payment?.orderId) {
-      await orders.updateOne({ id: payment.orderId }, { $set: { status: "confirmed" } });
+    if (payment?.orderIds?.length && (completed || failed)) {
+      await orders.updateMany(
+        { id: { $in: payment.orderIds } },
+        { $set: { status: completed ? "confirmed" : "cancelled" } },
+      );
     }
     return c.redirect(`/?pay=${completed ? "success" : failed ? "failed" : "pending"}&provider=pesapal`, 302);
   } catch (err) {
@@ -199,8 +220,11 @@ app.get("/api/pesapal/ipn", async (c) => {
         },
       },
     );
-    if (completed && payment?.orderId) {
-      await orders.updateOne({ id: payment.orderId }, { $set: { status: "confirmed" } });
+    if (payment?.orderIds?.length && (completed || failed)) {
+      await orders.updateMany(
+        { id: { $in: payment.orderIds } },
+        { $set: { status: completed ? "confirmed" : "cancelled" } },
+      );
     }
     return c.json({ ok: true });
   } catch (err) {

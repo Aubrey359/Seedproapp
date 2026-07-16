@@ -151,6 +151,50 @@ export const marketRouter = createRouter({
       return { id };
     }),
 
+  // Batch version of createOrder for cart checkout (which can span multiple
+  // listings/farmers in one go). Price/farmerId are derived from the live
+  // listing server-side — never trust cart totals from the client.
+  createOrders: authedQuery
+    .input(
+      z.object({
+        items: z
+          .array(
+            z.object({
+              listingId: z.number(),
+              quantity: z.number().positive(),
+            }),
+          )
+          .min(1),
+        deliveryMethod: z.enum(["pickup", "delivery"]).default("pickup"),
+        notes: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const orderIds: number[] = [];
+      for (const item of input.items) {
+        const listing: any = await listings.findOne({ id: item.listingId }).lean();
+        if (!listing) continue; // stale cart entry (listing sold/removed) — skip, don't fail the whole checkout
+
+        const id = await nextSeq("orders");
+        await orders.create({
+          id,
+          listingId: listing.id,
+          buyerId: ctx.user.id,
+          farmerId: listing.farmerId,
+          quantity: item.quantity,
+          price: listing.expectedPrice,
+          totalAmount: listing.expectedPrice * item.quantity,
+          deliveryMethod: input.deliveryMethod,
+          notes: input.notes ?? null,
+          status: "pending",
+        });
+        orderIds.push(id);
+      }
+
+      if (!orderIds.length) throw new Error("None of the items in your cart are available anymore");
+      return { orderIds };
+    }),
+
   // Public equivalent of `create` for the website's Sell form, which has no
   // login system — the farmer's phone number is their identity, same as the
   // WhatsApp bot. Finds-or-creates the farmer, then creates the listing.
@@ -245,14 +289,44 @@ export const marketRouter = createRouter({
       return { id };
     }),
 
+  // Enriched for the "My Orders" tracker UI — crop name/photo and the
+  // counterparty's name/phone, not just raw listingId/buyerId/farmerId
+  // numbers, so the frontend can render a real order list in one round trip.
   myOrders: authedQuery.query(async ({ ctx }) => {
-    const userId = ctx.user.id;
-    return omitMongo(
-      await orders
-        .find({ $or: [{ buyerId: userId }, { farmerId: userId }] })
-        .sort({ createdAt: -1 })
-        .lean(),
-    );
+    const rows = await orders
+      .find({ $or: [{ buyerId: ctx.user.id }, { farmerId: ctx.user.id }] })
+      .sort({ createdAt: -1 })
+      .lean();
+    if (!rows.length) return [];
+
+    const listingIds = [...new Set(rows.map((r: any) => r.listingId))];
+    const partyIds = [...new Set(rows.flatMap((r: any) => [r.buyerId, r.farmerId]))];
+    const [listingRows, partyRows] = await Promise.all([
+      listings.find({ id: { $in: listingIds } }).lean(),
+      users.find({ id: { $in: partyIds } }).lean(),
+    ]);
+    const listingMap = new Map(listingRows.map((l: any) => [l.id, l]));
+    const userMap = new Map(partyRows.map((u: any) => [u.id, u]));
+
+    return rows.map((r: any) => {
+      const listing: any = listingMap.get(r.listingId);
+      const isFarmer = r.farmerId === ctx.user.id;
+      const counterparty: any = userMap.get(isFarmer ? r.buyerId : r.farmerId);
+      return {
+        id: r.id,
+        role: isFarmer ? "farmer" : "buyer",
+        cropName: listing?.cropName ?? "Produce",
+        cropImage: listing?.images?.[0] ?? null,
+        quantity: r.quantity,
+        quantityUnit: listing?.quantityUnit ?? "kg",
+        totalAmount: r.totalAmount,
+        deliveryMethod: r.deliveryMethod,
+        status: r.status,
+        counterpartyName: counterparty?.name ?? "Unknown",
+        counterpartyPhone: counterparty?.phone ?? null,
+        createdAt: r.createdAt,
+      };
+    });
   }),
 
   updateOrderStatus: authedQuery
@@ -262,7 +336,13 @@ export const marketRouter = createRouter({
         status: z.enum(["pending", "confirmed", "in_transit", "delivered", "cancelled"]),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      const existing: any = await orders.findOne({ id: input.orderId }).lean();
+      if (!existing) throw new Error("Order not found");
+      if (existing.farmerId !== ctx.user.id) {
+        throw new Error("Only the seller can update this order's status");
+      }
+
       const order = await orders.findOneAndUpdate(
         { id: input.orderId },
         { $set: { status: input.status } },

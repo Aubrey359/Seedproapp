@@ -10,7 +10,7 @@ export const pesapalRouter = createRouter({
     .input(
       z.object({
         amount: z.number().positive(),
-        orderId: z.number().optional(),
+        orderIds: z.array(z.number()).optional(),
         email: z.string().email().optional(),
         phone: z.string().min(9).optional(),
       }),
@@ -33,7 +33,7 @@ export const pesapalRouter = createRouter({
 
       await pesapalPayments.create({
         id: paymentId,
-        orderId: input.orderId ?? null,
+        orderIds: input.orderIds ?? [],
         orderTrackingId: result.orderTrackingId,
         merchantReference,
         amount: input.amount,

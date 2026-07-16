@@ -304,7 +304,7 @@ export const priceAlerts = model("PriceAlert", priceAlertSchema);
 const mpesaPaymentSchema = new Schema(
   {
     id: { type: Number, unique: true, index: true },
-    orderId: Number,
+    orderIds: { type: [Number], default: [] },
     checkoutRequestId: { type: String, unique: true, sparse: true },
     merchantRequestId: String,
     phone: { type: String, required: true },
@@ -325,7 +325,7 @@ export const mpesaPayments = model("MpesaPayment", mpesaPaymentSchema);
 const paypalPaymentSchema = new Schema(
   {
     id: { type: Number, unique: true, index: true },
-    orderId: Number,
+    orderIds: { type: [Number], default: [] },
     paypalOrderId: { type: String, unique: true, sparse: true },
     amountKes: { type: Number, required: true },
     amountUsd: { type: Number, required: true },
@@ -342,7 +342,7 @@ export const paypalPayments = model("PaypalPayment", paypalPaymentSchema);
 const pesapalPaymentSchema = new Schema(
   {
     id: { type: Number, unique: true, index: true },
-    orderId: Number,
+    orderIds: { type: [Number], default: [] },
     orderTrackingId: { type: String, unique: true, sparse: true },
     merchantReference: String,
     amount: { type: Number, required: true },
