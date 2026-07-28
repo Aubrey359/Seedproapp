@@ -7,6 +7,7 @@ import { mpesaRouter } from "./mpesa-router";
 import { settingsRouter } from "./settings-router";
 import { paypalRouter } from "./paypal-router";
 import { pesapalRouter } from "./pesapal-router";
+import { plantingRouter } from "./planting-router";
 import { createRouter, publicQuery } from "./middleware";
 
 export const appRouter = createRouter({
@@ -20,6 +21,7 @@ export const appRouter = createRouter({
   settings: settingsRouter,
   paypal:   paypalRouter,
   pesapal:  pesapalRouter,
+  planting: plantingRouter,
 });
 
 export type AppRouter = typeof appRouter;

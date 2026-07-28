@@ -121,6 +121,7 @@
       <button class="nav-item" data-sec="orders" onclick="nav('orders')"><span class="nav-ico">📦</span> Orders</button>
       <button class="nav-item" data-sec="payments" onclick="nav('payments')"><span class="nav-ico">💳</span> Payments</button>
       <button class="nav-item" data-sec="prices" onclick="nav('prices')"><span class="nav-ico">📈</span> Market Prices</button>
+      <button class="nav-item" data-sec="cropguides" onclick="nav('cropguides')"><span class="nav-ico">🌱</span> Crop Guides</button>
       <button class="nav-item" data-sec="whatsapp" onclick="nav('whatsapp')"><span class="nav-ico">💬</span> WhatsApp Bot</button>
       <button class="nav-item" data-sec="disputes" onclick="nav('disputes')"><span class="nav-ico">🚩</span> Disputes</button>
       <button class="nav-item" data-sec="content" onclick="nav('content')"><span class="nav-ico">📝</span> Site Content</button>
@@ -143,7 +144,7 @@
   <script>
     var KEY = localStorage.getItem('ss_admin_key') || '';
     var SECTION = 'overview';
-    var TITLES = { overview:'Overview', listings:'Listings', farmers:'Farmers & Users', orders:'Orders', payments:'Payments', prices:'Market Prices', whatsapp:'WhatsApp Bot', disputes:'Disputes', content:'Site Content' };
+    var TITLES = { overview:'Overview', listings:'Listings', farmers:'Farmers & Users', orders:'Orders', payments:'Payments', prices:'Market Prices', cropguides:'Crop Guides', whatsapp:'WhatsApp Bot', disputes:'Disputes', content:'Site Content' };
 
     function api(path, opts){
       opts = opts || {};
@@ -194,7 +195,7 @@
     function refresh(){
       var v = document.getElementById('view');
       v.innerHTML = '<div class="loading">Loading…</div>';
-      var fn = { overview:renderOverview, listings:renderListings, farmers:renderFarmers, orders:renderOrders, payments:renderPayments, prices:renderPrices, whatsapp:renderWhatsapp, disputes:renderDisputes, content:renderContent }[SECTION];
+      var fn = { overview:renderOverview, listings:renderListings, farmers:renderFarmers, orders:renderOrders, payments:renderPayments, prices:renderPrices, cropguides:renderCropGuides, whatsapp:renderWhatsapp, disputes:renderDisputes, content:renderContent }[SECTION];
       fn().catch(function(e){
         if (e && e.unauth) return logout();
         v.innerHTML = '<div class="banner">Error loading data: '+esc(e&&e.message||e)+'</div>';
@@ -370,6 +371,141 @@
         setView(panel("Today's market prices ("+(d.prices||[]).length+')',
           table(['Crop','Town','Wholesale','Retail','Trend','Action'], rows, 6)));
       });
+    }
+    // ── Crop Guides (My Farm's day-by-day guidance content) ──
+    var CG_DATA = null, CG_SELECTED_CROP = null;
+    var ACTIVITY_TYPES = ['fertilizer','pesticide','fungicide','herbicide','irrigation','pruning','harvest'];
+    function renderCropGuides(){
+      return api('/crop-guides').then(function(d){
+        setDbPill(d.dbConnected);
+        if (!d.dbConnected) return setView(dbBanner());
+        CG_DATA = d;
+        if (CG_SELECTED_CROP == null && d.crops.length) CG_SELECTED_CROP = d.crops[0].id;
+        setView(cropGuidesView());
+      });
+    }
+    function cropGuidesView(){
+      var d = CG_DATA;
+      var cropOpts = d.crops.map(function(c){
+        var n = d.guides.filter(function(g){ return g.cropId===c.id; }).length;
+        return '<option value="'+c.id+'"'+(c.id===CG_SELECTED_CROP?' selected':'')+'>'+esc(c.name)+' ('+n+' stage'+(n===1?'':'s')+')</option>';
+      }).join('');
+      var guides = d.guides.filter(function(g){ return g.cropId===CG_SELECTED_CROP; }).sort(function(a,b){ return a.stageOrder-b.stageOrder; });
+      var schedules = d.schedules.filter(function(s){ return s.cropId===CG_SELECTED_CROP; }).sort(function(a,b){ return a.dayFrom-b.dayFrom; });
+      var pickerPanel = '<div class="panel"><div class="panel-h">Select crop</div><div style="padding:14px 18px">'+
+        '<select class="settings-input" style="max-width:320px" onchange="CG_SELECTED_CROP=Number(this.value);setView(cropGuidesView())">'+cropOpts+'</select>'+
+        '<div class="muted" style="font-size:12px;margin-top:8px">Only crops with at least one stage show real guidance in My Farm — everything else gracefully shows "coming soon" to farmers.</div>'+
+        '</div></div>';
+      var guideCards = guides.map(guideCardHTML).join('') + newGuideCardHTML();
+      var guidesPanel = '<div class="panel"><div class="panel-h">Stage guides</div><div style="padding:14px 18px;display:flex;flex-direction:column;gap:14px">'+guideCards+'</div></div>';
+      var scheduleRows = schedules.map(scheduleRowHTML).join('') + newScheduleRowHTML();
+      var schedulePanel = '<div class="panel"><div class="panel-h">Task &amp; spray schedule</div>'+
+        table(['Stage','Day From','Day To','Activity','Product','Dosage','Instructions',''], scheduleRows, 8)+'</div>';
+      return pickerPanel + guidesPanel + schedulePanel;
+    }
+    function guideCardHTML(g){
+      return '<div style="border:1px solid var(--line);border-radius:10px;padding:12px">'+
+        '<div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">'+
+          '<input class="settings-input" style="width:70px" id="g_order'+g.id+'" value="'+g.stageOrder+'" placeholder="Order">'+
+          '<input class="settings-input" style="flex:1;min-width:160px" id="g_stage'+g.id+'" value="'+esc(g.stage)+'" placeholder="Stage key">'+
+          '<input class="settings-input" style="width:80px" id="g_from'+g.id+'" value="'+g.dayFrom+'" placeholder="Day from">'+
+          '<input class="settings-input" style="width:120px" id="g_to'+g.id+'" value="'+(g.dayTo==null?'':g.dayTo)+'" placeholder="Day to (blank=open)">'+
+        '</div>'+
+        '<input class="settings-input" style="width:100%;margin-bottom:8px" id="g_title'+g.id+'" value="'+esc(g.title)+'" placeholder="Title">'+
+        '<textarea class="settings-input" style="width:100%;margin-bottom:8px" rows="2" id="g_desc'+g.id+'" placeholder="Description">'+esc(g.description)+'</textarea>'+
+        '<div class="mini" style="margin-bottom:8px">'+
+          '<div><label style="font-size:11px;font-weight:800">Tasks (one per line)</label><textarea class="settings-input" rows="3" id="g_tasks'+g.id+'">'+esc((g.tasks||[]).join('\n'))+'</textarea></div>'+
+          '<div><label style="font-size:11px;font-weight:800">Warnings (one per line)</label><textarea class="settings-input" rows="3" id="g_warn'+g.id+'">'+esc((g.warnings||[]).join('\n'))+'</textarea></div>'+
+        '</div>'+
+        '<label style="font-size:11px;font-weight:800">Tips (one per line)</label>'+
+        '<textarea class="settings-input" style="width:100%;margin-bottom:8px" rows="2" id="g_tips'+g.id+'">'+esc((g.tips||[]).join('\n'))+'</textarea>'+
+        '<button class="act green" onclick="saveGuide('+g.id+')">Save</button> '+
+        '<button class="act line" onclick="deleteGuide('+g.id+')">Delete</button>'+
+      '</div>';
+    }
+    function newGuideCardHTML(){
+      return '<div style="border:1.5px dashed var(--line);border-radius:10px;padding:12px">'+
+        '<div class="muted" style="font-weight:800;font-size:12px;margin-bottom:8px">+ ADD NEW STAGE</div>'+
+        '<div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">'+
+          '<input class="settings-input" style="width:70px" id="g_ordernew" placeholder="Order">'+
+          '<input class="settings-input" style="flex:1;min-width:160px" id="g_stagenew" placeholder="Stage key">'+
+          '<input class="settings-input" style="width:80px" id="g_fromnew" placeholder="Day from">'+
+          '<input class="settings-input" style="width:120px" id="g_tonew" placeholder="Day to (blank=open)">'+
+        '</div>'+
+        '<input class="settings-input" style="width:100%;margin-bottom:8px" id="g_titlenew" placeholder="Title">'+
+        '<textarea class="settings-input" style="width:100%;margin-bottom:8px" rows="2" id="g_descnew" placeholder="Description"></textarea>'+
+        '<div class="mini" style="margin-bottom:8px">'+
+          '<div><label style="font-size:11px;font-weight:800">Tasks (one per line)</label><textarea class="settings-input" rows="3" id="g_tasksnew"></textarea></div>'+
+          '<div><label style="font-size:11px;font-weight:800">Warnings (one per line)</label><textarea class="settings-input" rows="3" id="g_warnnew"></textarea></div>'+
+        '</div>'+
+        '<label style="font-size:11px;font-weight:800">Tips (one per line)</label>'+
+        '<textarea class="settings-input" style="width:100%;margin-bottom:8px" rows="2" id="g_tipsnew"></textarea>'+
+        '<button class="act green" onclick="saveGuide(null)">Add Stage</button>'+
+      '</div>';
+    }
+    function saveGuide(id){
+      var suf = id || 'new';
+      var payload = {
+        id: id || undefined, cropId: CG_SELECTED_CROP,
+        stageOrder: document.getElementById('g_order'+suf).value,
+        stage: document.getElementById('g_stage'+suf).value,
+        dayFrom: document.getElementById('g_from'+suf).value,
+        dayTo: document.getElementById('g_to'+suf).value,
+        title: document.getElementById('g_title'+suf).value,
+        description: document.getElementById('g_desc'+suf).value,
+        tasks: document.getElementById('g_tasks'+suf).value,
+        tips: document.getElementById('g_tips'+suf).value,
+        warnings: document.getElementById('g_warn'+suf).value,
+      };
+      api('/crop-guides/save',{method:'POST',body:JSON.stringify(payload)})
+        .then(function(){ toast('✓ Stage saved'); renderCropGuides(); }).catch(function(){ toast('Save failed', true); });
+    }
+    function deleteGuide(id){
+      api('/crop-guides/delete',{method:'POST',body:JSON.stringify({id:id})})
+        .then(function(){ toast('✓ Stage deleted'); renderCropGuides(); }).catch(function(){ toast('Delete failed', true); });
+    }
+    function scheduleRowHTML(s){
+      return '<tr>'+
+        '<td><input class="cell-input" style="width:100px" id="s_stage'+s.id+'" value="'+esc(s.stage)+'"></td>'+
+        '<td><input class="cell-input" style="width:50px" id="s_from'+s.id+'" value="'+s.dayFrom+'"></td>'+
+        '<td><input class="cell-input" style="width:50px" id="s_to'+s.id+'" value="'+s.dayTo+'"></td>'+
+        '<td><select class="cell-input" id="s_type'+s.id+'">'+ACTIVITY_TYPES.map(function(t){return '<option'+(t===s.activityType?' selected':'')+'>'+t+'</option>';}).join('')+'</select></td>'+
+        '<td><input class="cell-input" style="width:110px" id="s_prod'+s.id+'" value="'+esc(s.productName||'')+'"></td>'+
+        '<td><input class="cell-input" style="width:90px" id="s_dose'+s.id+'" value="'+esc(s.dosage||'')+'"></td>'+
+        '<td><input class="cell-input" style="width:220px" id="s_instr'+s.id+'" value="'+esc(s.instructions)+'"></td>'+
+        '<td><button class="act green" onclick="saveSchedule('+s.id+')">Save</button> <button class="act line" onclick="deleteSchedule('+s.id+')">Del</button></td>'+
+      '</tr>';
+    }
+    function newScheduleRowHTML(){
+      return '<tr>'+
+        '<td><input class="cell-input" style="width:100px" id="s_stagenew" placeholder="Stage"></td>'+
+        '<td><input class="cell-input" style="width:50px" id="s_fromnew" placeholder="0"></td>'+
+        '<td><input class="cell-input" style="width:50px" id="s_tonew" placeholder="0"></td>'+
+        '<td><select class="cell-input" id="s_typenew">'+ACTIVITY_TYPES.map(function(t){return '<option>'+t+'</option>';}).join('')+'</select></td>'+
+        '<td><input class="cell-input" style="width:110px" id="s_prodnew" placeholder="optional"></td>'+
+        '<td><input class="cell-input" style="width:90px" id="s_dosenew" placeholder="optional"></td>'+
+        '<td><input class="cell-input" style="width:220px" id="s_instrnew" placeholder="Instructions"></td>'+
+        '<td><button class="act green" onclick="saveSchedule(null)">Add</button></td>'+
+      '</tr>';
+    }
+    function saveSchedule(id){
+      var suf = id || 'new';
+      var payload = {
+        id: id || undefined, cropId: CG_SELECTED_CROP,
+        stage: document.getElementById('s_stage'+suf).value,
+        dayFrom: document.getElementById('s_from'+suf).value,
+        dayTo: document.getElementById('s_to'+suf).value,
+        activityType: document.getElementById('s_type'+suf).value,
+        productName: document.getElementById('s_prod'+suf).value,
+        dosage: document.getElementById('s_dose'+suf).value,
+        instructions: document.getElementById('s_instr'+suf).value,
+      };
+      api('/spray-schedules/save',{method:'POST',body:JSON.stringify(payload)})
+        .then(function(){ toast('✓ Schedule entry saved'); renderCropGuides(); }).catch(function(){ toast('Save failed', true); });
+    }
+    function deleteSchedule(id){
+      api('/spray-schedules/delete',{method:'POST',body:JSON.stringify({id:id})})
+        .then(function(){ toast('✓ Schedule entry deleted'); renderCropGuides(); }).catch(function(){ toast('Delete failed', true); });
     }
     function renderWhatsapp(){
       return api('/whatsapp').then(function(d){

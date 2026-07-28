@@ -566,6 +566,42 @@ nav {
 }
 .fs-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: rgba(255,255,255,.82); position: relative; z-index: 1; }
 
+/* ══ MY FARM (planting log + day-by-day task guidance) ══ */
+.farm-log-card {
+  background: var(--white); border-radius: var(--radius-lg); border: 1px solid var(--grey-border);
+  padding: 16px; box-shadow: var(--shadow-xs); margin-bottom: 20px;
+}
+.farm-log-title { font-size: 14.5px; font-weight: 800; color: var(--text); margin-bottom: 12px; font-family:'Nunito',sans-serif; }
+
+.farm-planting-card {
+  background: var(--white); border-radius: var(--radius-lg); border: 1px solid var(--grey-border);
+  padding: 16px; box-shadow: var(--shadow-xs); margin-bottom: 14px;
+}
+.farm-planting-top { margin-bottom: 12px; }
+.farm-planting-crop { display: flex; align-items: center; gap: 10px; }
+.farm-crop-emoji { font-size: 28px; flex-shrink: 0; }
+.farm-crop-name { font-size: 14.5px; font-weight: 800; color: var(--text); }
+.farm-crop-sub { font-size: 11.5px; color: var(--grey-text); margin-top: 2px; }
+
+.farm-stage-title { font-size: 13.5px; font-weight: 800; color: var(--green); margin-bottom: 4px; }
+.farm-stage-desc { font-size: 12px; color: var(--grey-text); line-height: 1.5; margin-bottom: 12px; }
+.farm-task-group-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: var(--grey-text); margin: 10px 0 6px; }
+.farm-task-line { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; }
+.farm-task-line.muted { opacity: .6; }
+.farm-task-icon { font-size: 15px; flex-shrink: 0; line-height: 1.4; }
+.farm-task-main { font-size: 12.5px; color: var(--text); line-height: 1.4; }
+.farm-task-sub { font-size: 11px; color: var(--grey-text); margin-top: 1px; }
+.farm-warning-line { font-size: 12px; color: #F0796B; line-height: 1.5; padding: 3px 0; }
+.farm-no-guide { font-size: 12.5px; color: var(--grey-text); line-height: 1.5; background: var(--grey-bg); border-radius: var(--radius-sm); padding: 12px; }
+
+.farm-planting-actions { display: flex; gap: 8px; padding-top: 12px; margin-top: 4px; border-top: 1px solid var(--grey-border); }
+.farm-mark-btn {
+  flex: 1; height: 38px; border-radius: 100px; font-size: 12px; font-weight: 800; font-family:'Nunito',sans-serif;
+  border: none; cursor: pointer; background: var(--g-green); color: #fff; box-shadow: var(--shadow-green); transition: transform .2s;
+}
+.farm-mark-btn:hover { transform: translateY(-1px); }
+.farm-mark-btn.ghost { background: none; border: 1px solid var(--grey-border); color: var(--grey-text); box-shadow: none; }
+
 /* ══ PRICES TABLE ══ */
 .prices-table { background: var(--white); border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--grey-border); box-shadow: var(--shadow-xs); }
 .price-head {

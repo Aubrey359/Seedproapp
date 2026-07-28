@@ -202,6 +202,25 @@ const ratingSchema = new Schema(
 );
 export const ratings = model("Rating", ratingSchema);
 
+// ─── Plantings ───
+// The missing anchor for "daily routine" guidance: cropGuides/spraySchedules
+// only know day-offsets from a planting date, but until now there was no
+// record anywhere of what an individual farmer actually planted, or when.
+const plantingSchema = new Schema(
+  {
+    id: { type: Number, unique: true, index: true },
+    farmerId: { type: Number, required: true },
+    cropId: { type: Number, required: true },
+    cropName: { type: String, required: true },
+    plantingDate: { type: Date, required: true },
+    location: String,
+    status: { type: String, enum: ["active", "harvested", "abandoned"], default: "active" },
+    notes: String,
+  },
+  { timestamps: true, toJSON },
+);
+export const plantings = model("Planting", plantingSchema);
+
 // ─── Crop Guides ───
 const cropGuideSchema = new Schema(
   {
@@ -209,6 +228,10 @@ const cropGuideSchema = new Schema(
     cropId: { type: Number, required: true },
     stage: { type: String, required: true },
     stageOrder: { type: Number, required: true },
+    // Numeric day-since-planting range this stage covers — lets "My Farm"
+    // look up a farmer's current stage by day count, not just display it.
+    dayFrom: { type: Number, required: true },
+    dayTo: Number, // open-ended (last stage) if omitted
     title: { type: String, required: true },
     description: { type: String, required: true },
     tasks: { type: [String], default: [] },

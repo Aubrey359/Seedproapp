@@ -920,6 +920,8 @@ function checkAuthState() {
       if (chatPage && chatPage.classList.contains('active') && typeof loadChatMessages === 'function') loadChatMessages();
       var ordersPage = document.getElementById('page-orders');
       if (ordersPage && ordersPage.classList.contains('active') && typeof renderOrdersPage === 'function') renderOrdersPage();
+      var farmPage = document.getElementById('page-farm');
+      if (farmPage && farmPage.classList.contains('active') && typeof renderFarmPage === 'function') renderFarmPage();
     })
     .catch(function() { CURRENT_USER = null; renderAuthState(); });
 }
@@ -1119,6 +1121,136 @@ function advanceOrderStatus(orderId, newStatus) {
   })
   .catch(function(err) {
     showToast('❌ ' + (err.message || 'Could not update order'));
+  });
+}
+
+/* ── MY FARM (planting log + day-by-day task guidance) ── */
+var FARM_ACTIVITY_ICONS = { fertilizer: '🧪', pesticide: '🐛', fungicide: '🍄', herbicide: '🌿', irrigation: '💧', pruning: '✂️', harvest: '🌾' };
+
+function farmTaskLineHTML(t, muted) {
+  var icon = FARM_ACTIVITY_ICONS[t.activityType] || '📌';
+  var extra = t.productName ? ' — ' + t.productName : '';
+  var sub = muted ? ('In ' + t.daysUntil + ' day' + (t.daysUntil === 1 ? '' : 's')) : (t.dosage || '');
+  return '<div class="farm-task-line' + (muted ? ' muted' : '') + '"><span class="farm-task-icon">' + icon + '</span>' +
+    '<div><div class="farm-task-main">' + t.instructions + extra + '</div>' +
+    (sub ? '<div class="farm-task-sub">' + sub + '</div>' : '') +
+    '</div></div>';
+}
+
+function plantingCardHTML(p) {
+  var meta = cropMeta(p.cropName);
+  var dateStr = p.plantingDate ? new Date(p.plantingDate).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+  var body;
+  if (!p.hasGuideContent) {
+    body = '<div class="farm-no-guide">📋 Detailed day-by-day guidance for ' + p.cropName + ' is coming soon. In the meantime, try Ask AI for general advice.</div>';
+  } else {
+    body =
+      '<div class="farm-stage-title">' + p.stage.title + '</div>' +
+      '<div class="farm-stage-desc">' + p.stage.description + '</div>' +
+      (p.currentTasks.length ? '<div class="farm-task-group-label">Due now</div>' + p.currentTasks.map(function(t){ return farmTaskLineHTML(t, false); }).join('') : '') +
+      (p.upcomingTasks.length ? '<div class="farm-task-group-label">Coming up</div>' + p.upcomingTasks.map(function(t){ return farmTaskLineHTML(t, true); }).join('') : '') +
+      (p.stage.warnings && p.stage.warnings.length ? '<div class="farm-task-group-label">Watch for</div>' + p.stage.warnings.map(function(w){ return '<div class="farm-warning-line">⚠️ ' + w + '</div>'; }).join('') : '');
+  }
+  return '<div class="farm-planting-card">' +
+    '<div class="farm-planting-top">' +
+      '<div class="farm-planting-crop"><span class="farm-crop-emoji">' + meta.emoji + '</span>' +
+        '<div><div class="farm-crop-name">' + p.cropName + '</div>' +
+        '<div class="farm-crop-sub">Planted ' + dateStr + ' · Day ' + p.daysSincePlanting + (p.location ? ' · ' + p.location : '') + '</div></div>' +
+      '</div>' +
+    '</div>' +
+    body +
+    '<div class="farm-planting-actions">' +
+      '<button class="farm-mark-btn" onclick="advancePlantingStatus(' + p.id + ',\'harvested\')">✅ Mark Harvested</button>' +
+      '<button class="farm-mark-btn ghost" onclick="advancePlantingStatus(' + p.id + ',\'abandoned\')">✕ Remove</button>' +
+    '</div>' +
+  '</div>';
+}
+
+function showFarmGate() {
+  var gate = document.getElementById('farmSignInGate'), wrap = document.getElementById('farmWrap');
+  if (gate) gate.style.display = '';
+  if (wrap) wrap.style.display = 'none';
+}
+
+function showFarmUI() {
+  var gate = document.getElementById('farmSignInGate'), wrap = document.getElementById('farmWrap');
+  if (gate) gate.style.display = 'none';
+  if (wrap) wrap.style.display = '';
+}
+
+function renderFarmPage() {
+  if (!CURRENT_USER) { showFarmGate(); return; }
+  showFarmUI();
+
+  var dateInput = document.getElementById('farmPlantDate');
+  if (dateInput && !dateInput.value) {
+    var today = new Date().toISOString().slice(0, 10);
+    dateInput.max = today;
+    dateInput.value = today;
+  }
+
+  var list = document.getElementById('farmPlantingsList');
+  var empty = document.getElementById('farmPlantingsEmpty');
+  if (!list) return;
+  list.innerHTML = '<p style="text-align:center;padding:24px;color:var(--grey-text)">Loading your farm…</p>';
+  if (empty) empty.style.display = 'none';
+
+  fetch('/api/trpc/planting.myPlantings')
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      if (data.error) { showFarmGate(); return; }
+      var rows = (data.result && data.result.data && data.result.data.json) || [];
+      var active = rows.filter(function(p){ return p.status === 'active'; });
+      if (!active.length) {
+        list.innerHTML = '';
+        if (empty) empty.style.display = '';
+        return;
+      }
+      list.innerHTML = active.map(plantingCardHTML).join('');
+    })
+    .catch(function() {
+      list.innerHTML = '<p style="text-align:center;padding:24px;color:var(--grey-text)">Couldn\'t load your farm. Try again shortly.</p>';
+    });
+}
+
+function submitPlanting() {
+  var crop = (document.getElementById('farmCropSelect')||{}).value || '';
+  var date = (document.getElementById('farmPlantDate')||{}).value || '';
+  var location = (document.getElementById('farmPlantLocation')||{}).value || '';
+  if (!crop) { showToast('⚠️ Please select a crop'); return; }
+  if (!date) { showToast('⚠️ Please pick a planting date'); return; }
+  fetch('/api/trpc/planting.create', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ json: { cropName: crop, plantingDate: new Date(date).toISOString(), location: location.trim() || undefined } })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data) {
+    if (data.error) throw new Error(data.error.message || 'Could not log this planting');
+    showToast('🌱 Planting logged!');
+    document.getElementById('farmCropSelect').value = '';
+    document.getElementById('farmPlantLocation').value = '';
+    renderFarmPage();
+  })
+  .catch(function(err) {
+    showToast('❌ ' + (err.message || 'Could not log this planting'));
+  });
+}
+
+function advancePlantingStatus(plantingId, status) {
+  fetch('/api/trpc/planting.updateStatus', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ json: { plantingId: plantingId, status: status } })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data) {
+    if (data.error) throw new Error(data.error.message || 'Could not update this planting');
+    showToast(status === 'harvested' ? '✅ Marked as harvested' : '🗑️ Removed from your active list');
+    renderFarmPage();
+  })
+  .catch(function(err) {
+    showToast('❌ ' + (err.message || 'Could not update this planting'));
   });
 }
 

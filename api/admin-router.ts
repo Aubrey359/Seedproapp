@@ -13,6 +13,10 @@ import {
   advisoryMessages,
   disputes,
   siteSettings,
+  crops,
+  cropGuides,
+  spraySchedules,
+  nextSeq,
   omitMongo,
 } from "@db/schema";
 
@@ -262,6 +266,95 @@ admin.post(
     if (trend != null) set.trend = trend;
     if (trendPercent != null) set.trendPercent = Number(trendPercent);
     await marketPrices.updateOne({ id: Number(id) }, { $set: set });
+    return c.json({ dbConnected: true, ok: true });
+  }),
+);
+
+// ── My Farm: crop guides + task schedules (only 4 of 12 crops are
+// seeded with real content — this is how the team extends coverage to
+// the rest without a code deploy) ────────────────────────────
+admin.get(
+  "/crop-guides",
+  guard(async (c) => {
+    const [cropRows, guideRows, scheduleRows] = await Promise.all([
+      crops.find({}).sort({ name: 1 }).lean(),
+      cropGuides.find({}).sort({ cropId: 1, stageOrder: 1 }).lean(),
+      spraySchedules.find({}).sort({ cropId: 1, dayFrom: 1 }).lean(),
+    ]);
+    return c.json({
+      dbConnected: true,
+      crops: omitMongo(cropRows),
+      guides: omitMongo(guideRows),
+      schedules: omitMongo(scheduleRows),
+    });
+  }),
+);
+
+admin.post(
+  "/crop-guides/save",
+  guard(async (c) => {
+    const body = await c.req.json();
+    const toLines = (s: any) => String(s ?? "").split("\n").map((x: string) => x.trim()).filter(Boolean);
+    const set = {
+      cropId: Number(body.cropId),
+      stage: String(body.stage ?? "").trim(),
+      stageOrder: Number(body.stageOrder),
+      dayFrom: Number(body.dayFrom),
+      dayTo: body.dayTo === "" || body.dayTo == null ? undefined : Number(body.dayTo),
+      title: String(body.title ?? "").trim(),
+      description: String(body.description ?? "").trim(),
+      tasks: toLines(body.tasks),
+      tips: toLines(body.tips),
+      warnings: toLines(body.warnings),
+    };
+    if (body.id) {
+      await cropGuides.updateOne({ id: Number(body.id) }, { $set: set });
+    } else {
+      const id = await nextSeq("crop_guides");
+      await cropGuides.create({ id, ...set });
+    }
+    return c.json({ dbConnected: true, ok: true });
+  }),
+);
+
+admin.post(
+  "/crop-guides/delete",
+  guard(async (c) => {
+    const { id } = await c.req.json();
+    await cropGuides.deleteOne({ id: Number(id) });
+    return c.json({ dbConnected: true, ok: true });
+  }),
+);
+
+admin.post(
+  "/spray-schedules/save",
+  guard(async (c) => {
+    const body = await c.req.json();
+    const set = {
+      cropId: Number(body.cropId),
+      stage: String(body.stage ?? "").trim(),
+      dayFrom: Number(body.dayFrom),
+      dayTo: Number(body.dayTo),
+      activityType: body.activityType,
+      productName: body.productName ? String(body.productName).trim() : undefined,
+      dosage: body.dosage ? String(body.dosage).trim() : undefined,
+      instructions: String(body.instructions ?? "").trim(),
+    };
+    if (body.id) {
+      await spraySchedules.updateOne({ id: Number(body.id) }, { $set: set });
+    } else {
+      const id = await nextSeq("spray_schedules");
+      await spraySchedules.create({ id, ...set });
+    }
+    return c.json({ dbConnected: true, ok: true });
+  }),
+);
+
+admin.post(
+  "/spray-schedules/delete",
+  guard(async (c) => {
+    const { id } = await c.req.json();
+    await spraySchedules.deleteOne({ id: Number(id) });
     return c.json({ dbConnected: true, ok: true });
   }),
 );

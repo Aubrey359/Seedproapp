@@ -6,6 +6,8 @@ import {
   users,
   listings,
   marketPrices,
+  cropGuides,
+  spraySchedules,
   counters,
 } from "@db/schema";
 
@@ -34,6 +36,7 @@ export function connectDb(): Promise<unknown> {
     .then(async () => {
       console.log("✅ Connected to MongoDB");
       await seedDb();
+      await seedCropGuides();
       return mongoose.connection;
     })
     .catch((err: Error) => {
@@ -138,5 +141,167 @@ export async function seedDb(): Promise<void> {
 
   console.log(
     `✅ Seeded MongoDB: ${cropData.length} crops, ${farmerData.length} users, ${listingData.length} listings, ${priceDocs.length} market prices`,
+  );
+}
+
+// Day-by-day crop guides + task/spray schedules for "My Farm" — real,
+// researched agronomic content (KALRO/extension-service-consistent, see
+// commit message for sources), not filler text. Seeded for the 4 most
+// common smallholder crops (Maize, Tomato, Potato, Beans) to start; any
+// other crop gracefully shows "guidance coming soon" in the UI rather
+// than breaking — the admin panel can add more over time.
+//
+// Gated independently from seedDb() (on cropGuides being empty, not on
+// crops being empty) so this backfills into databases that were already
+// seeded before this feature existed — which is the case both locally
+// and in production.
+// cropId reference: 1=Tomato, 3=Maize, 5=Potato, 7=Beans (see cropData above).
+export async function seedCropGuides(): Promise<void> {
+  const existing = await cropGuides.estimatedDocumentCount();
+  if (existing > 0) return;
+
+  const guideData = [
+    // ── Maize (cropId 3) — day 0 = planting ──
+    { cropId: 3, stage: "Germination & Emergence", stageOrder: 1, dayFrom: 0, dayTo: 10, title: "Germination & Emergence (Day 0-10)",
+      description: "Your maize seed sprouts and pushes through the soil. This is when the crop is most vulnerable to pests hiding in the soil.",
+      tasks: ["Apply basal fertilizer (DAP) in the planting furrow", "Gap-fill any holes that didn't germinate by day 10-14", "Thin to 1-2 healthy plants per hole"],
+      tips: ["Plant right at the onset of reliable rains for the best start"],
+      warnings: ["Watch for cutworms and termites cutting seedlings at the base", "Maize streak virus, spread by leafhoppers, is most damaging at this early stage"] },
+    { cropId: 3, stage: "Vegetative Growth", stageOrder: 2, dayFrom: 10, dayTo: 60, title: "Vegetative Growth (Day 10-60)",
+      description: "Rapid leaf and stem growth as the plant builds the framework for a good harvest.",
+      tasks: ["First weeding around day 21", "Top-dress with CAN or urea once the crop is knee-high (around day 30-42)", "Second weeding around day 56", "Start scouting for fall armyworm from emergence, especially in the whorl"],
+      tips: ["The knee-high stage is the classic local marker for when to top-dress — don't wait for a specific date if your crop is ahead or behind"],
+      warnings: ["Fall armyworm causes the most damage at whorl stage — check the tightly rolled young leaves regularly", "Watch for maize stalk borers and streak virus symptoms on leaves"] },
+    { cropId: 3, stage: "Flowering", stageOrder: 3, dayFrom: 60, dayTo: 75, title: "Tasseling & Silking (Day 60-75)",
+      description: "The tassel and silk emerge — this is the most drought-sensitive stage of the whole crop.",
+      tasks: ["Apply a second split top-dress 10-15 days after the first if you're in a high-rainfall area, just before tasseling", "Make sure the crop has enough moisture — this is the worst possible time for it to run dry"],
+      tips: [],
+      warnings: ["Stalk borers boring into the stem can cause lodging", "Gray leaf spot, turcicum leaf blight and common rust often show up on the leaves around now"] },
+    { cropId: 3, stage: "Grain Filling", stageOrder: 4, dayFrom: 75, dayTo: 115, title: "Grain Filling (Day 75-115)",
+      description: "Kernels fill with starch through the milk, dough and dent stages.",
+      tasks: ["Keep scouting for foliar disease", "Control any late-season stalk borers", "Scare off birds as kernels reach the dent stage"],
+      tips: [],
+      warnings: ["Ear rots (which can produce aflatoxin) can develop now, especially in wet conditions", "Stalk borer damage at this stage often causes lodging right before harvest"] },
+    { cropId: 3, stage: "Maturity & Harvest", stageOrder: 5, dayFrom: 115, dayTo: undefined, title: "Maturity & Harvest (Day 115-140)",
+      description: "The crop is ready when you see a black layer at the base of the kernel.",
+      tasks: ["Harvest at physiological maturity — black layer at the kernel base, around 30-35% grain moisture", "Field-dry or artificially dry to 13% moisture or below before storage", "Store in hermetic (e.g. PICS) bags to cut storage losses"],
+      tips: ["Every day you delay harvest and drying in wet weather raises aflatoxin risk"],
+      warnings: ["Maize weevil and larger grain borer attack grain in storage", "Poor drying or a delayed harvest sharply raises aflatoxin risk"] },
+
+    // ── Tomato (cropId 1) — day 0 = transplanting ──
+    { cropId: 1, stage: "Establishment", stageOrder: 1, dayFrom: 0, dayTo: 14, title: "Establishment (Day 0-14)",
+      description: "The transplanted seedling settles in and begins putting down new roots.",
+      tasks: ["Water immediately after transplanting", "Apply basal fertilizer (DAP) once roots have started developing, around day 14", "Gap-fill any seedlings that died"],
+      tips: ["Transplant in the late afternoon or on a cloudy day to reduce shock"],
+      warnings: ["Protect stems from cutworms right after transplanting", "Watch for damping-off carried over from the nursery"] },
+    { cropId: 1, stage: "Vegetative Growth", stageOrder: 2, dayFrom: 14, dayTo: 35, title: "Vegetative Growth (Day 14-35)",
+      description: "The plant builds leaves and branches before it starts flowering.",
+      tasks: ["Stake the plants by around week 2-3", "First top-dress with CAN around week 4", "First weeding", "Start monitoring for Tuta absoluta (tomato leafminer) with pheromone traps"],
+      tips: [],
+      warnings: ["Bacterial wilt can kill plants suddenly at this stage — remove and destroy any wilting plant immediately", "Early blight shows up on the lower, older leaves first", "Watch for aphids and whiteflies"] },
+    { cropId: 1, stage: "Flowering", stageOrder: 3, dayFrom: 35, dayTo: 50, title: "Flowering (Day 35-50)",
+      description: "Flowers form and need to set fruit successfully.",
+      tasks: ["Switch to a potassium-rich feed (e.g. NPK 17:17:17) to support fruit set", "Second CAN top-dress around week 8", "Remove suckers and keep tying plants to stakes", "Keep soil moisture even — stress now causes flowers to drop"],
+      tips: [],
+      warnings: ["Whitefly spreads Tomato Yellow Leaf Curl Virus — control it before flowering peaks", "Tuta absoluta pressure usually increases through this stage"] },
+    { cropId: 1, stage: "Fruit Development", stageOrder: 4, dayFrom: 50, dayTo: 75, title: "Fruit Development (Day 50-75)",
+      description: "Fruits form and swell — this is when most of the serious diseases show up.",
+      tasks: ["Keep irrigation consistent — irregular watering causes blossom end rot and fruit cracking", "Keep staking and tying as the plant gets heavier", "Start a protectant fungicide program if the weather is wet or humid"],
+      tips: [],
+      warnings: ["Late blight is the most destructive tomato disease in cool, wet highland conditions — it can wipe out a crop fast", "Tuta absoluta larvae bore directly into fruit", "Watch for red spider mites and African bollworm"] },
+    { cropId: 1, stage: "Maturity & Harvest", stageOrder: 5, dayFrom: 75, dayTo: undefined, title: "Maturity & Harvest (Day 75-120)",
+      description: "Fruits ripen and are picked in rounds as they turn.",
+      tasks: ["Harvest every 2-3 days at breaker to ripe stage", "Respect the pre-harvest interval on your last pesticide spray before picking", "Sort and grade fruit for market"],
+      tips: ["Indeterminate varieties keep bearing well past day 120 — keep the harvest rounds going"],
+      warnings: ["Late blight can still damage the crop right up to harvest", "Watch for fruit rots (Fusarium, anthracnose) on ripening fruit"] },
+
+    // ── Potato (cropId 5) — day 0 = planting seed tuber ──
+    { cropId: 5, stage: "Planting & Emergence", stageOrder: 1, dayFrom: 0, dayTo: 21, title: "Planting & Emergence (Day 0-21)",
+      description: "The seed tuber sprouts and pushes shoots above ground.",
+      tasks: ["Plant certified, disease-free, well-sprouted seed tubers — 30cm within rows, 75cm between rows, 10-15cm deep", "Apply a basal potato compound fertilizer at planting"],
+      tips: ["Always start with certified seed — bacterial wilt is seed-borne and hard to get rid of once it's in your soil"],
+      warnings: ["Watch for cutworms", "Black scurf (Rhizoctonia) can affect emergence"] },
+    { cropId: 5, stage: "Vegetative Growth", stageOrder: 2, dayFrom: 21, dayTo: 40, title: "Vegetative Growth (Day 21-40)",
+      description: "Leafy growth builds up and the canopy starts to close.",
+      tasks: ["First weeding and first earthing-up (hilling) around 2 weeks after full emergence, or once plants are about 20cm tall", "Top-dress with CAN or a potato fertilizer 3-4 weeks after emergence", "Start weekly pest and disease scouting"],
+      tips: [],
+      warnings: ["Aphids at this stage can spread viruses even before symptoms show", "Late blight risk rises fast as the canopy closes"] },
+    { cropId: 5, stage: "Tuber Initiation & Flowering", stageOrder: 3, dayFrom: 40, dayTo: 60, title: "Tuber Initiation & Flowering (Day 40-60)",
+      description: "Tubers begin forming underground while the plant flowers above.",
+      tasks: ["Second earthing-up about 2 weeks after the first", "Finish all fertilizer applications by around 5 weeks after emergence — this is peak nutrient uptake", "Move to a weekly fungicide spray rotation if the weather is wet or humid"],
+      tips: [],
+      warnings: ["This is the peak risk period for late blight on the foliage", "Rogue out (remove) any plant showing bacterial wilt symptoms immediately", "Aphids can still be spreading virus"] },
+    { cropId: 5, stage: "Tuber Bulking", stageOrder: 4, dayFrom: 60, dayTo: 90, title: "Tuber Bulking (Day 60-90)",
+      description: "Tubers swell and put on most of their bulk.",
+      tasks: ["Keep soil moisture even — stress now causes cracking and secondary growth", "Make sure hills stay well-covered so light and pests can't reach the tubers", "Continue your blight spray rotation"],
+      tips: [],
+      warnings: ["Late blight spores can wash down into the soil and infect tubers directly — good hilling is your main defense", "Potato tuber moth larvae can enter tubers exposed near the surface"] },
+    { cropId: 5, stage: "Maturity & Harvest", stageOrder: 5, dayFrom: 90, dayTo: undefined, title: "Maturity & Harvest (Day 90-120)",
+      description: "The vines die back naturally and tubers are ready to lift.",
+      tasks: ["Reduce and then stop irrigation as the vines yellow", "Let the haulm die back naturally (or cut it about 2 weeks before harvest for seed crops) to firm up the skins", "Harvest, cure in shade and keep tubers out of direct sunlight so they don't green"],
+      tips: [],
+      warnings: ["Potato tuber moth is a major storage pest that starts its damage in the field", "Harvesting into wet conditions raises the risk of soft rot and blackleg"] },
+
+    // ── Beans (cropId 7) — day 0 = sowing, bush type ──
+    { cropId: 7, stage: "Germination & Emergence", stageOrder: 1, dayFrom: 0, dayTo: 8, title: "Germination & Emergence (Day 0-8)",
+      description: "Seeds sprout and push through the soil.",
+      tasks: ["Plant certified, disease-free seed — anthracnose and bacterial blight are both seed-borne", "Apply basal DAP in the furrow, not touching the seed directly", "Space rows about 40-50cm apart with 10-15cm between plants"],
+      tips: [],
+      warnings: ["Bean fly (bean stem maggot) does its worst damage right at seedling stage", "Watch for seed rot and cutworms"] },
+    { cropId: 7, stage: "Vegetative Growth", stageOrder: 2, dayFrom: 8, dayTo: 28, title: "Vegetative Growth (Day 8-28)",
+      description: "The plant builds leaves and stems.",
+      tasks: ["First weeding around 2 weeks", "Earth up soil around the stems at 2-3 weeks — this reduces bean fly damage and supports the stems", "Keep scouting regularly"],
+      tips: [],
+      warnings: ["Bean fly damage continues through this stage", "Watch for angular leaf spot and common bacterial blight starting on leaves", "Aphids"] },
+    { cropId: 7, stage: "Flowering", stageOrder: 3, dayFrom: 28, dayTo: 40, title: "Flowering (Day 28-40)",
+      description: "The crop flowers and starts setting pods.",
+      tasks: ["Only top-dress with CAN or urea if you see clear deficiency symptoms", "Avoid waterlogging — it causes flowers to abort", "Minimize spraying during flowering to protect pollinators"],
+      tips: [],
+      warnings: ["Bean rust, angular leaf spot, aphids and thrips are all common now", "Bean common mosaic virus can show up on new growth"] },
+    { cropId: 7, stage: "Pod Formation & Filling", stageOrder: 4, dayFrom: 40, dayTo: 65, title: "Pod Formation & Filling (Day 40-65)",
+      description: "Pods form and fill with seed — the second most water-sensitive stage after flowering.",
+      tasks: ["Make sure the crop has consistent soil moisture", "Scout for and control pod borers and pod-sucking bugs"],
+      tips: [],
+      warnings: ["Anthracnose causes sunken lesions on pods and spreads fast in wet weather", "Watch for pod borers and continuing rust or angular leaf spot"] },
+    { cropId: 7, stage: "Maturity & Harvest", stageOrder: 5, dayFrom: 65, dayTo: undefined, title: "Maturity & Harvest (Day 65-90)",
+      description: "Pods dry down and are ready to pick before they shatter.",
+      tasks: ["Withhold irrigation as pods yellow and dry", "Harvest when pods are dry and rattle — don't wait too long or they'll shatter and drop seed", "Sun-dry, thresh, and dry grain to 13-14% moisture before storing"],
+      tips: [],
+      warnings: ["Anthracnose can still cause pod lesions right up to harvest", "Bruchids/bean weevils move from the field into stored grain — clean storage matters", "Rain on drying pods risks mold"] },
+  ];
+  await cropGuides.insertMany(guideData.map((g, i) => ({ ...g, id: i + 1 })));
+
+  const scheduleData = [
+    // Maize
+    { cropId: 3, stage: "Germination & Emergence", dayFrom: 0,   dayTo: 0,   activityType: "fertilizer", productName: "DAP (basal)",           dosage: "As per soil test",                instructions: "Apply in the planting furrow at planting, not touching the seed directly." },
+    { cropId: 3, stage: "Vegetative Growth",        dayFrom: 30,  dayTo: 42,  activityType: "fertilizer", productName: "CAN or Urea (top-dress)", dosage: "~50kg per acre typical",         instructions: "Apply once the crop is knee-high. Split into two applications in high-rainfall areas." },
+    { cropId: 3, stage: "Flowering",                dayFrom: 70,  dayTo: 85,  activityType: "fertilizer", productName: "CAN or Urea (2nd split)", dosage: "10-15 days after the first",     instructions: "Only needed in high-rainfall areas — apply just before tasseling." },
+    { cropId: 3, stage: "Maturity & Harvest",        dayFrom: 115, dayTo: 140, activityType: "harvest",    productName: undefined,               dosage: undefined,                         instructions: "Harvest at physiological maturity (black layer at kernel base, ~30-35% grain moisture). Dry to 13% moisture or below before storage." },
+    // Tomato
+    { cropId: 1, stage: "Establishment",       dayFrom: 10, dayTo: 14,  activityType: "fertilizer", productName: "DAP (basal)",         dosage: "As per soil test",     instructions: "Apply once roots have established after transplanting." },
+    { cropId: 1, stage: "Vegetative Growth",   dayFrom: 25, dayTo: 30,  activityType: "fertilizer", productName: "CAN (top-dress)",     dosage: "First split",          instructions: "Apply around 4 weeks after transplanting." },
+    { cropId: 1, stage: "Flowering",           dayFrom: 50, dayTo: 56,  activityType: "fertilizer", productName: "NPK 17:17:17",        dosage: "Second split",         instructions: "Switch to a potassium-rich feed to support fruit set, around week 8." },
+    { cropId: 1, stage: "Fruit Development",   dayFrom: 50, dayTo: 100, activityType: "fungicide",  productName: undefined,             dosage: "Weekly in wet weather", instructions: "Protectant fungicide program against late blight — increase frequency in cool, wet conditions." },
+    { cropId: 1, stage: "Maturity & Harvest",  dayFrom: 75, dayTo: 120, activityType: "harvest",    productName: undefined,             dosage: undefined,               instructions: "Harvest every 2-3 days at breaker to ripe stage. Respect the pre-harvest interval on your last spray." },
+    // Potato
+    { cropId: 5, stage: "Planting & Emergence",           dayFrom: 0,  dayTo: 0,  activityType: "fertilizer", productName: "Potato compound fertilizer (basal)", dosage: "As per soil test",     instructions: "Apply at planting." },
+    { cropId: 5, stage: "Vegetative Growth",              dayFrom: 21, dayTo: 28, activityType: "fertilizer", productName: "CAN or potato top-dress",            dosage: undefined,              instructions: "Apply 3-4 weeks after emergence." },
+    { cropId: 5, stage: "Tuber Initiation & Flowering",   dayFrom: 40, dayTo: 60, activityType: "fungicide",  productName: undefined,                            dosage: "Weekly in wet weather", instructions: "Blight protection spray rotation through the peak foliar risk period." },
+    { cropId: 5, stage: "Maturity & Harvest",             dayFrom: 90, dayTo: 120, activityType: "harvest",   productName: undefined,                            dosage: undefined,               instructions: "Stop irrigation as vines yellow, allow natural die-back, then harvest and cure in shade." },
+    // Beans
+    { cropId: 7, stage: "Germination & Emergence",  dayFrom: 0,  dayTo: 0,  activityType: "fertilizer", productName: "DAP (basal)",  dosage: "As per soil test",                 instructions: "Apply in-furrow at planting, not touching the seed." },
+    { cropId: 7, stage: "Flowering",                dayFrom: 28, dayTo: 40, activityType: "fertilizer", productName: "CAN or Urea",  dosage: "Only if deficiency symptoms show", instructions: "Light top-dress only if needed — avoid over-fertilizing at flowering." },
+    { cropId: 7, stage: "Pod Formation & Filling",  dayFrom: 40, dayTo: 65, activityType: "irrigation", productName: undefined,      dosage: undefined,                          instructions: "Keep soil moisture consistent through pod filling — the second most drought-sensitive stage after flowering." },
+    { cropId: 7, stage: "Maturity & Harvest",       dayFrom: 65, dayTo: 90, activityType: "harvest",    productName: undefined,      dosage: undefined,                          instructions: "Harvest when pods are dry and rattle, before they shatter. Sun-dry and thresh to 13-14% moisture." },
+  ];
+  await spraySchedules.insertMany(scheduleData.map((s, i) => ({ ...s, id: i + 1 })));
+
+  await counters.bulkWrite([
+    { updateOne: { filter: { _id: "crop_guides" },     update: { $set: { seq: guideData.length } },     upsert: true } },
+    { updateOne: { filter: { _id: "spray_schedules" }, update: { $set: { seq: scheduleData.length } }, upsert: true } },
+  ]);
+
+  console.log(
+    `✅ Seeded crop guidance: ${guideData.length} stage guides, ${scheduleData.length} task schedules`,
   );
 }
