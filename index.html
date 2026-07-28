@@ -873,9 +873,9 @@
 <div id="page-scan" class="page">
   <!-- HERO -->
   <div class="scan-hero">
-    <div class="scan-hero-badge">📸 Photo Verification · Free for Farmers</div>
-    <h1>📸 Verify Your Produce</h1>
-    <p>Snap a photo to get a verified badge and build buyers' trust — instantly.</p>
+    <div class="scan-hero-badge">🔬 Plant Health Check · Free for Farmers</div>
+    <h1>🔬 Check Your Plant's Health</h1>
+    <p>Snap a photo of your crop to check for common pests and diseases — instantly.</p>
     <div class="page-hero-floats">
       <div class="phf-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8c-4 0-6 3-6 7a6 6 0 0012 0c0-4-2-7-6-7z"/><path d="M12 8V4"/><path d="M10 5c1-1.3 3-1.3 4 0"/></svg></div>
       <div class="phf-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V6a2 2 0 012-2h2"/><path d="M16 4h2a2 2 0 012 2v2"/><path d="M20 16v2a2 2 0 01-2 2h-2"/><path d="M8 20H6a2 2 0 01-2-2v-2"/><circle cx="12" cy="12" r="3"/></svg></div>
@@ -891,19 +891,19 @@
         <div class="step-num">1</div>
         <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22V12"/><path d="M12 12C12 8 9 5 5 5C5 9 8 12 12 12Z"/><path d="M12 12C12 8 15 5 19 5C19 9 16 12 12 12Z"/></svg></div>
         <h4>Select Crop</h4>
-        <p>Choose what produce you are scanning</p>
+        <p>Choose which crop you want to check</p>
       </div>
       <div class="step">
         <div class="step-num">2</div>
         <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
         <h4>Take Photo</h4>
-        <p>Point your camera at the produce</p>
+        <p>Point your camera at the affected leaf or area</p>
       </div>
       <div class="step">
         <div class="step-num">3</div>
-        <div class="step-icon">✅</div>
-        <h4>Get Verified</h4>
-        <p>Post listing with trusted badge</p>
+        <div class="step-icon">🔬</div>
+        <h4>Get Insights</h4>
+        <p>See guidance on possible pests or disease</p>
       </div>
     </div>
   </div>
@@ -925,7 +925,7 @@
   <div class="scan-box" id="scanBox">
     <div class="scan-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 18h8"/><path d="M3 22h18"/><path d="M14 22a7 7 0 1 0 0-14h-1"/><path d="M9 14h2"/><path d="M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2Z"/><path d="M12 6V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3"/></svg></div>
     <h2>2️⃣ Add Your Photo</h2>
-    <p>Take a clear photo in good lighting. It'll be attached to your listing with a verified badge.</p>
+    <p>Take a clear photo in good lighting, focused on any spots, wilting or discoloration.</p>
     <div class="scan-btns">
       <input type="file" accept="image/*" capture="environment" id="cameraInput" style="display:none" onchange="handleCapture(this)" />
       <label for="cameraInput" class="scan-btn-camera">📷 Camera</label>
@@ -951,14 +951,14 @@
       <div class="result-head">
         <div class="check">✅</div>
         <div>
-          <h3 id="resultTitle">Tomato — Verified</h3>
-          <p id="resultSub">Scan complete · High confidence</p>
+          <h3 id="resultTitle">Tomato — Photo Received</h3>
+          <p id="resultSub">Attached to your listing · Ready to list</p>
         </div>
       </div>
       <div class="result-body">
-        <div class="result-notes" id="resultNotes">Your photo has been attached to this listing. Verified listings build buyer trust and tend to sell faster.</div>
+        <div class="result-notes" id="resultNotes">Your photo has been attached to this listing — real photos help buyers trust your listing is genuine. Noticed spots, wilting or pests? Ask our Farm Assistant for guidance.</div>
         <div class="result-actions">
-          <button class="btn-sell" onclick="showPage('sell')">🌾 List with Verified Badge</button>
+          <button class="btn-sell" onclick="showPage('sell')">🌾 Continue to List Produce</button>
           <button class="btn-retry" onclick="resetScan()">↩ Retake Photo</button>
         </div>
       </div>
@@ -1096,10 +1096,10 @@
 
       <!-- SCAN ATTACHMENT -->
       <div class="form-group">
-        <label>📸 Scan Verification (Optional but recommended)</label>
+        <label>🔬 Plant Health Check (Optional but recommended)</label>
         <div class="scan-attach" id="scanAttach" onclick="showPage('scan')">
           <div style="font-size:28px">📸</div>
-          <p>Tap to scan your produce for a verified badge.<br/>Verified listings earn 18% more on average.</p>
+          <p>Tap to check your crop and add a real photo.<br/>Listings with real photos earn 18% more on average.</p>
         </div>
       </div>
 
@@ -1366,7 +1366,7 @@ function renderScanAttach() {
     el.classList.remove('attached');
     el.innerHTML =
       '<div style="font-size:28px">📸</div>' +
-      '<p>Tap to scan your produce for a verified badge.<br/>Verified listings earn 18% more on average.</p>';
+      '<p>Tap to check your crop and add a real photo.<br/>Listings with real photos earn 18% more on average.</p>';
   }
 }
 
@@ -1397,7 +1397,7 @@ function startScan(dataUrl, crop) {
   var prog = document.getElementById('scanProgress');
   prog.classList.add('active');
   document.getElementById('previewImg').src = dataUrl;
-  var steps = ['Uploading photo…','Attaching to listing…','Adding verified badge…','Almost done…'];
+  var steps = ['Uploading photo…','Checking for common issues…','Attaching to listing…','Almost done…'];
   var pct = 0;
   var interval = setInterval(function() {
     pct = Math.min(100, pct + 4);
@@ -1413,13 +1413,13 @@ function startScan(dataUrl, crop) {
 
 function showResult(crop, dataUrl) {
   document.getElementById('scanProgress').classList.remove('active');
-  document.getElementById('resultTitle').textContent = crop + ' — Verified ✓';
-  document.getElementById('resultSub').textContent   = 'Photo attached · Ready to list';
+  document.getElementById('resultTitle').textContent = crop + ' — Photo Received';
+  document.getElementById('resultSub').textContent   = 'Attached to your listing · Ready to list';
   document.getElementById('scanResult').classList.add('active');
   try {
     sessionStorage.setItem(PENDING_PHOTO_KEY, JSON.stringify({ crop: crop, photo: dataUrl, ts: Date.now() }));
   } catch (e) {}
-  showToast('✅ ' + crop + ' photo verified!');
+  showToast('✅ ' + crop + ' photo saved!');
 }
 
 function resetScan() {
