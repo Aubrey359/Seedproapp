@@ -274,13 +274,14 @@ export const marketRouter = createRouter({
       await listings.create(newListing);
       alertBuyersOfListing(newListing).catch(() => {});
 
-      // A farmer's ward doesn't change listing-to-listing, and there's no
-      // separate profile-edit screen on the website yet — piggyback on
-      // whatever they enter here so Farmer Next Door's ward filter has
-      // real data to work with, not just an empty dropdown.
-      if (input.ward && input.ward.trim()) {
-        await users.updateOne({ id: farmer.id }, { $set: { ward: input.ward.trim() } });
-      }
+      // A farmer's location/ward don't change listing-to-listing, and
+      // there's no separate profile-edit screen on the website yet —
+      // piggyback on whatever they enter here so Farmer Next Door's ward
+      // filter and the WhatsApp bot's PRICES command (which now adapts to
+      // a farmer's own location) have real data to work with.
+      const locationUpdate: Record<string, string> = { location: input.location.trim() };
+      if (input.ward && input.ward.trim()) locationUpdate.ward = input.ward.trim();
+      await users.updateOne({ id: farmer.id }, { $set: locationUpdate });
 
       return { id };
     }),

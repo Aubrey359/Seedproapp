@@ -9,6 +9,7 @@ import {
   botSessions,
   crops,
   disputes,
+  users,
   nextSeq,
 } from "@db/schema";
 import { findOrCreateFarmerByPhone } from "../lib/identity";
@@ -51,11 +52,16 @@ function menu(user: any): string {
     `• *PRICES* — today's market prices\n` +
     `• *MY LISTINGS* — your active listings\n` +
     `• *MY SALES* — your sales summary\n` +
+    `• *LOCATION <town>* — set your area, e.g. LOCATION Nakuru\n` +
     `• *HELP* — show this menu`
   );
 }
 
-async function pricesReply(msg: string): Promise<string> {
+// Default fallback when a farmer has no location on file yet, or their
+// location doesn't match one of the towns we actually have price data for.
+const DEFAULT_PRICE_TOWN = "Nairobi";
+
+async function pricesReply(msg: string, user: any): Promise<string> {
   const crop = msg.replace(/^price[s]?/i, "").trim();
   if (crop) {
     const rows = await marketPrices.find({ cropName: new RegExp(crop, "i") }).limit(6).lean();
@@ -65,10 +71,25 @@ async function pricesReply(msg: string): Promise<string> {
       rows.map((r: any) => `• ${r.town}: ${r.wholesalePrice} wholesale · ${r.retailPrice} retail`).join("\n")
     );
   }
-  const rows = await marketPrices.find({ town: "Nairobi" }).limit(10).lean();
+
+  // Adapt to the farmer's own location when we have data for it, rather
+  // than always showing Nairobi regardless of where they actually farm.
+  let town = DEFAULT_PRICE_TOWN;
+  let usingFallback = true;
+  if (user?.location) {
+    const hasLocalPrices = await marketPrices.exists({ town: new RegExp(`^${user.location}$`, "i") });
+    if (hasLocalPrices) { town = user.location; usingFallback = false; }
+  }
+
+  const rows = await marketPrices.find({ town: new RegExp(`^${town}$`, "i") }).limit(10).lean();
   if (!rows.length) return "Market prices are not available yet.";
+  const header = usingFallback && user?.location
+    ? `📈 Today in ${town} (KES/kg wholesale) — no price data for ${user.location} yet:`
+    : usingFallback
+      ? `📈 Today in ${town} (KES/kg wholesale) — reply *LOCATION <your town>* to personalize this:`
+      : `📈 Today in ${town} (KES/kg wholesale):`;
   return (
-    `📈 Today in Nairobi (KES/kg wholesale):\n` +
+    `${header}\n` +
     rows.map((r: any) => `• ${r.cropName}: ${r.wholesalePrice}`).join("\n") +
     `\n\nReply *PRICES <crop>* for one crop, e.g. PRICES TOMATO.`
   );
@@ -175,6 +196,10 @@ async function route(user: any, session: any, msg: string): Promise<string> {
       };
       await listings.create(newListing);
       await setSession(session.phone, "idle", {});
+      // A farmer's location doesn't change listing-to-listing — piggyback
+      // on whatever they enter here so PRICES can adapt to them
+      // automatically over time, same as the website's Sell form does.
+      await users.updateOne({ id: user.id }, { $set: { location: draft.location } });
       // Fire-and-forget: don't make the farmer wait on however many buyers get notified.
       alertBuyersOfListing(newListing).catch(() => {});
       return (
@@ -196,9 +221,15 @@ async function route(user: any, session: any, msg: string): Promise<string> {
     await setSession(session.phone, "ask_crop", {});
     return "What are you selling? (e.g. Tomatoes, Maize, Avocado)";
   }
-  if (lower.startsWith("price")) return pricesReply(msg);
+  if (lower.startsWith("price")) return pricesReply(msg, user);
   if (lower.includes("my listing") || lower === "listings") return myListingsReply(user);
   if (lower.includes("my sales") || lower === "sales" || lower === "analytics") return mySalesReply(user);
+  if (lower.startsWith("location")) {
+    const town = titleCase(msg.replace(/^location/i, "").trim());
+    if (!town) return "Please tell me your town after LOCATION, e.g. *LOCATION Nakuru*.";
+    await users.updateOne({ id: user.id }, { $set: { location: town } });
+    return `📍 Location set to *${town}*. Reply *PRICES* to see prices for your area.`;
+  }
   if (lower.startsWith("dispute")) {
     const reason = msg.replace(/^dispute/i, "").trim();
     if (!reason) {
