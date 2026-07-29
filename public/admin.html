@@ -400,7 +400,7 @@
       var guidesPanel = '<div class="panel"><div class="panel-h">Stage guides</div><div style="padding:14px 18px;display:flex;flex-direction:column;gap:14px">'+guideCards+'</div></div>';
       var scheduleRows = schedules.map(scheduleRowHTML).join('') + newScheduleRowHTML();
       var schedulePanel = '<div class="panel"><div class="panel-h">Task &amp; spray schedule</div>'+
-        table(['Stage','Day From','Day To','Activity','Product','Dosage','Instructions',''], scheduleRows, 8)+'</div>';
+        table(['Stage','Day From','Day To','Activity','Product','Dosage','Rate (kg/acre)','Instructions',''], scheduleRows, 9)+'</div>';
       return pickerPanel + guidesPanel + schedulePanel;
     }
     function guideCardHTML(g){
@@ -472,6 +472,7 @@
         '<td><select class="cell-input" id="s_type'+s.id+'">'+ACTIVITY_TYPES.map(function(t){return '<option'+(t===s.activityType?' selected':'')+'>'+t+'</option>';}).join('')+'</select></td>'+
         '<td><input class="cell-input" style="width:110px" id="s_prod'+s.id+'" value="'+esc(s.productName||'')+'"></td>'+
         '<td><input class="cell-input" style="width:90px" id="s_dose'+s.id+'" value="'+esc(s.dosage||'')+'"></td>'+
+        '<td><input class="cell-input" style="width:70px" id="s_rate'+s.id+'" value="'+(s.ratePerAcreKg==null?'':s.ratePerAcreKg)+'" placeholder="kg/acre" title="Structured rate for the fertilizer calculator — leave blank if there is no fixed rate (e.g. soil-test or deficiency-dependent)"></td>'+
         '<td><input class="cell-input" style="width:220px" id="s_instr'+s.id+'" value="'+esc(s.instructions)+'"></td>'+
         '<td><button class="act green" onclick="saveSchedule('+s.id+')">Save</button> <button class="act line" onclick="deleteSchedule('+s.id+')">Del</button></td>'+
       '</tr>';
@@ -484,6 +485,7 @@
         '<td><select class="cell-input" id="s_typenew">'+ACTIVITY_TYPES.map(function(t){return '<option>'+t+'</option>';}).join('')+'</select></td>'+
         '<td><input class="cell-input" style="width:110px" id="s_prodnew" placeholder="optional"></td>'+
         '<td><input class="cell-input" style="width:90px" id="s_dosenew" placeholder="optional"></td>'+
+        '<td><input class="cell-input" style="width:70px" id="s_ratenew" placeholder="kg/acre" title="Leave blank if there is no fixed rate"></td>'+
         '<td><input class="cell-input" style="width:220px" id="s_instrnew" placeholder="Instructions"></td>'+
         '<td><button class="act green" onclick="saveSchedule(null)">Add</button></td>'+
       '</tr>';
@@ -498,6 +500,7 @@
         activityType: document.getElementById('s_type'+suf).value,
         productName: document.getElementById('s_prod'+suf).value,
         dosage: document.getElementById('s_dose'+suf).value,
+        ratePerAcreKg: document.getElementById('s_rate'+suf).value,
         instructions: document.getElementById('s_instr'+suf).value,
       };
       api('/spray-schedules/save',{method:'POST',body:JSON.stringify(payload)})

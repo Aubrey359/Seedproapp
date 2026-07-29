@@ -338,6 +338,10 @@ admin.post(
       activityType: body.activityType,
       productName: body.productName ? String(body.productName).trim() : undefined,
       dosage: body.dosage ? String(body.dosage).trim() : undefined,
+      // Structured rate for the fertilizer calculator — distinct from the
+      // free-text dosage above. Left unset (not zero) when blank, since
+      // "no rate" and "zero kg/acre" mean very different things here.
+      ratePerAcreKg: body.ratePerAcreKg === "" || body.ratePerAcreKg == null ? undefined : Number(body.ratePerAcreKg),
       instructions: String(body.instructions ?? "").trim(),
     };
     if (body.id) {
