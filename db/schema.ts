@@ -214,6 +214,9 @@ const plantingSchema = new Schema(
     cropName: { type: String, required: true },
     plantingDate: { type: Date, required: true },
     location: String,
+    // Lets My Farm turn a per-acre fertilizer rate into "buy this many kg/
+    // bags for your actual plot" instead of a generic per-acre figure.
+    farmSizeAcres: Number,
     status: { type: String, enum: ["active", "harvested", "abandoned"], default: "active" },
     notes: String,
   },
@@ -253,6 +256,11 @@ const sprayScheduleSchema = new Schema(
     activityType: { type: String, enum: ["fertilizer", "pesticide", "fungicide", "herbicide", "irrigation", "pruning", "harvest"] },
     productName: String,
     dosage: String,
+    // Structured rate for the fertilizer calculator (dosage above stays
+    // free text for display). Deliberately left unset where the honest
+    // agronomic answer is "depends on soil test / deficiency symptoms" —
+    // never fabricated just to make every row calculable.
+    ratePerAcreKg: Number,
     instructions: String,
     reminderSent: { type: Boolean, default: false },
   },

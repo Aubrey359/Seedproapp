@@ -1131,22 +1131,39 @@ function farmTaskLineHTML(t, muted) {
   var icon = FARM_ACTIVITY_ICONS[t.activityType] || '📌';
   var extra = t.productName ? ' — ' + t.productName : '';
   var sub = muted ? ('In ' + t.daysUntil + ' day' + (t.daysUntil === 1 ? '' : 's')) : (t.dosage || '');
+  var amountLine = t.amount
+    ? '<div class="farm-task-amount">🛒 Buy ' + t.amount.totalKg + ' kg' + (t.amount.bags ? ' (≈' + t.amount.bags + ' × 50kg bags)' : '') + ' for your plot</div>'
+    : '';
   return '<div class="farm-task-line' + (muted ? ' muted' : '') + '"><span class="farm-task-icon">' + icon + '</span>' +
     '<div><div class="farm-task-main">' + t.instructions + extra + '</div>' +
     (sub ? '<div class="farm-task-sub">' + sub + '</div>' : '') +
+    amountLine +
     '</div></div>';
 }
 
 function plantingCardHTML(p) {
   var meta = cropMeta(p.cropName);
   var dateStr = p.plantingDate ? new Date(p.plantingDate).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+  var sizeText = p.farmSizeAcres ? (' · ' + p.farmSizeAcres + ' acre' + (p.farmSizeAcres === 1 ? '' : 's')) : '';
   var body;
   if (!p.hasGuideContent) {
     body = '<div class="farm-no-guide">📋 Detailed day-by-day guidance for ' + p.cropName + ' is coming soon. In the meantime, try Ask AI for general advice.</div>';
   } else {
+    var allTasks = p.currentTasks.concat(p.upcomingTasks);
+    var canCalculate = allTasks.some(function(t){ return t.hasRate; });
+    var sizePrompt = (!p.farmSizeAcres && canCalculate)
+      ? '<div class="farm-size-prompt">' +
+          '<span>📏 Add your farm size to see exact fertilizer amounts</span>' +
+          '<div class="farm-size-prompt-row">' +
+            '<input type="number" min="0.1" step="0.1" placeholder="Acres" id="farmSizeInline' + p.id + '">' +
+            '<button onclick="saveFarmSizeInline(' + p.id + ')">Save</button>' +
+          '</div>' +
+        '</div>'
+      : '';
     body =
       '<div class="farm-stage-title">' + p.stage.title + '</div>' +
       '<div class="farm-stage-desc">' + p.stage.description + '</div>' +
+      sizePrompt +
       (p.currentTasks.length ? '<div class="farm-task-group-label">Due now</div>' + p.currentTasks.map(function(t){ return farmTaskLineHTML(t, false); }).join('') : '') +
       (p.upcomingTasks.length ? '<div class="farm-task-group-label">Coming up</div>' + p.upcomingTasks.map(function(t){ return farmTaskLineHTML(t, true); }).join('') : '') +
       (p.stage.warnings && p.stage.warnings.length ? '<div class="farm-task-group-label">Watch for</div>' + p.stage.warnings.map(function(w){ return '<div class="farm-warning-line">⚠️ ' + w + '</div>'; }).join('') : '');
@@ -1155,7 +1172,7 @@ function plantingCardHTML(p) {
     '<div class="farm-planting-top">' +
       '<div class="farm-planting-crop"><span class="farm-crop-emoji">' + meta.emoji + '</span>' +
         '<div><div class="farm-crop-name">' + p.cropName + '</div>' +
-        '<div class="farm-crop-sub">Planted ' + dateStr + ' · Day ' + p.daysSincePlanting + (p.location ? ' · ' + p.location : '') + '</div></div>' +
+        '<div class="farm-crop-sub">Planted ' + dateStr + ' · Day ' + p.daysSincePlanting + (p.location ? ' · ' + p.location : '') + sizeText + '</div></div>' +
       '</div>' +
     '</div>' +
     body +
@@ -1164,6 +1181,26 @@ function plantingCardHTML(p) {
       '<button class="farm-mark-btn ghost" onclick="advancePlantingStatus(' + p.id + ',\'abandoned\')">✕ Remove</button>' +
     '</div>' +
   '</div>';
+}
+
+function saveFarmSizeInline(plantingId) {
+  var input = document.getElementById('farmSizeInline' + plantingId);
+  var size = parseFloat(input.value);
+  if (!size || size <= 0) { showToast('⚠️ Please enter a valid farm size in acres'); return; }
+  fetch('/api/trpc/planting.updateFarmSize', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ json: { plantingId: plantingId, farmSizeAcres: size } })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data) {
+    if (data.error) throw new Error(data.error.message || 'Could not save farm size');
+    showToast('📏 Farm size saved!');
+    renderFarmPage();
+  })
+  .catch(function(err) {
+    showToast('❌ ' + (err.message || 'Could not save farm size'));
+  });
 }
 
 function showFarmGate() {
@@ -1217,12 +1254,15 @@ function submitPlanting() {
   var crop = (document.getElementById('farmCropSelect')||{}).value || '';
   var date = (document.getElementById('farmPlantDate')||{}).value || '';
   var location = (document.getElementById('farmPlantLocation')||{}).value || '';
+  var size = parseFloat((document.getElementById('farmPlantSize')||{}).value || '');
   if (!crop) { showToast('⚠️ Please select a crop'); return; }
   if (!date) { showToast('⚠️ Please pick a planting date'); return; }
+  var payload = { cropName: crop, plantingDate: new Date(date).toISOString(), location: location.trim() || undefined };
+  if (size > 0) payload.farmSizeAcres = size;
   fetch('/api/trpc/planting.create', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ json: { cropName: crop, plantingDate: new Date(date).toISOString(), location: location.trim() || undefined } })
+    body: JSON.stringify({ json: payload })
   })
   .then(function(r){ return r.json(); })
   .then(function(data) {
@@ -1230,6 +1270,7 @@ function submitPlanting() {
     showToast('🌱 Planting logged!');
     document.getElementById('farmCropSelect').value = '';
     document.getElementById('farmPlantLocation').value = '';
+    document.getElementById('farmPlantSize').value = '';
     renderFarmPage();
   })
   .catch(function(err) {

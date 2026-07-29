@@ -3,6 +3,16 @@ import { createRouter, authedQuery } from "./middleware";
 import { plantings, crops, cropGuides, spraySchedules, nextSeq } from "@db/schema";
 
 const UPCOMING_WINDOW_DAYS = 10;
+const BAG_SIZE_KG = 50; // standard Kenyan agrovet fertilizer bag
+
+// rate x the farmer's own plot size = how much to actually buy, so they
+// stop guessing (and overbuying "just in case"). null when either side of
+// the calculation is missing — never a fabricated fallback number.
+function fertilizerAmount(ratePerAcreKg: number | null | undefined, farmSizeAcres: number | null | undefined) {
+  if (ratePerAcreKg == null || !farmSizeAcres) return null;
+  const totalKg = Math.round(ratePerAcreKg * farmSizeAcres * 10) / 10;
+  return { totalKg, bags: Math.round((totalKg / BAG_SIZE_KG) * 10) / 10 };
+}
 
 // A planting's growth stage and current/upcoming tasks, computed from its
 // planting date — this is the anchor cropGuides/spraySchedules were always
@@ -34,6 +44,7 @@ async function enrichPlanting(p: any) {
     cropName: p.cropName,
     plantingDate: p.plantingDate,
     location: p.location ?? null,
+    farmSizeAcres: p.farmSizeAcres ?? null,
     status: p.status,
     notes: p.notes ?? null,
     daysSincePlanting: daysSince,
@@ -43,9 +54,11 @@ async function enrichPlanting(p: any) {
       : null,
     currentTasks: currentTasks.map((t: any) => ({
       activityType: t.activityType, productName: t.productName ?? null, dosage: t.dosage ?? null, instructions: t.instructions,
+      hasRate: t.ratePerAcreKg != null, amount: fertilizerAmount(t.ratePerAcreKg, p.farmSizeAcres),
     })),
     upcomingTasks: upcomingTasks.map((t: any) => ({
       activityType: t.activityType, productName: t.productName ?? null, dosage: t.dosage ?? null, instructions: t.instructions, daysUntil: t.dayFrom - daysSince,
+      hasRate: t.ratePerAcreKg != null, amount: fertilizerAmount(t.ratePerAcreKg, p.farmSizeAcres),
     })),
   };
 }
@@ -64,6 +77,7 @@ export const plantingRouter = createRouter({
           return !isNaN(t) && t <= Date.now() + 24 * 60 * 60 * 1000;
         }, { message: "Planting date must be a valid date that isn't in the future" }),
         location: z.string().optional(),
+        farmSizeAcres: z.number().positive().max(10_000).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -76,6 +90,7 @@ export const plantingRouter = createRouter({
         cropName: input.cropName,
         plantingDate: new Date(input.plantingDate),
         location: input.location ?? null,
+        farmSizeAcres: input.farmSizeAcres ?? null,
         status: "active",
       });
       return { id };
@@ -93,6 +108,18 @@ export const plantingRouter = createRouter({
       if (!existing) throw new Error("Planting not found");
       if (existing.farmerId !== ctx.user.id) throw new Error("Not authorized to update this planting");
       await plantings.updateOne({ id: input.plantingId }, { $set: { status: input.status } });
+      return { success: true };
+    }),
+
+  // Lets a farmer add or correct their plot size after the fact — they
+  // often won't know it precisely when first logging a planting.
+  updateFarmSize: authedQuery
+    .input(z.object({ plantingId: z.number(), farmSizeAcres: z.number().positive().max(10_000) }))
+    .mutation(async ({ ctx, input }) => {
+      const existing: any = await plantings.findOne({ id: input.plantingId }).lean();
+      if (!existing) throw new Error("Planting not found");
+      if (existing.farmerId !== ctx.user.id) throw new Error("Not authorized to update this planting");
+      await plantings.updateOne({ id: input.plantingId }, { $set: { farmSizeAcres: input.farmSizeAcres } });
       return { success: true };
     }),
 });
