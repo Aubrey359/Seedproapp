@@ -994,6 +994,17 @@ function showChatUI() {
 }
 
 function loadChatMessages() {
+  if (!CURRENT_USER) {
+    // Guest mode: no account to load persisted history for — just reveal
+    // the chat UI with an empty conversation instead of gating it behind
+    // sign-in. sendChatMessage() routes guests to the public endpoint.
+    var guestEl = document.getElementById('chatMessages');
+    if (guestEl && !guestEl.querySelector('.chat-bubble')) {
+      guestEl.innerHTML = '<div class="chat-empty">👋 Ask me anything about your crops — try "Tomato" or "pests" to get started.</div>';
+    }
+    showChatUI();
+    return Promise.resolve();
+  }
   return fetch('/api/trpc/advisory.getMessages')
     .then(function(r){ return r.json(); })
     .then(function(d) {
@@ -1020,7 +1031,10 @@ function sendChatMessage() {
   var empty = el.querySelector('.chat-empty'); if (empty) empty.remove();
   el.insertAdjacentHTML('beforeend', renderChatMessage({ direction: 'outgoing', content: text }));
   el.scrollTop = el.scrollHeight;
-  fetch('/api/trpc/advisory.sendMessage', {
+
+  var signedIn = !!CURRENT_USER;
+  var endpoint = signedIn ? 'advisory.sendMessage' : 'advisory.sendGuestMessage';
+  fetch('/api/trpc/' + endpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ json: { content: text } })
@@ -1029,7 +1043,13 @@ function sendChatMessage() {
   .then(function(d) {
     input.disabled = false;
     if (d.error) { showToast('❌ ' + (d.error.message || 'Could not send message')); return; }
-    return loadChatMessages();
+    if (signedIn) return loadChatMessages(); // re-fetch persisted history
+    // Guest mode: nothing was saved server-side, so render the reply directly.
+    var reply = d.result && d.result.data && d.result.data.json;
+    if (reply) {
+      el.insertAdjacentHTML('beforeend', renderChatMessage({ direction: 'incoming', content: reply.content, metadata: reply.metadata }));
+      el.scrollTop = el.scrollHeight;
+    }
   })
   .catch(function() {
     input.disabled = false;

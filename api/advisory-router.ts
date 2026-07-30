@@ -105,6 +105,19 @@ export const advisoryRouter = createRouter({
 
       return { success: true };
     }),
+
+  // Public, ephemeral version of sendMessage — lets anyone chat with the
+  // Farm Assistant without signing in first (e.g. for a live demo where
+  // receiving an OTP isn't practical). Nothing is persisted: there's no
+  // farmer account to attribute a guest message to, and generateAdvisoryResponse
+  // is a pure local function (no external API, no cost), so there's no
+  // real abuse surface to a public endpoint here. Signed-in farmers keep
+  // using sendMessage/getMessages above, which still saves their history.
+  sendGuestMessage: publicQuery
+    .input(z.object({ content: z.string().min(1) }))
+    .mutation(async ({ input }) => {
+      return generateAdvisoryResponse(input.content);
+    }),
 });
 
 // Advisory response generator
