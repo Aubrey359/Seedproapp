@@ -378,6 +378,12 @@ function saveCart() {
    center 12,12), not a hand-drawn curve — exact trig, not eyeballed. */
 var VERIFIED_BADGE_SVG = '<svg viewBox="0 0 24 24"><defs><linearGradient id="vbg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#4AF0A0"/><stop offset="100%" stop-color="#16A863"/></linearGradient></defs><polygon points="12,1.5 15.44,3.69 19.42,4.58 20.32,8.56 22.5,12 20.32,15.44 19.42,19.42 15.44,20.32 12,22.5 8.56,20.32 4.58,19.42 3.69,15.44 1.5,12 3.69,8.56 4.58,4.58 8.56,3.69" fill="url(#vbg)"/><path d="M5 13l5 5L19 7" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
+/* Kilimo's avatar — a friendly sprout character (stem + two leaves growing
+   into a simple smiling face), used everywhere the assistant appears:
+   the chat header and every one of its message bubbles. Self-contained
+   SVG, no external image asset. */
+var KILIMO_AVATAR_SVG = '<svg viewBox="0 0 40 40"><defs><linearGradient id="kilimoAv" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#4AF0A0"/><stop offset="100%" stop-color="#16A863"/></linearGradient></defs><circle cx="20" cy="20" r="20" fill="url(#kilimoAv)"/><path d="M20 30V18" stroke="#fff" stroke-width="2.2" stroke-linecap="round" fill="none"/><path d="M20 18c0-5-4-8-9-8 0 5 4 8 9 8z" fill="#fff"/><path d="M20 18c0-5 4-8 9-8 0 5-4 8-9 8z" fill="#fff" opacity=".82"/><circle cx="16.5" cy="27" r="1.4" fill="#0E6B3D"/><circle cx="23.5" cy="27" r="1.4" fill="#0E6B3D"/><path d="M17 30.2c1.2 1.1 4.8 1.1 6 0" stroke="#0E6B3D" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg>';
+
 /* ── CARD HTML ── */
 function cardHTML(p) {
   var inCart = cart.find(function(c){return c.id===p.id;});
@@ -972,10 +978,12 @@ function renderChatMessage(m) {
         return '<button class="chat-quick-reply-btn" onclick="quickChatSend(\'' + String(q).replace(/'/g, "\\'") + '\')">' + escChat(q) + '</button>';
       }).join('') + '</div>'
     : '';
+  var isPhoto = m.messageType === 'image';
+  var bubbleInner = isPhoto ? '<img class="chat-photo" src="' + m.content + '" alt="Shared photo" />' : escChat(m.content);
   return '<div class="chat-msg ' + (isOut ? 'out' : 'in') + '">' +
-    (!isOut ? '<div class="chat-avatar">🤖</div>' : '') +
+    (!isOut ? '<div class="chat-avatar">' + KILIMO_AVATAR_SVG + '</div>' : '') +
     '<div class="chat-msg-content">' +
-      '<div class="chat-bubble">' + escChat(m.content) + '</div>' +
+      '<div class="chat-bubble' + (isPhoto ? ' photo' : '') + '">' + bubbleInner + '</div>' +
       chipsHTML +
     '</div>' +
   '</div>';
@@ -1061,6 +1069,52 @@ function quickChatSend(text) {
   var input = document.getElementById('chatInput');
   if (input) input.value = text;
   sendChatMessage();
+}
+
+// The disease/symptom response tells farmers to "upload a photo," but until
+// now the chat had no way to actually do that — reuses compressImage()
+// (defined in index.html, same one the Scan page uses) so a multi-MB phone
+// photo becomes a small JPEG safe to send and store.
+function handleChatPhoto(input) {
+  var file = input.files && input.files[0];
+  input.value = ''; // allow re-selecting the same file later
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    compressImage(ev.target.result, 900, 0.65).then(function(compressed) {
+      sendChatPhoto(compressed);
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+function sendChatPhoto(dataUrl) {
+  var el = document.getElementById('chatMessages');
+  var empty = el.querySelector('.chat-empty'); if (empty) empty.remove();
+  el.insertAdjacentHTML('beforeend', renderChatMessage({ direction: 'outgoing', content: dataUrl, messageType: 'image' }));
+  el.scrollTop = el.scrollHeight;
+
+  var signedIn = !!CURRENT_USER;
+  var endpoint = signedIn ? 'advisory.sendMessage' : 'advisory.sendGuestMessage';
+  fetch('/api/trpc/' + endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ json: { content: dataUrl, messageType: 'image' } })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d) {
+    if (d.error) { showToast('❌ ' + (d.error.message || 'Could not send photo')); return; }
+    if (signedIn) return loadChatMessages(); // re-fetch persisted history
+    // Guest mode: nothing was saved server-side, so render the reply directly.
+    var reply = d.result && d.result.data && d.result.data.json;
+    if (reply) {
+      el.insertAdjacentHTML('beforeend', renderChatMessage({ direction: 'incoming', content: reply.content, metadata: reply.metadata }));
+      el.scrollTop = el.scrollHeight;
+    }
+  })
+  .catch(function() {
+    showToast('❌ Could not send photo');
+  });
 }
 
 /* ── MY ORDERS (watch the flow of a sale from pending → delivered) ── */

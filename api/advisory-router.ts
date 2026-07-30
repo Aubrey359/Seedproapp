@@ -90,7 +90,9 @@ export const advisoryRouter = createRouter({
       });
 
       // Generate advisory response based on content
-      const response = generateAdvisoryResponse(input.content, input.cropId);
+      const response = input.messageType === "image"
+        ? photoAcknowledgmentResponse()
+        : generateAdvisoryResponse(input.content, input.cropId);
 
       // Store incoming (bot) response
       await advisoryMessages.create({
@@ -114,11 +116,26 @@ export const advisoryRouter = createRouter({
   // real abuse surface to a public endpoint here. Signed-in farmers keep
   // using sendMessage/getMessages above, which still saves their history.
   sendGuestMessage: publicQuery
-    .input(z.object({ content: z.string().min(1) }))
+    .input(z.object({ content: z.string().min(1), messageType: z.enum(["text", "image"]).default("text") }))
     .mutation(async ({ input }) => {
-      return generateAdvisoryResponse(input.content);
+      return input.messageType === "image"
+        ? photoAcknowledgmentResponse()
+        : generateAdvisoryResponse(input.content);
     }),
 });
+
+// A farmer can now actually attach a photo in chat (previously the disease
+// response told them to "upload a photo" with no way to do it). There's no
+// real vision model behind this though — running keyword matching against a
+// base64 data URL would be meaningless, and fabricating a diagnosis from an
+// image never analyzed would be actively misleading. Acknowledge honestly
+// and redirect to the description-based path, which does work.
+function photoAcknowledgmentResponse(): { content: string; messageType: string; metadata?: Record<string, any> } {
+  return {
+    content: `📸 Thanks for the photo! I can't fully analyze images yet, but I'm good with descriptions — tell me what you're seeing (spots, yellowing, wilting, holes, powdery coating) and I'll help from there.`,
+    messageType: "text",
+  };
+}
 
 // Advisory response generator
 export function generateAdvisoryResponse(content: string, _cropId?: number): {
