@@ -1029,7 +1029,7 @@
         </div>
       </div>
       <div class="result-body">
-        <div class="result-notes" id="resultNotes">Your photo has been attached to this listing — real photos help buyers trust your listing is genuine. Noticed spots, wilting or pests? Ask Amani for guidance.</div>
+        <div class="result-notes" id="resultNotes">Your photo has been attached to this listing — real photos help buyers trust your listing is genuine. Noticed spots, wilting or pests? Ask Sheillah for guidance.</div>
         <div class="result-actions">
           <button class="btn-sell" onclick="showPage('sell')">🌾 Continue to List Produce</button>
           <button class="btn-retry" onclick="resetScan()">↩ Retake Photo</button>
@@ -1202,16 +1202,16 @@
 <div id="page-chat" class="page">
   <div class="chat-hero">
     <div class="chat-hero-badge">🌱 Free for Farmers</div>
-    <h1>💬 Ask Amani</h1>
+    <h1>💬 Ask Sheillah</h1>
     <p>Get instant advice on crop care, pests, planting schedules and more — any time.</p>
   </div>
 
   <div class="chat-page-bg">
     <div class="chat-card">
       <div class="chat-card-head">
-        <div class="chat-card-avatar"><svg viewBox="0 0 40 40"><defs><linearGradient id="amaniAvHead" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#4AF0A0"/><stop offset="100%" stop-color="#16A863"/></linearGradient></defs><circle cx="20" cy="20" r="20" fill="url(#amaniAvHead)"/><path d="M20 30V18" stroke="#fff" stroke-width="2.2" stroke-linecap="round" fill="none"/><path d="M20 18c0-5-4-8-9-8 0 5 4 8 9 8z" fill="#fff"/><path d="M20 18c0-5 4-8 9-8 0 5-4 8-9 8z" fill="#fff" opacity=".82"/><circle cx="16.5" cy="27" r="1.4" fill="#0E6B3D"/><circle cx="23.5" cy="27" r="1.4" fill="#0E6B3D"/><path d="M17 30.2c1.2 1.1 4.8 1.1 6 0" stroke="#0E6B3D" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg></div>
+        <div class="chat-card-avatar"><svg viewBox="0 0 40 40"><defs><linearGradient id="sheillahAvHead" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#4AF0A0"/><stop offset="100%" stop-color="#16A863"/></linearGradient></defs><circle cx="20" cy="20" r="20" fill="url(#sheillahAvHead)"/><path d="M20 30V18" stroke="#fff" stroke-width="2.2" stroke-linecap="round" fill="none"/><path d="M20 18c0-5-4-8-9-8 0 5 4 8 9 8z" fill="#fff"/><path d="M20 18c0-5 4-8 9-8 0 5-4 8-9 8z" fill="#fff" opacity=".82"/><circle cx="16.5" cy="27" r="1.4" fill="#0E6B3D"/><circle cx="23.5" cy="27" r="1.4" fill="#0E6B3D"/><path d="M17 30.2c1.2 1.1 4.8 1.1 6 0" stroke="#0E6B3D" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg></div>
         <div>
-          <div class="chat-card-title">Amani</div>
+          <div class="chat-card-title">Sheillah</div>
           <div class="chat-card-status"><span class="chat-status-dot"></span>Online · Replies instantly</div>
         </div>
       </div>
@@ -1219,7 +1219,7 @@
       <div class="chat-signin-gate" id="chatSignInGate">
         <div class="chat-gate-icon">🔒</div>
         <h3>Sign in to chat</h3>
-        <p>Amani remembers your conversation when you're signed in — with your phone number, it's free. You can also chat as a guest right away.</p>
+        <p>Sheillah remembers your conversation when you're signed in — with your phone number, it's free. You can also chat as a guest right away.</p>
         <button class="btn-sell" onclick="enterApp()">📱 Sign In</button>
       </div>
 
@@ -1587,12 +1587,12 @@ document.addEventListener('DOMContentLoaded', function() {
   // a broken-image icon on the very first paint. Preload the real photo via
   // JS (not an inline onerror, which could fire before site.js has even
   // finished loading) and swap it in only once it has actually decoded.
-  var amaniPhoto = new Image();
-  amaniPhoto.onload = function() {
+  var sheillahPhoto = new Image();
+  sheillahPhoto.onload = function() {
     var el = document.querySelector('.chat-card-avatar');
-    if (el) el.innerHTML = '<img src="/images/amani-avatar.jpg" alt="Amani" />';
+    if (el) el.innerHTML = '<img src="/images/sheillah-avatar.jpg" alt="Sheillah" />';
   };
-  amaniPhoto.src = '/images/amani-avatar.jpg';
+  sheillahPhoto.src = '/images/sheillah-avatar.jpg';
 });
 </script>
 </body>
