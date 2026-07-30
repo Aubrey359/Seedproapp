@@ -115,6 +115,25 @@ export function generateAdvisoryResponse(content: string, _cropId?: number): {
 } {
   const lower = content.toLowerCase();
 
+  // Pest/disease/symptom responses — checked before crop-name matching so a
+  // message like "my tomato has brown spots" gets the actual symptom
+  // response instead of always falling into the generic crop intro below.
+  // Keywords match what this response itself lists as example symptoms.
+  if (
+    lower.includes("pest") || lower.includes("disease") || lower.includes("problem") ||
+    lower.includes("spot") || lower.includes("yellow") || lower.includes("wilt") ||
+    lower.includes("hole") || lower.includes("powder") || lower.includes("mold") ||
+    lower.includes("rot") || lower.includes("bug") || lower.includes("insect")
+  ) {
+    return {
+      content: `I'm here to help with crop problems! 🔍\n\nPlease **upload a photo** of the affected plant, and I'll help diagnose the issue. You can also describe the symptoms:\n- Yellowing leaves?\n- Brown spots?\n- Wilting?\n- Holes in leaves?\n- White powdery coating?`,
+      messageType: "text",
+      metadata: {
+        actions: ["Upload Photo", "Describe Symptoms"],
+      },
+    };
+  }
+
   // Crop selection responses
   if (lower.includes("tomato")) {
     return {
@@ -193,17 +212,6 @@ export function generateAdvisoryResponse(content: string, _cropId?: number): {
       messageType: "text",
       metadata: {
         actions: ["Post to Marketplace", "View Buyer Prices"],
-      },
-    };
-  }
-
-  // Pest/disease responses
-  if (lower.includes("pest") || lower.includes("disease") || lower.includes("problem")) {
-    return {
-      content: `I'm here to help with crop problems! 🔍\n\nPlease **upload a photo** of the affected plant, and I'll help diagnose the issue. You can also describe the symptoms:\n- Yellowing leaves?\n- Brown spots?\n- Wilting?\n- Holes in leaves?\n- White powdery coating?`,
-      messageType: "text",
-      metadata: {
-        actions: ["Upload Photo", "Describe Symptoms"],
       },
     };
   }

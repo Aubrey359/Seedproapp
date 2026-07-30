@@ -804,6 +804,11 @@ var _authPhone = '';
    requestOtpCode()/verifyOtpCode() can restore the icon (not just plain
    text) when they reset button content after a request finishes. */
 var WHATSAPP_BTN_HTML = '<svg class="auth-submit-icon" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6 2 11c0 2 .8 3.8 2.1 5.3L3 21l5-1.3C9.2 20.2 10.6 20.5 12 20.5c5.5 0 10-4 10-9.5S17.5 2 12 2z" fill="rgba(255,255,255,.95)"/></svg>Send Code via WhatsApp';
+// SMS (Africa's Talking) is the only channel with a real provider configured
+// right now — WhatsApp has no Business API connected, so requestOtp "sends"
+// it but nothing is ever delivered. SMS is the primary/default button until
+// a real WhatsApp provider is connected; WhatsApp stays as a secondary link.
+var SMS_BTN_HTML = '<svg class="auth-submit-icon" viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 012 2v9a2 2 0 01-2 2H9l-5 4v-4H4a2 2 0 01-2-2V6a2 2 0 012-2z" fill="rgba(255,255,255,.95)"/></svg>Send Code via SMS';
 var VERIFY_BTN_HTML = '<svg class="auth-submit-icon" viewBox="0 0 24 24"><path d="M12 2l7 3v6c0 5-3 8.5-7 11-4-2.5-7-6-7-11V5l7-3z" fill="rgba(255,255,255,.95)"/><path d="M8.5 12.5l2.3 2.3 4.7-5" stroke="#4A6B4D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>Verify &amp; Continue';
 
 function enterApp() {
@@ -826,8 +831,8 @@ function enterApp() {
       /* STEP 1: phone */
       '<div id="auth-step-phone">',
         '<div class="auth-field"><label>Phone Number</label><input type="tel" id="authPhone" placeholder="e.g. 0712 345 678" /></div>',
-        '<button class="auth-submit" id="authSendBtn" onclick="requestOtpCode(\'whatsapp\')">' + WHATSAPP_BTN_HTML + '</button>',
-        '<div class="auth-forgot" id="authSmsLink" onclick="requestOtpCode(\'sms\')">No smartphone or WhatsApp? <u>Send code via SMS instead</u></div>',
+        '<button class="auth-submit" id="authSendBtn" onclick="requestOtpCode(\'sms\')">' + SMS_BTN_HTML + '</button>',
+        '<div class="auth-forgot" id="authSmsLink" onclick="requestOtpCode(\'whatsapp\')">Prefer WhatsApp? <u>Send code via WhatsApp instead</u></div>',
       '</div>',
       /* STEP 2: code */
       '<div id="auth-step-code" style="display:none">',
@@ -854,12 +859,12 @@ function backToPhoneStep() {
 }
 
 function requestOtpCode(channel) {
-  channel = channel === 'sms' ? 'sms' : 'whatsapp';
+  channel = channel === 'whatsapp' ? 'whatsapp' : 'sms';
   var phone = (document.getElementById('authPhone')||{}).value || '';
   if (!phone.trim()) { showToast('⚠️ Please enter your phone number'); return; }
   var btn = document.getElementById('authSendBtn');
   var smsLink = document.getElementById('authSmsLink');
-  var sendingText = channel === 'sms' ? '⏳ Sending SMS…' : '⏳ Sending…';
+  var sendingText = channel === 'whatsapp' ? '⏳ Sending…' : '⏳ Sending SMS…';
   btn.textContent = sendingText; btn.disabled = true;
   if (smsLink) smsLink.style.pointerEvents = 'none';
   fetch('/api/trpc/auth.requestOtp', {
@@ -869,17 +874,17 @@ function requestOtpCode(channel) {
   })
   .then(function(r){ return r.json(); })
   .then(function(data) {
-    btn.innerHTML = WHATSAPP_BTN_HTML; btn.disabled = false;
+    btn.innerHTML = SMS_BTN_HTML; btn.disabled = false;
     if (smsLink) smsLink.style.pointerEvents = '';
     if (data.error) throw new Error(data.error.message || 'Could not send code');
     _authPhone = phone;
     document.getElementById('auth-step-phone').style.display = 'none';
     document.getElementById('auth-step-code').style.display = '';
-    document.getElementById('authCodeSentTo').textContent = 'Code sent to ' + phone + (channel === 'sms' ? ' via SMS' : ' via WhatsApp');
-    showToast(channel === 'sms' ? '💬 Check your SMS inbox for your code' : '📲 Check WhatsApp for your code');
+    document.getElementById('authCodeSentTo').textContent = 'Code sent to ' + phone + (channel === 'whatsapp' ? ' via WhatsApp' : ' via SMS');
+    showToast(channel === 'whatsapp' ? '📲 Check WhatsApp for your code' : '💬 Check your SMS inbox for your code');
   })
   .catch(function(err) {
-    btn.innerHTML = WHATSAPP_BTN_HTML; btn.disabled = false;
+    btn.innerHTML = SMS_BTN_HTML; btn.disabled = false;
     if (smsLink) smsLink.style.pointerEvents = '';
     showToast('❌ ' + (err.message || 'Could not send code'));
   });
@@ -958,9 +963,21 @@ function escChat(s) {
 
 function renderChatMessage(m) {
   var isOut = m.direction === 'outgoing'; // outgoing = farmer's message, incoming = assistant's reply
+  // The assistant's suggested next replies were computed server-side but
+  // never rendered — silently dropped. Render them as clickable chips
+  // wired to the same quickChatSend() the static suggestion row already uses.
+  var quickReplies = (!isOut && m.metadata && m.metadata.quickReplies) ? m.metadata.quickReplies : null;
+  var chipsHTML = quickReplies
+    ? '<div class="chat-quick-replies">' + quickReplies.map(function(q) {
+        return '<button class="chat-quick-reply-btn" onclick="quickChatSend(\'' + String(q).replace(/'/g, "\\'") + '\')">' + escChat(q) + '</button>';
+      }).join('') + '</div>'
+    : '';
   return '<div class="chat-msg ' + (isOut ? 'out' : 'in') + '">' +
     (!isOut ? '<div class="chat-avatar">🤖</div>' : '') +
-    '<div class="chat-bubble">' + escChat(m.content) + '</div>' +
+    '<div class="chat-msg-content">' +
+      '<div class="chat-bubble">' + escChat(m.content) + '</div>' +
+      chipsHTML +
+    '</div>' +
   '</div>';
 }
 
