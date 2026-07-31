@@ -971,6 +971,82 @@ function openSaved() {
 }
 
 /* ── AI FARM ASSISTANT CHAT ── */
+// Which language Sheillah replies in — persisted so it survives a page
+// reload. The server still recognizes English AND Kiswahili input either
+// way; this only controls which language HER replies and this page's own
+// static chat text come back in.
+var CHAT_LANG = (function() {
+  try { return localStorage.getItem('chatLang') === 'sw' ? 'sw' : 'en'; } catch (e) { return 'en'; }
+})();
+
+var CHAT_UI_STRINGS = {
+  en: {
+    heroSubtitle: 'Get instant advice on crop care, pests, planting schedules and more — any time.',
+    onlineStatus: 'Online · Replies instantly',
+    gateTitle: 'Sign in to chat',
+    gateText: "Sheillah remembers your conversation when you're signed in — with your phone number, it's free. You can also chat as a guest right away.",
+    gateBtn: '📱 Sign In',
+    sugTomato: '🍅 Tomato advice', sugMaize: '🌽 Maize advice', sugPest: '🐛 Pest control', sugAvocado: '🥑 Avocado tips',
+    inputPlaceholder: 'Ask about your crop, e.g. tomato pests…',
+    attachTitle: 'Attach a photo',
+    emptyState: '👋 Ask me anything about your crops — try "Tomato" or "pests" to get started.',
+  },
+  sw: {
+    heroSubtitle: 'Pata ushauri wa haraka kuhusu utunzaji wa mazao, wadudu, ratiba za upandaji na mengine — wakati wowote.',
+    onlineStatus: 'Mtandaoni · Hujibu Papo Hapo',
+    gateTitle: 'Ingia ili kuzungumza',
+    gateText: 'Sheillah hukumbuka mazungumzo yako ukiingia — kwa nambari yako ya simu, ni bure. Unaweza pia kuzungumza kama mgeni papo hapo.',
+    gateBtn: '📱 Ingia',
+    sugTomato: '🍅 Ushauri wa Nyanya', sugMaize: '🌽 Ushauri wa Mahindi', sugPest: '🐛 Udhibiti wa Wadudu', sugAvocado: '🥑 Vidokezo vya Parachichi',
+    inputPlaceholder: 'Uliza kuhusu zao lako, mf. wadudu wa nyanya…',
+    attachTitle: 'Ambatisha picha',
+    emptyState: '👋 Niulize chochote kuhusu mazao yako — jaribu "Nyanya" au "wadudu" kuanza.',
+  },
+};
+
+// The literal word sent as the chat message when a static suggestion chip is
+// tapped — kept in the active language so the outgoing bubble reads
+// naturally; generateAdvisoryResponse() understands either language anyway.
+var CHAT_WORDS = {
+  tomato: { en: 'Tomato', sw: 'Nyanya' },
+  maize: { en: 'Maize', sw: 'Mahindi' },
+  pests: { en: 'pests', sw: 'wadudu' },
+  avocado: { en: 'avocado', sw: 'parachichi' },
+};
+function chatWord(key) {
+  var w = CHAT_WORDS[key];
+  return w ? (w[CHAT_LANG] || w.en) : key;
+}
+
+function setChatLang(lang) {
+  CHAT_LANG = (lang === 'sw') ? 'sw' : 'en';
+  try { localStorage.setItem('chatLang', CHAT_LANG); } catch (e) {}
+  var s = CHAT_UI_STRINGS[CHAT_LANG];
+
+  var map = {
+    chatHeroSubtitle: s.heroSubtitle, chatOnlineStatus: s.onlineStatus, chatGateTitle: s.gateTitle,
+    chatGateText: s.gateText, chatGateBtn: s.gateBtn, chatSugTomato: s.sugTomato, chatSugMaize: s.sugMaize,
+    chatSugPest: s.sugPest, chatSugAvocado: s.sugAvocado,
+  };
+  Object.keys(map).forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = map[id];
+  });
+  var input = document.getElementById('chatInput');
+  if (input) input.placeholder = s.inputPlaceholder;
+  var attach = document.getElementById('chatAttachBtn');
+  if (attach) attach.title = s.attachTitle;
+
+  var enBtn = document.getElementById('chatLangEn'), swBtn = document.getElementById('chatLangSw');
+  if (enBtn) enBtn.classList.toggle('active', CHAT_LANG === 'en');
+  if (swBtn) swBtn.classList.toggle('active', CHAT_LANG === 'sw');
+
+  // Swap the empty-state greeting too, if that's all that's showing so far
+  var msgsEl = document.getElementById('chatMessages');
+  var emptyEl = msgsEl ? msgsEl.querySelector('.chat-empty') : null;
+  if (emptyEl) emptyEl.textContent = s.emptyState;
+}
+
 function escChat(s) {
   return String(s == null ? '' : s).replace(/[&<>"]/g, function(c) {
     return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
@@ -1012,13 +1088,16 @@ function showChatUI() {
 }
 
 function loadChatMessages() {
+  setChatLang(CHAT_LANG); // reflect the persisted language choice in the UI every time this page opens
+  var emptyStateHTML = '<div class="chat-empty">' + escChat(CHAT_UI_STRINGS[CHAT_LANG].emptyState) + '</div>';
+
   if (!CURRENT_USER) {
     // Guest mode: no account to load persisted history for — just reveal
     // the chat UI with an empty conversation instead of gating it behind
     // sign-in. sendChatMessage() routes guests to the public endpoint.
     var guestEl = document.getElementById('chatMessages');
     if (guestEl && !guestEl.querySelector('.chat-bubble')) {
-      guestEl.innerHTML = '<div class="chat-empty">👋 Ask me anything about your crops — try "Tomato" or "pests" to get started.</div>';
+      guestEl.innerHTML = emptyStateHTML;
     }
     showChatUI();
     return Promise.resolve();
@@ -1032,7 +1111,7 @@ function loadChatMessages() {
       if (!el) return;
       el.innerHTML = msgs.length
         ? msgs.map(renderChatMessage).join('')
-        : '<div class="chat-empty">👋 Ask me anything about your crops — try "Tomato" or "pests" to get started.</div>';
+        : emptyStateHTML;
       el.scrollTop = el.scrollHeight;
       showChatUI();
     })
@@ -1055,7 +1134,7 @@ function sendChatMessage() {
   fetch('/api/trpc/' + endpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ json: { content: text } })
+    body: JSON.stringify({ json: { content: text, lang: CHAT_LANG } })
   })
   .then(function(r){ return r.json(); })
   .then(function(d) {
@@ -1109,7 +1188,7 @@ function sendChatPhoto(dataUrl) {
   fetch('/api/trpc/' + endpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ json: { content: dataUrl, messageType: 'image' } })
+    body: JSON.stringify({ json: { content: dataUrl, messageType: 'image', lang: CHAT_LANG } })
   })
   .then(function(r){ return r.json(); })
   .then(function(d) {

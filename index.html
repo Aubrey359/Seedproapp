@@ -1255,7 +1255,7 @@
   <div class="chat-hero">
     <div class="chat-hero-badge">🌱 Free for Farmers</div>
     <h1>💬 Ask Sheillah</h1>
-    <p>Get instant advice on crop care, pests, planting schedules and more — any time.</p>
+    <p id="chatHeroSubtitle">Get instant advice on crop care, pests, planting schedules and more — any time.</p>
   </div>
 
   <div class="chat-page-bg">
@@ -1264,28 +1264,32 @@
         <div class="chat-card-avatar"><svg viewBox="0 0 40 40"><defs><linearGradient id="sheillahAvHead" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#4AF0A0"/><stop offset="100%" stop-color="#16A863"/></linearGradient></defs><circle cx="20" cy="20" r="20" fill="url(#sheillahAvHead)"/><path d="M20 30V18" stroke="#fff" stroke-width="2.2" stroke-linecap="round" fill="none"/><path d="M20 18c0-5-4-8-9-8 0 5 4 8 9 8z" fill="#fff"/><path d="M20 18c0-5 4-8 9-8 0 5-4 8-9 8z" fill="#fff" opacity=".82"/><circle cx="16.5" cy="27" r="1.4" fill="#0E6B3D"/><circle cx="23.5" cy="27" r="1.4" fill="#0E6B3D"/><path d="M17 30.2c1.2 1.1 4.8 1.1 6 0" stroke="#0E6B3D" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg></div>
         <div>
           <div class="chat-card-title">Sheillah</div>
-          <div class="chat-card-status"><span class="chat-status-dot"></span>Online · Replies instantly</div>
+          <div class="chat-card-status" id="chatOnlineStatus"><span class="chat-status-dot"></span>Online · Replies instantly</div>
+        </div>
+        <div class="chat-lang-toggle" id="chatLangToggle">
+          <button class="chat-lang-btn active" id="chatLangEn" onclick="setChatLang('en')">EN</button>
+          <button class="chat-lang-btn" id="chatLangSw" onclick="setChatLang('sw')">SW</button>
         </div>
       </div>
 
       <div class="chat-signin-gate" id="chatSignInGate">
         <div class="chat-gate-icon">🔒</div>
-        <h3>Sign in to chat</h3>
-        <p>Sheillah remembers your conversation when you're signed in — with your phone number, it's free. You can also chat as a guest right away.</p>
-        <button class="btn-sell" onclick="enterApp()">📱 Sign In</button>
+        <h3 id="chatGateTitle">Sign in to chat</h3>
+        <p id="chatGateText">Sheillah remembers your conversation when you're signed in — with your phone number, it's free. You can also chat as a guest right away.</p>
+        <button class="btn-sell" id="chatGateBtn" onclick="enterApp()">📱 Sign In</button>
       </div>
 
       <div class="chat-wrap" id="chatWrap" style="display:none">
         <div class="chat-messages" id="chatMessages"></div>
         <div class="chat-suggestions">
-          <button onclick="quickChatSend('Tomato')">🍅 Tomato advice</button>
-          <button onclick="quickChatSend('Maize')">🌽 Maize advice</button>
-          <button onclick="quickChatSend('pests')">🐛 Pest control</button>
-          <button onclick="quickChatSend('avocado')">🥑 Avocado tips</button>
+          <button id="chatSugTomato" onclick="quickChatSend(chatWord('tomato'))">🍅 Tomato advice</button>
+          <button id="chatSugMaize" onclick="quickChatSend(chatWord('maize'))">🌽 Maize advice</button>
+          <button id="chatSugPest" onclick="quickChatSend(chatWord('pests'))">🐛 Pest control</button>
+          <button id="chatSugAvocado" onclick="quickChatSend(chatWord('avocado'))">🥑 Avocado tips</button>
         </div>
         <div class="chat-input-row">
           <input type="file" accept="image/*" id="chatPhotoInput" style="display:none" onchange="handleChatPhoto(this)" />
-          <button class="chat-attach-btn" onclick="document.getElementById('chatPhotoInput').click()" title="Attach a photo">📷</button>
+          <button class="chat-attach-btn" id="chatAttachBtn" onclick="document.getElementById('chatPhotoInput').click()" title="Attach a photo">📷</button>
           <input type="text" id="chatInput" placeholder="Ask about your crop, e.g. tomato pests…" onkeydown="if(event.key==='Enter')sendChatMessage()" />
           <button onclick="sendChatMessage()">➤</button>
         </div>
