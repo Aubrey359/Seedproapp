@@ -574,6 +574,12 @@ nav {
 .farm-log-title { font-size: 14.5px; font-weight: 800; color: var(--text); margin-bottom: 12px; font-family:'Nunito',sans-serif; }
 .farm-field-hint { font-size: 11px; color: var(--grey-text); margin-top: 5px; line-height: 1.4; }
 
+/* ══ MY ACCOUNT (profile + farm size) ══ */
+.account-info-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; font-size: 13.5px; border-bottom: 1px solid var(--grey-border); }
+.account-info-row:last-child { border-bottom: none; }
+.account-info-row span { color: var(--grey-text); }
+.account-info-row strong { color: var(--text); font-weight: 700; }
+
 .farm-planting-card {
   background: var(--white); border-radius: var(--radius-lg); border: 1px solid var(--grey-border);
   padding: 16px; box-shadow: var(--shadow-xs); margin-bottom: 14px;

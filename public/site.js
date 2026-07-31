@@ -923,18 +923,26 @@ function verifyOtpCode() {
   });
 }
 
+// Re-renders whichever auth-gated page is currently open, so a sign-in or
+// sign-out is reflected immediately without needing a manual page reload.
+function refreshActivePageForAuth() {
+  renderAuthState();
+  var chatPage = document.getElementById('page-chat');
+  if (chatPage && chatPage.classList.contains('active') && typeof loadChatMessages === 'function') loadChatMessages();
+  var ordersPage = document.getElementById('page-orders');
+  if (ordersPage && ordersPage.classList.contains('active') && typeof renderOrdersPage === 'function') renderOrdersPage();
+  var farmPage = document.getElementById('page-farm');
+  if (farmPage && farmPage.classList.contains('active') && typeof renderFarmPage === 'function') renderFarmPage();
+  var accountPage = document.getElementById('page-account');
+  if (accountPage && accountPage.classList.contains('active') && typeof renderAccountPage === 'function') renderAccountPage();
+}
+
 function checkAuthState() {
   return fetch('/api/trpc/auth.me')
     .then(function(r){ return r.json(); })
     .then(function(d) {
       CURRENT_USER = (d && d.result && d.result.data && d.result.data.json) || null;
-      renderAuthState();
-      var chatPage = document.getElementById('page-chat');
-      if (chatPage && chatPage.classList.contains('active') && typeof loadChatMessages === 'function') loadChatMessages();
-      var ordersPage = document.getElementById('page-orders');
-      if (ordersPage && ordersPage.classList.contains('active') && typeof renderOrdersPage === 'function') renderOrdersPage();
-      var farmPage = document.getElementById('page-farm');
-      if (farmPage && farmPage.classList.contains('active') && typeof renderFarmPage === 'function') renderFarmPage();
+      refreshActivePageForAuth();
     })
     .catch(function() { CURRENT_USER = null; renderAuthState(); });
 }
@@ -944,7 +952,7 @@ function renderAuthState() {
   if (!btn) return;
   if (CURRENT_USER) {
     btn.textContent = '👤 ' + (CURRENT_USER.name || CURRENT_USER.phone || 'Account');
-    btn.onclick = doLogout;
+    btn.onclick = function() { showPage('account'); };
   } else {
     btn.textContent = 'Sign In';
     btn.onclick = enterApp;
@@ -953,7 +961,7 @@ function renderAuthState() {
 
 function doLogout() {
   fetch('/api/trpc/auth.logout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
-    .then(function(){ CURRENT_USER = null; renderAuthState(); showToast('👋 Signed out'); })
+    .then(function(){ CURRENT_USER = null; refreshActivePageForAuth(); showToast('👋 Signed out'); })
     .catch(function(){ showToast('❌ Could not sign out, try again'); });
 }
 
@@ -1318,6 +1326,12 @@ function renderFarmPage() {
     dateInput.max = today;
     dateInput.value = today;
   }
+  // Prefill from the farmer's account-level farm size (set on My Account)
+  // so they don't have to retype it for every crop — still overridable here.
+  var sizeInput = document.getElementById('farmPlantSize');
+  if (sizeInput && !sizeInput.value && CURRENT_USER.farmSizeAcres) {
+    sizeInput.value = CURRENT_USER.farmSizeAcres;
+  }
 
   var list = document.getElementById('farmPlantingsList');
   var empty = document.getElementById('farmPlantingsEmpty');
@@ -1368,6 +1382,49 @@ function submitPlanting() {
   })
   .catch(function(err) {
     showToast('❌ ' + (err.message || 'Could not log this planting'));
+  });
+}
+
+function showAccountGate() {
+  var gate = document.getElementById('accountSignInGate'), wrap = document.getElementById('accountWrap');
+  if (gate) gate.style.display = '';
+  if (wrap) wrap.style.display = 'none';
+}
+
+function renderAccountPage() {
+  if (!CURRENT_USER) { showAccountGate(); return; }
+  var gate = document.getElementById('accountSignInGate'), wrap = document.getElementById('accountWrap');
+  if (gate) gate.style.display = 'none';
+  if (wrap) wrap.style.display = '';
+
+  var nameEl = document.getElementById('acctName');
+  var phoneEl = document.getElementById('acctPhone');
+  var locEl = document.getElementById('acctLocation');
+  if (nameEl) nameEl.textContent = CURRENT_USER.name || '—';
+  if (phoneEl) phoneEl.textContent = CURRENT_USER.phone || '—';
+  if (locEl) locEl.textContent = CURRENT_USER.location || '—';
+
+  var sizeInput = document.getElementById('acctFarmSize');
+  if (sizeInput) sizeInput.value = CURRENT_USER.farmSizeAcres || '';
+}
+
+function saveAccountFarmSize() {
+  var input = document.getElementById('acctFarmSize');
+  var size = parseFloat(input.value);
+  if (!size || size <= 0) { showToast('⚠️ Please enter a valid farm size in acres'); return; }
+  fetch('/api/trpc/auth.updateFarmSize', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ json: { farmSizeAcres: size } })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data) {
+    if (data.error) throw new Error(data.error.message || 'Could not save farm size');
+    if (CURRENT_USER) CURRENT_USER.farmSizeAcres = size;
+    showToast('📏 Farm size saved!');
+  })
+  .catch(function(err) {
+    showToast('❌ ' + (err.message || 'Could not save farm size'));
   });
 }
 

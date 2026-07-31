@@ -71,6 +71,9 @@ const userSchema = new Schema(
     rating: { type: Number, default: 0 },
     reviewCount: { type: Number, default: 0 },
     lastSignInAt: { type: Date, default: Date.now },
+    // A farmer's overall plot size, set once in their account rather than
+    // retyped per crop — My Farm prefills a new planting's size from this.
+    farmSizeAcres: Number,
   },
   { timestamps: true, toJSON },
 );
@@ -431,6 +434,7 @@ export interface User {
   rating?: number;
   reviewCount?: number;
   lastSignInAt?: Date;
+  farmSizeAcres?: number | null;
 }
 
 export interface InsertUser {

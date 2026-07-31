@@ -5,7 +5,7 @@ import { TRPCError } from "@trpc/server";
 import { Session } from "@contracts/constants";
 import { getSessionCookieOptions } from "./lib/cookies";
 import { createRouter, authedQuery, publicQuery } from "./middleware";
-import { otpCodes } from "@db/schema";
+import { otpCodes, users } from "@db/schema";
 import { findOrCreateFarmerByPhone } from "./lib/identity";
 import { sendWhatsApp, sendSms } from "./whatsapp/send";
 import { signSessionToken } from "./kimi/session";
@@ -97,4 +97,14 @@ export const authRouter = createRouter({
     setSessionCookie(ctx, "", 0);
     return { success: true };
   }),
+
+  // A farmer's general plot size, separate from planting.updateFarmSize
+  // (which corrects the size on one specific planting). Set here once in
+  // their account, then used to prefill new plantings.
+  updateFarmSize: authedQuery
+    .input(z.object({ farmSizeAcres: z.number().positive().max(10_000) }))
+    .mutation(async ({ ctx, input }) => {
+      await users.updateOne({ id: ctx.user.id }, { $set: { farmSizeAcres: input.farmSizeAcres } });
+      return { success: true };
+    }),
 });
