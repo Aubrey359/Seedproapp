@@ -1288,7 +1288,7 @@
           <button id="chatSugAvocado" onclick="quickChatSend(chatWord('avocado'))">🥑 Avocado tips</button>
         </div>
         <div class="chat-input-row">
-          <input type="file" accept="image/*" id="chatPhotoInput" style="display:none" onchange="handleChatPhoto(this)" />
+          <input type="file" accept="image/*" capture="environment" id="chatPhotoInput" style="display:none" onchange="handleChatPhoto(this)" />
           <button class="chat-attach-btn" id="chatAttachBtn" onclick="document.getElementById('chatPhotoInput').click()" title="Attach a photo">📷</button>
           <input type="text" id="chatInput" placeholder="Ask about your crop, e.g. tomato pests…" onkeydown="if(event.key==='Enter')sendChatMessage()" />
           <button onclick="sendChatMessage()">➤</button>
@@ -1533,24 +1533,56 @@ function startScan(dataUrl, crop) {
   var prog = document.getElementById('scanProgress');
   prog.classList.add('active');
   document.getElementById('previewImg').src = dataUrl;
-  var steps = ['Uploading photo…','Checking for common issues…','Attaching to listing…','Almost done…'];
+
+  var sw = (typeof CHAT_LANG !== 'undefined' && CHAT_LANG === 'sw');
+  var steps = sw
+    ? ['Inapakia picha…', 'Sheillah anachunguza mmea wako…', 'Anaangalia dalili za wadudu na magonjwa…', 'Karibu kumaliza…']
+    : ['Uploading photo…', "Sheillah is examining your plant…", 'Checking for pests and disease signs…', 'Almost done…'];
+
+  // Climbs to 90% and holds — the real vision call decides when this
+  // actually finishes, so it never claims "done" before Sheillah has
+  // actually looked at the photo.
   var pct = 0;
   var interval = setInterval(function() {
-    pct = Math.min(100, pct + 4);
+    pct = Math.min(90, pct + 3);
     document.getElementById('scanBar').style.width = pct + '%';
     document.getElementById('scanPct').textContent = pct + '%';
-    document.getElementById('scanStatus').textContent = steps[Math.floor(pct/25)] || 'Finalising…';
-    if (pct >= 100) {
-      clearInterval(interval);
-      setTimeout(function(){ showResult(crop, dataUrl); }, 400);
-    }
-  }, 60);
+    document.getElementById('scanStatus').textContent = steps[Math.min(steps.length - 1, Math.floor(pct / 25))];
+  }, 150);
+
+  fetch('/api/trpc/advisory.scanPlant', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ json: { cropName: crop, photoDataUrl: dataUrl, lang: sw ? 'sw' : 'en' } })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d) {
+    clearInterval(interval);
+    document.getElementById('scanBar').style.width = '100%';
+    document.getElementById('scanPct').textContent = '100%';
+    var data = (d.result && d.result.data && d.result.data.json) || {};
+    setTimeout(function(){ showResult(crop, dataUrl, data.result || null); }, 300);
+  })
+  .catch(function() {
+    clearInterval(interval);
+    document.getElementById('scanBar').style.width = '100%';
+    setTimeout(function(){ showResult(crop, dataUrl, null); }, 300);
+  });
 }
 
-function showResult(crop, dataUrl) {
+function showResult(crop, dataUrl, aiResult) {
+  var sw = (typeof CHAT_LANG !== 'undefined' && CHAT_LANG === 'sw');
   document.getElementById('scanProgress').classList.remove('active');
   document.getElementById('resultTitle').textContent = crop + ' — Photo Received';
   document.getElementById('resultSub').textContent   = 'Attached to your listing · Ready to list';
+  var notesEl = document.getElementById('resultNotes');
+  if (aiResult) {
+    notesEl.innerHTML = '<strong>🔬 ' + (sw ? "Uchunguzi wa Sheillah:" : "Sheillah's assessment:") + '</strong><br/>' + escChat(aiResult).replace(/\n/g, '<br/>');
+  } else {
+    notesEl.textContent = sw
+      ? 'Picha yako imehifadhiwa — real photos help buyers trust your listing is genuine. Una dalili maalum? Muulize Sheillah kwenye mazungumzo.'
+      : "Your photo has been saved — real photos help buyers trust your listing is genuine. Noticed spots, wilting or pests? Ask Sheillah for guidance.";
+  }
   document.getElementById('scanResult').classList.add('active');
   try {
     sessionStorage.setItem(PENDING_PHOTO_KEY, JSON.stringify({ crop: crop, photo: dataUrl, ts: Date.now() }));

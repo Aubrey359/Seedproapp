@@ -12,6 +12,11 @@ import { checkRateLimit } from "./lib/rate-limit";
 const GUEST_MAX_MESSAGES_PER_HOUR = 20;
 const GUEST_RATE_WINDOW_MS = 60 * 60 * 1000;
 
+// Same reasoning as the guest chat limit above, but tracked separately since
+// it's a different action — a photo+vision call, on the Scan Plant page.
+const SCAN_MAX_PER_HOUR = 15;
+const SCAN_RATE_WINDOW_MS = 60 * 60 * 1000;
+
 // How many prior turns to give Claude as context — enough for a coherent
 // conversation without letting cost/latency grow unbounded on a long history.
 const AI_HISTORY_TURNS = 12;
@@ -77,6 +82,53 @@ export const advisoryRouter = createRouter({
   getMyDiagnoses: authedQuery.query(async ({ ctx }) => {
     return omitMongo(await diagnoses.find({ farmerId: ctx.user.id }).sort({ createdAt: -1 }).lean());
   }),
+
+  // Powers the "Check Your Plant's Health" (Scan Plant) camera flow — a real
+  // Claude vision call on the captured photo, instead of the fake progress
+  // bar it used to show before just filing the photo away for a listing.
+  // Public (no sign-in needed to scan, matching how that page always
+  // worked), so it's rate-limited by IP the same way guest chat is.
+  // Signed-in farmers additionally get the result saved to their diagnosis
+  // history via the existing `diagnoses` collection above.
+  scanPlant: publicQuery
+    .input(z.object({
+      cropName: z.string().min(1),
+      photoDataUrl: z.string().min(1).max(500_000),
+      lang: z.enum(["en", "sw"]).default("en"),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const ip = ctx.req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+      if (!checkRateLimit(`scan-plant:${ip}`, SCAN_MAX_PER_HOUR, SCAN_RATE_WINDOW_MS)) {
+        throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Too many scans — please try again in a bit." });
+      }
+
+      const caption = t(
+        input.lang,
+        `This is a photo of my ${input.cropName} plant. Please check it closely for any visible pest damage, disease symptoms, nutrient deficiency signs, or other health issues, and tell me what you see and what I should do about it.`,
+        `Hii ni picha ya mmea wangu wa ${input.cropName}. Tafadhali angalia kwa makini kama kuna dalili za wadudu, ugonjwa, upungufu wa virutubisho, au tatizo lingine la afya, kisha niambie unachokiona na nifanye nini.`,
+      );
+      const turn: ChatTurn = { role: "user", content: { photoDataUrl: input.photoDataUrl, caption } };
+      const aiText = await generateAiResponse([turn], input.lang);
+
+      const result = aiText ?? t(
+        input.lang,
+        "I couldn't complete an automatic check just now, but your photo has been saved — feel free to ask me about any specific symptoms you're seeing in the chat.",
+        "Sikuweza kukamilisha ukaguzi wa kiotomatiki kwa sasa, lakini picha yako imehifadhiwa — jisikie huru kuniuliza kuhusu dalili zozote unazoona kwenye mazungumzo.",
+      );
+
+      if (ctx.user) {
+        await diagnoses.create({
+          id: await nextSeq("diagnoses"),
+          farmerId: ctx.user.id,
+          cropName: input.cropName,
+          photoUrl: input.photoDataUrl,
+          diagnosis: result,
+          status: aiText ? "diagnosed" : "pending",
+        });
+      }
+
+      return { result, analyzed: !!aiText };
+    }),
 
   // ─── Advisory Messages (WhatsApp-style chat) ───
   getMessages: authedQuery.query(async ({ ctx }) => {

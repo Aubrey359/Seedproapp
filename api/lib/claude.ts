@@ -33,7 +33,7 @@ Ground rules:
 - Never claim to have taken an action you haven't (e.g. don't say you've placed an order or contacted anyone on the farmer's behalf).`;
 }
 
-export type ChatTurnContent = string | { photoDataUrl: string };
+export type ChatTurnContent = string | { photoDataUrl: string; caption?: string };
 export interface ChatTurn {
   role: "user" | "assistant";
   content: ChatTurnContent;
@@ -47,11 +47,12 @@ function toApiMessage(turn: ChatTurn, lang: "en" | "sw") {
   if (!match) {
     return { role: turn.role, content: lang === "sw" ? "[picha imeambatishwa]" : "[photo attached]" };
   }
+  const defaultCaption = lang === "sw" ? "Hii ni picha ya mmea wangu. Unaona nini?" : "Here's a photo of my plant. What do you see?";
   return {
     role: turn.role,
     content: [
       { type: "image" as const, source: { type: "base64" as const, media_type: match[1] as any, data: match[2] } },
-      { type: "text" as const, text: lang === "sw" ? "Hii ni picha ya mmea wangu. Unaona nini?" : "Here's a photo of my plant. What do you see?" },
+      { type: "text" as const, text: turn.content.caption || defaultCaption },
     ],
   };
 }
