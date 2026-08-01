@@ -1087,17 +1087,45 @@ function showChatUI() {
   if (wrap) wrap.style.display = '';
 }
 
+// Guests have no account for the server to attach history to (see
+// sendGuestMessage's own comment on why that stays true — no real identity,
+// no abuse surface). That doesn't mean their conversation has to vanish on
+// every reload, though: stash it client-side instead, same device only.
+// Capped well under localStorage's typical ~5MB quota, and photo messages
+// are stored as a short placeholder rather than their full data URL — a
+// handful of compressed photos could otherwise eat most of that budget.
+var GUEST_CHAT_HISTORY_KEY = 'guestChatHistory';
+var GUEST_CHAT_HISTORY_MAX = 40;
+
+function loadGuestChatHistory() {
+  try {
+    var raw = localStorage.getItem(GUEST_CHAT_HISTORY_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) { return []; }
+}
+
+function appendGuestChatHistory(message) {
+  try {
+    var history = loadGuestChatHistory();
+    history.push(message.messageType === 'image'
+      ? { direction: message.direction, content: message.direction === 'outgoing' ? '📷 Photo shared' : message.content, messageType: 'text', metadata: message.metadata }
+      : message);
+    localStorage.setItem(GUEST_CHAT_HISTORY_KEY, JSON.stringify(history.slice(-GUEST_CHAT_HISTORY_MAX)));
+  } catch (e) {} // storage full/unavailable — conversation still works, just won't survive a reload
+}
+
 function loadChatMessages() {
   setChatLang(CHAT_LANG); // reflect the persisted language choice in the UI every time this page opens
   var emptyStateHTML = '<div class="chat-empty">' + escChat(CHAT_UI_STRINGS[CHAT_LANG].emptyState) + '</div>';
 
   if (!CURRENT_USER) {
-    // Guest mode: no account to load persisted history for — just reveal
-    // the chat UI with an empty conversation instead of gating it behind
-    // sign-in. sendChatMessage() routes guests to the public endpoint.
+    // Guest mode: replay whatever's saved locally for this device instead of
+    // hitting the server (nothing to fetch — sendGuestMessage never persists).
     var guestEl = document.getElementById('chatMessages');
-    if (guestEl && !guestEl.querySelector('.chat-bubble')) {
-      guestEl.innerHTML = emptyStateHTML;
+    if (guestEl) {
+      var history = loadGuestChatHistory();
+      guestEl.innerHTML = history.length ? history.map(renderChatMessage).join('') : emptyStateHTML;
+      guestEl.scrollTop = guestEl.scrollHeight;
     }
     showChatUI();
     return Promise.resolve();
@@ -1126,10 +1154,12 @@ function sendChatMessage() {
   input.disabled = true;
   var el = document.getElementById('chatMessages');
   var empty = el.querySelector('.chat-empty'); if (empty) empty.remove();
-  el.insertAdjacentHTML('beforeend', renderChatMessage({ direction: 'outgoing', content: text }));
+  var outgoing = { direction: 'outgoing', content: text };
+  el.insertAdjacentHTML('beforeend', renderChatMessage(outgoing));
   el.scrollTop = el.scrollHeight;
 
   var signedIn = !!CURRENT_USER;
+  if (!signedIn) appendGuestChatHistory(outgoing);
   var endpoint = signedIn ? 'advisory.sendMessage' : 'advisory.sendGuestMessage';
   fetch('/api/trpc/' + endpoint, {
     method: 'POST',
@@ -1141,11 +1171,14 @@ function sendChatMessage() {
     input.disabled = false;
     if (d.error) { showToast('❌ ' + (d.error.message || 'Could not send message')); return; }
     if (signedIn) return loadChatMessages(); // re-fetch persisted history
-    // Guest mode: nothing was saved server-side, so render the reply directly.
+    // Guest mode: nothing was saved server-side, so render the reply directly
+    // and stash it in this device's local history alongside the outgoing one.
     var reply = d.result && d.result.data && d.result.data.json;
     if (reply) {
-      el.insertAdjacentHTML('beforeend', renderChatMessage({ direction: 'incoming', content: reply.content, metadata: reply.metadata }));
+      var incoming = { direction: 'incoming', content: reply.content, metadata: reply.metadata };
+      el.insertAdjacentHTML('beforeend', renderChatMessage(incoming));
       el.scrollTop = el.scrollHeight;
+      appendGuestChatHistory(incoming);
     }
   })
   .catch(function() {
@@ -1180,10 +1213,12 @@ function handleChatPhoto(input) {
 function sendChatPhoto(dataUrl) {
   var el = document.getElementById('chatMessages');
   var empty = el.querySelector('.chat-empty'); if (empty) empty.remove();
-  el.insertAdjacentHTML('beforeend', renderChatMessage({ direction: 'outgoing', content: dataUrl, messageType: 'image' }));
+  var outgoing = { direction: 'outgoing', content: dataUrl, messageType: 'image' };
+  el.insertAdjacentHTML('beforeend', renderChatMessage(outgoing));
   el.scrollTop = el.scrollHeight;
 
   var signedIn = !!CURRENT_USER;
+  if (!signedIn) appendGuestChatHistory(outgoing);
   var endpoint = signedIn ? 'advisory.sendMessage' : 'advisory.sendGuestMessage';
   fetch('/api/trpc/' + endpoint, {
     method: 'POST',
@@ -1194,11 +1229,14 @@ function sendChatPhoto(dataUrl) {
   .then(function(d) {
     if (d.error) { showToast('❌ ' + (d.error.message || 'Could not send photo')); return; }
     if (signedIn) return loadChatMessages(); // re-fetch persisted history
-    // Guest mode: nothing was saved server-side, so render the reply directly.
+    // Guest mode: nothing was saved server-side, so render the reply directly
+    // and stash it in this device's local history alongside the outgoing one.
     var reply = d.result && d.result.data && d.result.data.json;
     if (reply) {
-      el.insertAdjacentHTML('beforeend', renderChatMessage({ direction: 'incoming', content: reply.content, metadata: reply.metadata }));
+      var incoming = { direction: 'incoming', content: reply.content, metadata: reply.metadata };
+      el.insertAdjacentHTML('beforeend', renderChatMessage(incoming));
       el.scrollTop = el.scrollHeight;
+      appendGuestChatHistory(incoming);
     }
   })
   .catch(function() {
