@@ -70,7 +70,7 @@ input::placeholder, textarea::placeholder { color: var(--grey-text); opacity: 1;
 @keyframes pulse   { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.95)} }
 @keyframes ripple  { 0%{transform:scale(0);opacity:.5} 100%{transform:scale(4);opacity:0} }
 
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; overflow-x: hidden; }
 body {
   font-family: 'Lato', sans-serif;
   background:
@@ -139,6 +139,27 @@ nav {
   box-shadow: var(--shadow-orange); transition: transform .2s, box-shadow .2s;
 }
 .btn-orange:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(245,185,66,.35); }
+
+/* The logo + search bar + saved/cart icons + account button don't all fit
+   in one row on a phone-width screen with flex-shrink:0 on both ends —
+   the row silently overflowed, which forces mobile browsers to zoom the
+   whole page out to avoid clipping it (the actual cause of "everything
+   looks too small" on a real phone, not just a cosmetic overflow). Simplify
+   the row instead of shrinking everything proportionally: Shop already has
+   its own search bar, so the header's is redundant on a narrow screen; the
+   icon labels are identifiable by icon alone at this size; and the account
+   button is capped + ellipsized so a long farmer name can never blow out
+   the layout again, regardless of name length. */
+@media (max-width: 480px) {
+  .nav-top { gap: 6px; padding: 10px 10px; }
+  .nav-search { display: none; }
+  .icon-btn .label { display: none; }
+  .icon-btn { padding: 6px 4px; }
+  #signInBtn { max-width: 78px; padding: 9px 10px; overflow: hidden; text-overflow: ellipsis; }
+  .nav-logo-icon { width: 30px; height: 30px; }
+  .logo-text { font-size: 15px; }
+  .logo-tagline { display: none; }
+}
 
 .nav-bottom {
   background: var(--g-green);
