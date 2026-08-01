@@ -1,0 +1,35 @@
+kenya-app/
+├── .env.example
+├── .gitignore
+├── components.json
+├── drizzle.config.ts
+├── eslint.config.js
+├── index.html
+├── package.json
+├── postcss.config.js
+├── tailwind.config.js
+├── tsconfig.json
+├── vite.config.ts
+├── src/
+│   ├── App.css
+│   ├── App.tsx
+│   ├── const.ts
+│   ├── main.tsx
+│   ├── components/
+│   │   ├── AppLayout.tsx
+│   │   ├── AuthLayout.tsx
+│   │   └── ui/                  # All shadcn primitives (Button, Card, etc.)
+│   ├── hooks/
+│   │   ├── use-mobile.ts
+│   │   └── useAuth.ts
+│   ├── lib/
+│   │   └── utils.ts
+│   ├── pages/
+│   │   ├── Advisory.tsx
+│   │   ├── Home.tsx
+│   │   ├── Login.tsx
+│   │   ├── Marketplace.tsx      # Configured for Kenyan Agribusiness
+│   │   ├── Prices.tsx           # Commodity prices tracked in KES
+│   │   └── Profile.tsx
+│   └── providers/
+│       └── trpc.tsx
