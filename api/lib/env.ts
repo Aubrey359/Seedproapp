@@ -23,7 +23,7 @@ export const env = {
   // Admin dashboard access key (set ADMIN_KEY in .env for production)
   adminKey:     optional("ADMIN_KEY") || "shamba-admin-2026",
 
-  // Claude API — powers the Ask Sheillah chat assistant. Left empty, the
+  // Claude API — powers the Ask Zao chat assistant. Left empty, the
   // chat falls back to the local rule-based responses instead of erroring.
   anthropicApiKey: optional("ANTHROPIC_API_KEY"),
 

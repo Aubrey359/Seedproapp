@@ -378,13 +378,13 @@ function saveCart() {
    center 12,12), not a hand-drawn curve — exact trig, not eyeballed. */
 var VERIFIED_BADGE_SVG = '<svg viewBox="0 0 24 24"><defs><linearGradient id="vbg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#4AF0A0"/><stop offset="100%" stop-color="#16A863"/></linearGradient></defs><polygon points="12,1.5 15.44,3.69 19.42,4.58 20.32,8.56 22.5,12 20.32,15.44 19.42,19.42 15.44,20.32 12,22.5 8.56,20.32 4.58,19.42 3.69,15.44 1.5,12 3.69,8.56 4.58,4.58 8.56,3.69" fill="url(#vbg)"/><path d="M5 13l5 5L19 7" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-/* Sheillah's fallback avatar — a friendly sprout character (stem + two leaves
+/* Zao's fallback avatar — a friendly sprout character (stem + two leaves
    growing into a simple smiling face), shown only if her real photo
-   (/images/sheillah-avatar.jpg) ever fails to load — see SHEILLAH_AVATAR_HTML
+   (/images/zao-avatar.jpg) ever fails to load — see ZAO_AVATAR_HTML
    below. Self-contained SVG, no external image asset. */
-var SHEILLAH_AVATAR_SVG = '<svg viewBox="0 0 40 40"><defs><linearGradient id="sheillahAv" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#4AF0A0"/><stop offset="100%" stop-color="#16A863"/></linearGradient></defs><circle cx="20" cy="20" r="20" fill="url(#sheillahAv)"/><path d="M20 30V18" stroke="#fff" stroke-width="2.2" stroke-linecap="round" fill="none"/><path d="M20 18c0-5-4-8-9-8 0 5 4 8 9 8z" fill="#fff"/><path d="M20 18c0-5 4-8 9-8 0 5-4 8-9 8z" fill="#fff" opacity=".82"/><circle cx="16.5" cy="27" r="1.4" fill="#0E6B3D"/><circle cx="23.5" cy="27" r="1.4" fill="#0E6B3D"/><path d="M17 30.2c1.2 1.1 4.8 1.1 6 0" stroke="#0E6B3D" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg>';
+var ZAO_AVATAR_SVG = '<svg viewBox="0 0 40 40"><defs><linearGradient id="zaoAv" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#4AF0A0"/><stop offset="100%" stop-color="#16A863"/></linearGradient></defs><circle cx="20" cy="20" r="20" fill="url(#zaoAv)"/><path d="M20 30V18" stroke="#fff" stroke-width="2.2" stroke-linecap="round" fill="none"/><path d="M20 18c0-5-4-8-9-8 0 5 4 8 9 8z" fill="#fff"/><path d="M20 18c0-5 4-8 9-8 0 5-4 8-9 8z" fill="#fff" opacity=".82"/><circle cx="16.5" cy="27" r="1.4" fill="#0E6B3D"/><circle cx="23.5" cy="27" r="1.4" fill="#0E6B3D"/><path d="M17 30.2c1.2 1.1 4.8 1.1 6 0" stroke="#0E6B3D" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg>';
 
-var SHEILLAH_AVATAR_HTML = '<img src="/images/sheillah-avatar.jpg" alt="Sheillah" onerror="this.outerHTML=SHEILLAH_AVATAR_SVG;" />';
+var ZAO_AVATAR_HTML = '<img src="/images/zao-avatar.jpg" alt="Zao" onerror="this.outerHTML=ZAO_AVATAR_SVG;" />';
 
 /* ── CARD HTML ── */
 function cardHTML(p) {
@@ -971,7 +971,7 @@ function openSaved() {
 }
 
 /* ── AI FARM ASSISTANT CHAT ── */
-// Which language Sheillah replies in — persisted so it survives a page
+// Which language Zao replies in — persisted so it survives a page
 // reload. The server still recognizes English AND Kiswahili input either
 // way; this only controls which language HER replies and this page's own
 // static chat text come back in.
@@ -984,7 +984,7 @@ var CHAT_UI_STRINGS = {
     heroSubtitle: 'Get instant advice on crop care, pests, planting schedules and more — any time.',
     onlineStatus: 'Online · Replies instantly',
     gateTitle: 'Sign in to chat',
-    gateText: "Sheillah remembers your conversation when you're signed in — with your phone number, it's free. You can also chat as a guest right away.",
+    gateText: "Zao remembers your conversation when you're signed in — with your phone number, it's free. You can also chat as a guest right away.",
     gateBtn: '📱 Sign In',
     sugTomato: '🍅 Tomato advice', sugMaize: '🌽 Maize advice', sugPest: '🐛 Pest control', sugAvocado: '🥑 Avocado tips',
     inputPlaceholder: 'Ask about your crop, e.g. tomato pests…',
@@ -995,7 +995,7 @@ var CHAT_UI_STRINGS = {
     heroSubtitle: 'Pata ushauri wa haraka kuhusu utunzaji wa mazao, wadudu, ratiba za upandaji na mengine — wakati wowote.',
     onlineStatus: 'Mtandaoni · Hujibu Papo Hapo',
     gateTitle: 'Ingia ili kuzungumza',
-    gateText: 'Sheillah hukumbuka mazungumzo yako ukiingia — kwa nambari yako ya simu, ni bure. Unaweza pia kuzungumza kama mgeni papo hapo.',
+    gateText: 'Zao hukumbuka mazungumzo yako ukiingia — kwa nambari yako ya simu, ni bure. Unaweza pia kuzungumza kama mgeni papo hapo.',
     gateBtn: '📱 Ingia',
     sugTomato: '🍅 Ushauri wa Nyanya', sugMaize: '🌽 Ushauri wa Mahindi', sugPest: '🐛 Udhibiti wa Wadudu', sugAvocado: '🥑 Vidokezo vya Parachichi',
     inputPlaceholder: 'Uliza kuhusu zao lako, mf. wadudu wa nyanya…',
@@ -1067,7 +1067,7 @@ function renderChatMessage(m) {
   var isPhoto = m.messageType === 'image';
   var bubbleInner = isPhoto ? '<img class="chat-photo" src="' + m.content + '" alt="Shared photo" />' : escChat(m.content);
   return '<div class="chat-msg ' + (isOut ? 'out' : 'in') + '">' +
-    (!isOut ? '<div class="chat-avatar">' + SHEILLAH_AVATAR_HTML + '</div>' : '') +
+    (!isOut ? '<div class="chat-avatar">' + ZAO_AVATAR_HTML + '</div>' : '') +
     '<div class="chat-msg-content">' +
       '<div class="chat-bubble' + (isPhoto ? ' photo' : '') + '">' + bubbleInner + '</div>' +
       chipsHTML +
