@@ -317,6 +317,30 @@ const zoneSchema = new Schema(
 );
 export const zones = model("Zone", zoneSchema);
 
+// ─── Announcements (Blog page content: fertilizer ads + agricultural
+// events, admin-managed — replaced the old hardcoded external-blog-link
+// cards, which weren't actually about ads or events at all) ───
+const announcementSchema = new Schema(
+  {
+    id: { type: Number, unique: true, index: true },
+    type: { type: String, enum: ["ad", "event"], required: true },
+    title: { type: String, required: true },
+    description: { type: String, required: true },
+    imageUrl: String,
+    // Ads only
+    sponsorName: String,
+    ctaLabel: String,
+    ctaUrl: String,
+    // Events only — a farmer's view only ever shows events that are still
+    // upcoming (or undated/evergreen); past ones quietly drop off.
+    eventDate: Date,
+    eventLocation: String,
+    active: { type: Boolean, default: true },
+  },
+  { timestamps: true, toJSON },
+);
+export const announcements = model("Announcement", announcementSchema);
+
 // ─── Price Alerts ───
 const priceAlertSchema = new Schema(
   {

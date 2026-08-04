@@ -122,6 +122,7 @@
       <button class="nav-item" data-sec="payments" onclick="nav('payments')"><span class="nav-ico">💳</span> Payments</button>
       <button class="nav-item" data-sec="prices" onclick="nav('prices')"><span class="nav-ico">📈</span> Market Prices</button>
       <button class="nav-item" data-sec="cropguides" onclick="nav('cropguides')"><span class="nav-ico">🌱</span> Crop Guides</button>
+      <button class="nav-item" data-sec="announcements" onclick="nav('announcements')"><span class="nav-ico">📢</span> Ads &amp; Events</button>
       <button class="nav-item" data-sec="whatsapp" onclick="nav('whatsapp')"><span class="nav-ico">💬</span> WhatsApp Bot</button>
       <button class="nav-item" data-sec="disputes" onclick="nav('disputes')"><span class="nav-ico">🚩</span> Disputes</button>
       <button class="nav-item" data-sec="content" onclick="nav('content')"><span class="nav-ico">📝</span> Site Content</button>
@@ -144,7 +145,7 @@
   <script>
     var KEY = localStorage.getItem('ss_admin_key') || '';
     var SECTION = 'overview';
-    var TITLES = { overview:'Overview', listings:'Listings', farmers:'Farmers & Users', orders:'Orders', payments:'Payments', prices:'Market Prices', cropguides:'Crop Guides', whatsapp:'WhatsApp Bot', disputes:'Disputes', content:'Site Content' };
+    var TITLES = { overview:'Overview', listings:'Listings', farmers:'Farmers & Users', orders:'Orders', payments:'Payments', prices:'Market Prices', cropguides:'Crop Guides', announcements:'Ads & Events', whatsapp:'WhatsApp Bot', disputes:'Disputes', content:'Site Content' };
 
     function api(path, opts){
       opts = opts || {};
@@ -195,7 +196,7 @@
     function refresh(){
       var v = document.getElementById('view');
       v.innerHTML = '<div class="loading">Loading…</div>';
-      var fn = { overview:renderOverview, listings:renderListings, farmers:renderFarmers, orders:renderOrders, payments:renderPayments, prices:renderPrices, cropguides:renderCropGuides, whatsapp:renderWhatsapp, disputes:renderDisputes, content:renderContent }[SECTION];
+      var fn = { overview:renderOverview, listings:renderListings, farmers:renderFarmers, orders:renderOrders, payments:renderPayments, prices:renderPrices, cropguides:renderCropGuides, announcements:renderAnnouncements, whatsapp:renderWhatsapp, disputes:renderDisputes, content:renderContent }[SECTION];
       fn().catch(function(e){
         if (e && e.unauth) return logout();
         v.innerHTML = '<div class="banner">Error loading data: '+esc(e&&e.message||e)+'</div>';
@@ -509,6 +510,94 @@
     function deleteSchedule(id){
       api('/spray-schedules/delete',{method:'POST',body:JSON.stringify({id:id})})
         .then(function(){ toast('✓ Schedule entry deleted'); renderCropGuides(); }).catch(function(){ toast('Delete failed', true); });
+    }
+    // ── Ads & Events (Blog page content) ──
+    var ANN_DATA = [];
+    function renderAnnouncements(){
+      return api('/announcements').then(function(d){
+        setDbPill(d.dbConnected);
+        if (!d.dbConnected) return setView(dbBanner());
+        ANN_DATA = d.announcements || [];
+        setView(announcementsView());
+      });
+    }
+    function announcementsView(){
+      var cards = ANN_DATA.map(announcementCardHTML).join('') + newAnnouncementCardHTML();
+      return panel('Fertilizer ads &amp; agricultural events <span class="muted" style="font-weight:600;font-size:12px">— shown on the Blog page; past events drop off automatically, ads don\'t</span>',
+        '<div style="padding:14px 18px;display:flex;flex-direction:column;gap:14px">'+cards+'</div>', false);
+    }
+    function announcementFieldsHTML(suf, a){
+      a = a || {};
+      var isEvent = a.type === 'event';
+      return '<div class="mini">'+
+          '<div class="settings-field"><label>Type</label><select class="settings-input" id="ann_type_'+suf+'">'+
+            '<option value="ad"'+(!isEvent?' selected':'')+'>Fertilizer ad</option>'+
+            '<option value="event"'+(isEvent?' selected':'')+'>Agricultural event</option>'+
+          '</select></div>'+
+          '<div class="settings-field"><label>Visible on Blog page?</label><select class="settings-input" id="ann_active_'+suf+'">'+
+            '<option value="true"'+(a.active!==false?' selected':'')+'>Yes</option>'+
+            '<option value="false"'+(a.active===false?' selected':'')+'>No — hidden</option>'+
+          '</select></div>'+
+        '</div>'+
+        '<div class="settings-field"><label>Title</label><input class="settings-input" id="ann_title_'+suf+'" value="'+esc(a.title||'')+'" placeholder="e.g. Sure N Vegetative Plus+"></div>'+
+        '<div class="settings-field"><label>Description</label><textarea class="settings-input" id="ann_desc_'+suf+'" rows="2" placeholder="Short description shown on the card">'+esc(a.description||'')+'</textarea></div>'+
+        '<div class="settings-field"><label>Image URL <span class="hint">optional, e.g. /images/blog-fertilizer.jpg</span></label><input class="settings-input" id="ann_img_'+suf+'" value="'+esc(a.imageUrl||'')+'"></div>'+
+        '<div class="mini">'+
+          '<div class="settings-field"><label>Sponsor / brand name <span class="hint">ads only</span></label><input class="settings-input" id="ann_sponsor_'+suf+'" value="'+esc(a.sponsorName||'')+'"></div>'+
+          '<div class="settings-field"><label>Button label <span class="hint">ads only, e.g. "Shop Now"</span></label><input class="settings-input" id="ann_ctalabel_'+suf+'" value="'+esc(a.ctaLabel||'')+'"></div>'+
+        '</div>'+
+        '<div class="settings-field"><label>Button link URL <span class="hint">ads only</span></label><input class="settings-input" id="ann_ctaurl_'+suf+'" value="'+esc(a.ctaUrl||'')+'" placeholder="https://…"></div>'+
+        '<div class="mini">'+
+          '<div class="settings-field"><label>Event date <span class="hint">events only</span></label><input type="date" class="settings-input" id="ann_date_'+suf+'" value="'+(a.eventDate?String(a.eventDate).slice(0,10):'')+'"></div>'+
+          '<div class="settings-field"><label>Event location <span class="hint">events only</span></label><input class="settings-input" id="ann_loc_'+suf+'" value="'+esc(a.eventLocation||'')+'" placeholder="e.g. Nairobi ASK Showground"></div>'+
+        '</div>';
+    }
+    function announcementCardHTML(a){
+      var label = a.type === 'event' ? '📅 Event' : '🧪 Fertilizer Ad';
+      if (a.active === false) label += ' <span class="tag t-grey">hidden</span>';
+      return '<div class="panel" style="margin-bottom:0"><div class="panel-h">'+label+'</div>'+
+        '<div style="padding:14px 18px;display:flex;flex-direction:column;gap:10px">'+
+          announcementFieldsHTML(a.id, a)+
+          '<div style="display:flex;gap:8px">'+
+            '<button class="act green" onclick="saveAnnouncement('+a.id+')">Save</button>'+
+            '<button class="act line" onclick="deleteAnnouncement('+a.id+')">Delete</button>'+
+          '</div>'+
+        '</div></div>';
+    }
+    function newAnnouncementCardHTML(){
+      return '<div class="panel" style="margin-bottom:0;border-style:dashed"><div class="panel-h">➕ Add New</div>'+
+        '<div style="padding:14px 18px;display:flex;flex-direction:column;gap:10px">'+
+          announcementFieldsHTML('new', null)+
+          '<button class="act green" style="align-self:flex-start" onclick="saveAnnouncement(null)">Add</button>'+
+        '</div></div>';
+    }
+    function readAnnouncementForm(id){
+      var suf = id == null ? 'new' : id;
+      return {
+        id: id,
+        type: document.getElementById('ann_type_'+suf).value,
+        active: document.getElementById('ann_active_'+suf).value,
+        title: document.getElementById('ann_title_'+suf).value.trim(),
+        description: document.getElementById('ann_desc_'+suf).value.trim(),
+        imageUrl: document.getElementById('ann_img_'+suf).value.trim(),
+        sponsorName: document.getElementById('ann_sponsor_'+suf).value.trim(),
+        ctaLabel: document.getElementById('ann_ctalabel_'+suf).value.trim(),
+        ctaUrl: document.getElementById('ann_ctaurl_'+suf).value.trim(),
+        eventDate: document.getElementById('ann_date_'+suf).value,
+        eventLocation: document.getElementById('ann_loc_'+suf).value.trim(),
+      };
+    }
+    function saveAnnouncement(id){
+      var body = readAnnouncementForm(id);
+      if (!body.title || !body.description) { toast('Title and description are required', true); return; }
+      api('/announcements/save',{method:'POST',body:JSON.stringify(body)})
+        .then(function(){ toast(id==null ? '✓ Added' : '✓ Saved'); renderAnnouncements(); })
+        .catch(function(){ toast('Save failed', true); });
+    }
+    function deleteAnnouncement(id){
+      api('/announcements/delete',{method:'POST',body:JSON.stringify({id:id})})
+        .then(function(){ toast('✓ Deleted'); renderAnnouncements(); })
+        .catch(function(){ toast('Delete failed', true); });
     }
     function renderWhatsapp(){
       return api('/whatsapp').then(function(d){

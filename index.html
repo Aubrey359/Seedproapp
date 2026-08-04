@@ -732,8 +732,8 @@
 <div id="page-blog" class="page">
   <!-- BLOG HERO -->
   <div class="blog-hero" style="position:relative;overflow:hidden">
-    <h1>📰 Shamba Sokoni Farming Blog</h1>
-    <p>Crop nutrition, fertilizer programs and expert farming guides from Shamba Sokoni</p>
+    <h1>📢 Deals &amp; Events</h1>
+    <p>Fertilizer offers and upcoming agricultural events for Kenyan farmers</p>
     <div class="page-hero-floats">
       <div class="phf-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></div>
       <div class="phf-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21c0-9 5-16 15-16 0 10-6 16-15 16z"/><path d="M5 21c2-5 6-9 11-12"/></svg></div>
@@ -743,116 +743,13 @@
 
   <!-- TABS -->
   <div class="blog-tabs">
-    <button class="blog-tab active" onclick="setBlogTab(this)">All Articles</button>
-    <button class="blog-tab" onclick="setBlogTab(this)">Fertilizers</button>
-    <button class="blog-tab" onclick="setBlogTab(this)">Maize</button>
-    <button class="blog-tab" onclick="setBlogTab(this)">Potato</button>
-    <button class="blog-tab" onclick="setBlogTab(this)">Coffee</button>
-    <button class="blog-tab" onclick="setBlogTab(this)">Dairy</button>
+    <button class="blog-tab active" data-anntab="" onclick="setBlogTab(this)">All</button>
+    <button class="blog-tab" data-anntab="ad" onclick="setBlogTab(this)">🧪 Fertilizer Deals</button>
+    <button class="blog-tab" data-anntab="event" onclick="setBlogTab(this)">📅 Events</button>
   </div>
 
-  <!-- FEATURED ARTICLE -->
-  <div class="blog-featured" onclick="window.open('https://seedpro.co.ke/surelick-maziwa-the-secret-to-increased-milk-production-in-dairy-cows/','_blank','noopener')">
-    <div class="blog-feat-img">
-      <span class="bf-emoji">🐄</span>
-      <img class="blog-photo" src="/images/blog-dairy.jpg" alt="" loading="lazy" onerror="this.remove()">
-      <div class="feat-label">⭐ Featured</div>
-    </div>
-    <div class="blog-feat-body">
-      <div class="blog-meta">
-        <span class="blog-cat">Dairy Farming</span>
-        <span class="blog-date">June 24, 2026</span>
-      </div>
-      <h2>Surelick Maziwa: The Secret to Increased Milk Production in Dairy Cows</h2>
-      <p>Low milk yields, poor cow health and high feeding costs hold many Kenyan dairy farmers back. See how Surelick Maziwa lifts milk production and keeps your herd in top condition.</p>
-      <button class="read-more">Read Full Article →</button>
-    </div>
-  </div>
-
-  <!-- ARTICLES -->
-  <div style="padding:4px 16px 10px"><div class="section-title">Latest Articles</div></div>
-  <div class="blog-grid">
-    <div class="blog-card" onclick="window.open('https://seedpro.co.ke/top-dressing-maize-in-kenya-the-secret-to-bigger-harvests-and-higher-profits/','_blank','noopener')">
-      <div class="blog-card-img"><span class="bc-emoji">🌽</span><img class="blog-photo" src="/images/crop-maize.jpg" alt="" loading="lazy" onerror="this.remove()"></div>
-      <div class="blog-card-body">
-        <span class="blog-card-cat">Maize</span>
-        <h3>Top Dressing Maize in Kenya: The Secret to Bigger Harvests and Higher Profits</h3>
-        <p>When should you top dress your maize? Get the timing right for bigger harvests and higher profits.</p>
-        <div class="blog-card-foot"><span class="d">June 22, 2026</span><span class="read-tag">6 min</span></div>
-      </div>
-    </div>
-    <div class="blog-card" onclick="window.open('https://seedpro.co.ke/complete-coffee-nutrition-guide-in-kenya-best-fertilizer-program-for-higher-yields-bigger-berries-and-more-profit/','_blank','noopener')">
-      <div class="blog-card-img"><span class="bc-emoji">☕</span><img class="blog-photo" src="/images/crop-coffee.jpg" alt="" loading="lazy" onerror="this.remove()"></div>
-      <div class="blog-card-body">
-        <span class="blog-card-cat">Coffee</span>
-        <h3>Complete Coffee Nutrition Guide: Best Fertilizer Program for Higher Yields</h3>
-        <p>The full fertilizer program for higher coffee yields, bigger berries and more profit per bush.</p>
-        <div class="blog-card-foot"><span class="d">June 17, 2026</span><span class="read-tag">8 min</span></div>
-      </div>
-    </div>
-    <div class="blog-card" onclick="window.open('https://seedpro.co.ke/calcitopper-for-potatoes-the-best-top-dressing-fertilizer-for-higher-yields-and-bigger-tubers/','_blank','noopener')">
-      <div class="blog-card-img"><span class="bc-emoji">🥔</span><img class="blog-photo" src="/images/crop-potato.jpg" alt="" loading="lazy" onerror="this.remove()"></div>
-      <div class="blog-card-body">
-        <span class="blog-card-cat">Fertilizers</span>
-        <h3>CalciTopper for Potatoes: Why More Farmers Choose It for Top Dressing</h3>
-        <p>Bigger tubers and higher yields — why potato farmers are switching to CalciTopper for top dressing.</p>
-        <div class="blog-card-foot"><span class="d">June 16, 2026</span><span class="read-tag">5 min</span></div>
-      </div>
-    </div>
-    <div class="blog-card" onclick="window.open('https://seedpro.co.ke/importance-of-top-dressing-in-maize-farming-in-kenya/','_blank','noopener')">
-      <div class="blog-card-img"><span class="bc-emoji">🌽</span><img class="blog-photo" src="/images/crop-maize.jpg" alt="" loading="lazy" onerror="this.remove()"></div>
-      <div class="blog-card-body">
-        <span class="blog-card-cat">Maize</span>
-        <h3>Importance of Top Dressing in Maize Farming in Kenya</h3>
-        <p>Maize is Kenya's staple crop. Proper top dressing is the difference between an average and a bumper harvest.</p>
-        <div class="blog-card-foot"><span class="d">June 11, 2026</span><span class="read-tag">5 min</span></div>
-      </div>
-    </div>
-    <div class="blog-card" onclick="window.open('https://seedpro.co.ke/avocado-farming-in-kenya-how-to-achieve-higher-yields-and-better-fruit-quality/','_blank','noopener')">
-      <div class="blog-card-img"><span class="bc-emoji">🥑</span><img class="blog-photo" src="/images/crop-avocado.jpg" alt="" loading="lazy" onerror="this.remove()"></div>
-      <div class="blog-card-body">
-        <span class="blog-card-cat">Avocado</span>
-        <h3>Avocado Farming in Kenya: Higher Yields and Better Fruit Quality</h3>
-        <p>Avocado is Kenya's "new green gold." How to achieve higher yields and better fruit quality on your farm.</p>
-        <div class="blog-card-foot"><span class="d">June 11, 2026</span><span class="read-tag">7 min</span></div>
-      </div>
-    </div>
-    <div class="blog-card" onclick="window.open('https://seedpro.co.ke/complete-potato-nutrition-program-for-higher-potato-yields-in-kenya/','_blank','noopener')">
-      <div class="blog-card-img"><span class="bc-emoji">🥔</span><img class="blog-photo" src="/images/crop-potato.jpg" alt="" loading="lazy" onerror="this.remove()"></div>
-      <div class="blog-card-body">
-        <span class="blog-card-cat">Potato</span>
-        <h3>Complete Potato Nutrition Program: Increase Yields and Profits</h3>
-        <p>A full-season nutrition plan to increase potato yields and profits across Kenya's growing zones.</p>
-        <div class="blog-card-foot"><span class="d">June 6, 2026</span><span class="read-tag">7 min</span></div>
-      </div>
-    </div>
-    <div class="blog-card" onclick="window.open('https://seedpro.co.ke/complete-maize-nutrition-program-in-kenya-the-secret-to-higher-yields-bigger-cobs-and-better-profits/','_blank','noopener')">
-      <div class="blog-card-img"><span class="bc-emoji">🌽</span><img class="blog-photo" src="/images/crop-maize.jpg" alt="" loading="lazy" onerror="this.remove()"></div>
-      <div class="blog-card-body">
-        <span class="blog-card-cat">Maize</span>
-        <h3>Complete Maize Nutrition Program: Higher Yields and Bigger Cobs</h3>
-        <p>The secret to higher maize yields, bigger cobs and better profits — a complete nutrition program.</p>
-        <div class="blog-card-foot"><span class="d">June 5, 2026</span><span class="read-tag">8 min</span></div>
-      </div>
-    </div>
-    <div class="blog-card" onclick="window.open('https://seedpro.co.ke/best-fertilizers-in-kenya-for-maximum-crop-yields-why-seedpro-organo-mineral-fertilizers-are-transforming-modern-farming/','_blank','noopener')">
-      <div class="blog-card-img"><span class="bc-emoji">🧪</span><img class="blog-photo" src="/images/blog-fertilizer.jpg" alt="" loading="lazy" onerror="this.remove()"></div>
-      <div class="blog-card-body">
-        <span class="blog-card-cat">Fertilizers</span>
-        <h3>Best Fertilizers in Kenya: Why Shamba Sokoni Organo-Mineral Fertilizers Stand Out</h3>
-        <p>Why Shamba Sokoni organo-mineral fertilizers are transforming modern farming for maximum crop yields.</p>
-        <div class="blog-card-foot"><span class="d">May 30, 2026</span><span class="read-tag">6 min</span></div>
-      </div>
-    </div>
-    <div class="blog-card" onclick="window.open('https://seedpro.co.ke/sure-n-vegetative-plus-the-best-high-nitrogen-fertilizer-for-maize-potatoes-bananas-and-vegetables-in-kenya/','_blank','noopener')">
-      <div class="blog-card-img"><span class="bc-emoji">🌱</span><img class="blog-photo" src="/images/blog-fertilizer.jpg" alt="" loading="lazy" onerror="this.remove()"></div>
-      <div class="blog-card-body">
-        <span class="blog-card-cat">Fertilizers</span>
-        <h3>Sure N Vegetative Plus+: The Best High-Nitrogen Fertilizer in Kenya</h3>
-        <p>The best high-nitrogen fertilizer for maize, potatoes, bananas and vegetables across Kenya.</p>
-        <div class="blog-card-foot"><span class="d">May 30, 2026</span><span class="read-tag">6 min</span></div>
-      </div>
-    </div>
+  <div id="blogContent">
+    <p style="text-align:center;padding:40px 20px;color:var(--grey-text)">Loading…</p>
   </div>
 
   <!-- NEWSLETTER -->
@@ -1402,6 +1299,8 @@ function showPage(name) {
   if (name === 'farm' && typeof renderFarmPage === 'function') { renderFarmPage(); }
   // Load profile (or show the sign-in gate) each time My Account opens
   if (name === 'account' && typeof renderAccountPage === 'function') { renderAccountPage(); }
+  // Load fertilizer ads + upcoming events each time Blog opens
+  if (name === 'blog' && typeof renderBlogPage === 'function') { renderBlogPage(); }
 }
 
 function pageFromHash() {

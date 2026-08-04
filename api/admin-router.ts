@@ -16,6 +16,7 @@ import {
   crops,
   cropGuides,
   spraySchedules,
+  announcements,
   nextSeq,
   omitMongo,
 } from "@db/schema";
@@ -359,6 +360,53 @@ admin.post(
   guard(async (c) => {
     const { id } = await c.req.json();
     await spraySchedules.deleteOne({ id: Number(id) });
+    return c.json({ dbConnected: true, ok: true });
+  }),
+);
+
+// ── Blog page: fertilizer ads + agricultural events ───────────
+// The admin view intentionally shows everything (including inactive/past
+// entries) so they can be re-activated or cleaned up — only the public
+// announcements.list query hides inactive entries and past events.
+admin.get(
+  "/announcements",
+  guard(async (c) => {
+    const rows = await announcements.find({}).sort({ createdAt: -1 }).lean();
+    return c.json({ dbConnected: true, announcements: omitMongo(rows) });
+  }),
+);
+
+admin.post(
+  "/announcements/save",
+  guard(async (c) => {
+    const body = await c.req.json();
+    const set: any = {
+      type: body.type === "event" ? "event" : "ad",
+      title: String(body.title ?? "").trim(),
+      description: String(body.description ?? "").trim(),
+      imageUrl: body.imageUrl ? String(body.imageUrl).trim() : undefined,
+      sponsorName: body.sponsorName ? String(body.sponsorName).trim() : undefined,
+      ctaLabel: body.ctaLabel ? String(body.ctaLabel).trim() : undefined,
+      ctaUrl: body.ctaUrl ? String(body.ctaUrl).trim() : undefined,
+      eventDate: body.eventDate ? new Date(body.eventDate) : undefined,
+      eventLocation: body.eventLocation ? String(body.eventLocation).trim() : undefined,
+      active: body.active !== "false" && body.active !== false,
+    };
+    if (body.id) {
+      await announcements.updateOne({ id: Number(body.id) }, { $set: set });
+    } else {
+      const id = await nextSeq("announcements");
+      await announcements.create({ id, ...set });
+    }
+    return c.json({ dbConnected: true, ok: true });
+  }),
+);
+
+admin.post(
+  "/announcements/delete",
+  guard(async (c) => {
+    const { id } = await c.req.json();
+    await announcements.deleteOne({ id: Number(id) });
     return c.json({ dbConnected: true, ok: true });
   }),
 );

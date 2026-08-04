@@ -1564,9 +1564,72 @@ function advancePlantingStatus(plantingId, status) {
 
 function openWA(name) { showToast('💬 Opening WhatsApp for ' + name + '…'); }
 function openBlog(url) { window.location.href = url || 'blog.html'; }
+/* ── BLOG (fertilizer ads + agricultural events, admin-managed) ── */
+var BLOG_TAB = '';
 function setBlogTab(el) {
   document.querySelectorAll('.blog-tab').forEach(function(b){b.classList.remove('active');});
   el.classList.add('active');
+  BLOG_TAB = el.getAttribute('data-anntab') || '';
+  renderBlogPage();
+}
+
+function formatEventDate(d) {
+  var t = new Date(d);
+  if (isNaN(t)) return '';
+  return t.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function openAnnouncementCta(el) {
+  var url = el.getAttribute('data-cta-url');
+  if (url) window.open(url, '_blank', 'noopener');
+}
+
+function announcementCardHTML(a) {
+  var isEvent = a.type === 'event';
+  var imgHTML = a.imageUrl ? '<img class="blog-photo" src="' + escChat(a.imageUrl) + '" alt="" loading="lazy" onerror="this.remove()">' : '';
+  var catLabel = isEvent ? 'Event' : (a.sponsorName || 'Fertilizer Deal');
+  var footHTML;
+  if (isEvent) {
+    var metaBits = [];
+    if (a.eventDate) metaBits.push('📅 ' + formatEventDate(a.eventDate));
+    if (a.eventLocation) metaBits.push('📍 ' + escChat(a.eventLocation));
+    footHTML = '<div class="blog-card-foot"><span class="d">' + metaBits.join(' · ') + '</span></div>';
+  } else {
+    footHTML = '<div class="blog-card-foot"><span class="d"></span>' + (a.ctaUrl ? '<span class="read-tag">' + escChat(a.ctaLabel || 'Learn More') + ' →</span>' : '') + '</div>';
+  }
+  var clickable = !isEvent && a.ctaUrl;
+  return '<div class="blog-card"' + (clickable ? ' data-cta-url="' + escChat(a.ctaUrl) + '" onclick="openAnnouncementCta(this)"' : ' style="cursor:default"') + '>' +
+    '<div class="blog-card-img"><span class="bc-emoji">' + (isEvent ? '📅' : '🧪') + '</span>' + imgHTML + '</div>' +
+    '<div class="blog-card-body">' +
+      '<span class="blog-card-cat">' + escChat(catLabel) + '</span>' +
+      '<h3>' + escChat(a.title) + '</h3>' +
+      '<p>' + escChat(a.description) + '</p>' +
+      footHTML +
+    '</div>' +
+  '</div>';
+}
+
+function renderBlogPage() {
+  var el = document.getElementById('blogContent');
+  if (!el) return;
+  el.innerHTML = '<p style="text-align:center;padding:40px 20px;color:var(--grey-text)">Loading…</p>';
+  var qs = BLOG_TAB ? ('?input=' + encodeURIComponent(JSON.stringify({ json: { type: BLOG_TAB } }))) : '';
+  fetch('/api/trpc/announcements.list' + qs)
+    .then(function(r){ return r.json(); })
+    .then(function(d) {
+      var rows = (d.result && d.result.data && d.result.data.json) || [];
+      if (!rows.length) {
+        var emptyMsg = BLOG_TAB === 'event' ? 'No upcoming events posted yet — check back soon!'
+          : BLOG_TAB === 'ad' ? 'No fertilizer deals posted yet — check back soon!'
+          : 'Nothing posted yet — check back soon!';
+        el.innerHTML = '<p style="text-align:center;padding:40px 20px;color:var(--grey-text)">' + emptyMsg + '</p>';
+        return;
+      }
+      el.innerHTML = '<div class="blog-grid">' + rows.map(announcementCardHTML).join('') + '</div>';
+    })
+    .catch(function() {
+      el.innerHTML = '<p style="text-align:center;padding:40px 20px;color:var(--grey-text)">Couldn\'t load right now. Try again shortly.</p>';
+    });
 }
 
 function showToast(msg) {

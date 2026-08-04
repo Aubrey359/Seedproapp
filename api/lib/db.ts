@@ -8,6 +8,7 @@ import {
   marketPrices,
   cropGuides,
   spraySchedules,
+  announcements,
   counters,
 } from "@db/schema";
 
@@ -37,6 +38,7 @@ export function connectDb(): Promise<unknown> {
       console.log("✅ Connected to MongoDB");
       await seedDb();
       await seedCropGuides();
+      await seedAnnouncements();
       return mongoose.connection;
     })
     .catch((err: Error) => {
@@ -309,4 +311,44 @@ export async function seedCropGuides(): Promise<void> {
   console.log(
     `✅ Seeded crop guidance: ${guideData.length} stage guides, ${scheduleData.length} task schedules`,
   );
+}
+
+// Gated independently, same reasoning as seedCropGuides() — backfills into
+// a database that predates this feature. Only ads are seeded: real SeedPro
+// Africa fertilizer products, reusing the same URLs/images the old
+// hardcoded blog cards linked to. No events are seeded — unlike a product
+// catalog, a fake "upcoming event" with an invented date would be
+// presenting made-up information as fact, so that list starts empty for
+// an admin to fill in with real ones via the admin panel.
+export async function seedAnnouncements(): Promise<void> {
+  const existing = await announcements.estimatedDocumentCount();
+  if (existing > 0) return;
+
+  const adData = [
+    {
+      type: "ad", title: "Sure N Vegetative Plus+",
+      description: "High-nitrogen fertilizer for maize, potatoes, bananas and vegetables — builds strong vegetative growth before flowering.",
+      imageUrl: "/images/blog-fertilizer.jpg", sponsorName: "SeedPro Africa", ctaLabel: "Shop Now",
+      ctaUrl: "https://seedpro.co.ke/sure-n-vegetative-plus-the-best-high-nitrogen-fertilizer-for-maize-potatoes-bananas-and-vegetables-in-kenya/",
+      active: true,
+    },
+    {
+      type: "ad", title: "CalciTopper for Potatoes",
+      description: "The top-dressing fertilizer more Kenyan potato farmers are switching to for bigger tubers and higher yields.",
+      imageUrl: "/images/crop-potato.jpg", sponsorName: "SeedPro Africa", ctaLabel: "Learn More",
+      ctaUrl: "https://seedpro.co.ke/calcitopper-for-potatoes-the-best-top-dressing-fertilizer-for-higher-yields-and-bigger-tubers/",
+      active: true,
+    },
+    {
+      type: "ad", title: "SeedPro Organo-Mineral Fertilizers",
+      description: "Why more Kenyan farmers are switching for maximum crop yields — organo-mineral fertilizer built for local soils.",
+      imageUrl: "/images/blog-fertilizer.jpg", sponsorName: "SeedPro Africa", ctaLabel: "Shop Now",
+      ctaUrl: "https://seedpro.co.ke/best-fertilizers-in-kenya-for-maximum-crop-yields-why-seedpro-organo-mineral-fertilizers-are-transforming-modern-farming/",
+      active: true,
+    },
+  ];
+  await announcements.insertMany(adData.map((a, i) => ({ ...a, id: i + 1 })));
+  await counters.updateOne({ _id: "announcements" }, { $set: { seq: adData.length } }, { upsert: true });
+
+  console.log(`✅ Seeded announcements: ${adData.length} fertilizer ads, 0 events (add real ones via the admin panel)`);
 }

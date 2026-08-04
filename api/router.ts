@@ -8,20 +8,22 @@ import { settingsRouter } from "./settings-router";
 import { paypalRouter } from "./paypal-router";
 import { pesapalRouter } from "./pesapal-router";
 import { plantingRouter } from "./planting-router";
+import { announcementsRouter } from "./announcements-router";
 import { createRouter, publicQuery } from "./middleware";
 
 export const appRouter = createRouter({
-  ping:     publicQuery.query(() => ({ ok: true, ts: Date.now() })),
-  auth:     authRouter,
-  market:   marketRouter,
-  advisory: advisoryRouter,
-  prices:   pricesRouter,
-  ratings:  ratingsRouter,
-  mpesa:    mpesaRouter,
-  settings: settingsRouter,
-  paypal:   paypalRouter,
-  pesapal:  pesapalRouter,
-  planting: plantingRouter,
+  ping:          publicQuery.query(() => ({ ok: true, ts: Date.now() })),
+  auth:          authRouter,
+  market:        marketRouter,
+  advisory:      advisoryRouter,
+  prices:        pricesRouter,
+  ratings:       ratingsRouter,
+  mpesa:         mpesaRouter,
+  settings:      settingsRouter,
+  paypal:        paypalRouter,
+  pesapal:       pesapalRouter,
+  planting:      plantingRouter,
+  announcements: announcementsRouter,
 });
 
 export type AppRouter = typeof appRouter;
