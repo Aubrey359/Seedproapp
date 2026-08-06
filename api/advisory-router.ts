@@ -106,7 +106,15 @@ export const advisoryRouter = createRouter({
         throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Too many scans — please try again in a bit." });
       }
 
-      const caption = input.cropName
+      // This is a one-shot result screen, not the chat — there's no reply
+      // box, so a response that ends in a question to the farmer is a dead
+      // end. Told explicitly, since the model doesn't otherwise know that.
+      const noReplyNote = t(
+        input.lang,
+        ` This is a one-time photo check, not a chat — I won't be able to reply to any follow-up questions you ask, so please give your complete best assessment now rather than asking me anything. If it'd genuinely help to discuss further, say so and suggest I use the separate "Ask Zao" chat for that — but don't end with an open question expecting an answer.`,
+        ` Huu ni ukaguzi wa picha wa mara moja, si mazungumzo — sitaweza kujibu maswali yoyote ya ufuatiliaji, hivyo tafadhali toa tathmini yako kamili zaidi sasa badala ya kuniuliza chochote. Ikiwa itasaidia kweli kuzungumza zaidi, sema hivyo na pendekeza nitumie mazungumzo tofauti ya "Ask Zao" kwa hilo — lakini usimalize kwa swali wazi linalotarajia jibu.`,
+      );
+      const caption = (input.cropName
         ? t(
             input.lang,
             `This is a photo of my ${input.cropName} plant. Please check it closely for any visible pest damage, disease symptoms, nutrient deficiency signs, or other health issues, and tell me what you see and what I should do about it.`,
@@ -116,7 +124,7 @@ export const advisoryRouter = createRouter({
             input.lang,
             `I don't know what this plant is — please identify it first (the crop/species, and the variety too if you can tell), then check it closely for any visible pest damage, disease symptoms, nutrient deficiency signs, or other health issues, and tell me what you see and what I should do about it.`,
             `Sijui mmea huu ni upi — tafadhali kwanza unitambulishe (zao/aina, na aina mahususi kama unaweza kujua), kisha uangalie kwa makini kama kuna dalili za wadudu, ugonjwa, upungufu wa virutubisho, au tatizo lingine la afya, kisha niambie unachokiona na nifanye nini.`,
-          );
+          )) + noReplyNote;
       const turn: ChatTurn = { role: "user", content: { photoDataUrl: input.photoDataUrl, caption } };
       const aiText = await generateAiResponse([turn], input.lang);
 
