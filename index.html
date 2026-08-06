@@ -897,7 +897,7 @@
   <div class="scan-hero">
     <div class="scan-hero-badge">🔬 Plant Health Check · Free for Farmers</div>
     <h1>🔬 Check Your Plant's Health</h1>
-    <p>Snap a photo of your crop to check for common pests and diseases — instantly.</p>
+    <p>Snap a photo of any plant — Zao identifies it and checks for pests and diseases, instantly.</p>
     <div class="page-hero-floats">
       <div class="phf-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8c-4 0-6 3-6 7a6 6 0 0012 0c0-4-2-7-6-7z"/><path d="M12 8V4"/><path d="M10 5c1-1.3 3-1.3 4 0"/></svg></div>
       <div class="phf-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V6a2 2 0 012-2h2"/><path d="M16 4h2a2 2 0 012 2v2"/><path d="M20 16v2a2 2 0 01-2 2h-2"/><path d="M8 20H6a2 2 0 01-2-2v-2"/><circle cx="12" cy="12" r="3"/></svg></div>
@@ -912,8 +912,8 @@
       <div class="step">
         <div class="step-num">1</div>
         <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22V12"/><path d="M12 12C12 8 9 5 5 5C5 9 8 12 12 12Z"/><path d="M12 12C12 8 15 5 19 5C19 9 16 12 12 12Z"/></svg></div>
-        <h4>Select Crop</h4>
-        <p>Choose which crop you want to check</p>
+        <h4>Select Crop <span style="opacity:.7;font-weight:600">(optional)</span></h4>
+        <p>Know it already? Pick it — or skip this and Zao will identify it for you</p>
       </div>
       <div class="step">
         <div class="step-num">2</div>
@@ -932,9 +932,9 @@
 
   <!-- CROP SELECTOR -->
   <div class="crop-select-wrap">
-    <label>1️⃣ Select your crop</label>
+    <label>1️⃣ Select your crop <span style="opacity:.7;font-weight:600">(optional)</span></label>
     <select id="cropSelect">
-      <option value="">Choose crop…</option>
+      <option value="">Not sure? Leave blank — Zao will identify it</option>
       <option>Tomato</option><option>Maize</option><option>Avocado</option>
       <option>Coffee</option><option>Tea</option><option>Onion</option>
       <option>Beans</option><option>Potato</option><option>Sukuma Wiki</option>
@@ -1408,16 +1408,9 @@ function renderScanAttach() {
 function handleCapture(input) {
   var file = input.files && input.files[0];
   if (!file) return;
+  // Crop is optional — leave it blank and Zao identifies the plant itself,
+  // like a plant-ID app, instead of requiring you to already know it.
   var crop = document.getElementById('cropSelect').value;
-  if (!crop) {
-    showToast('⚠️ Please select a crop first');
-    input.value = '';
-    var sel = document.getElementById('cropSelect');
-    sel.focus();
-    sel.classList.add('needs-pick');
-    setTimeout(function(){ sel.classList.remove('needs-pick'); }, 1600);
-    return;
-  }
   var reader = new FileReader();
   reader.onload = function(ev) {
     compressImage(ev.target.result, 900, 0.65).then(function(compressed) {
@@ -1434,9 +1427,11 @@ function startScan(dataUrl, crop) {
   document.getElementById('previewImg').src = dataUrl;
 
   var sw = (typeof CHAT_LANG !== 'undefined' && CHAT_LANG === 'sw');
-  var steps = sw
-    ? ['Inapakia picha…', 'Zao anachunguza mmea wako…', 'Anaangalia dalili za wadudu na magonjwa…', 'Karibu kumaliza…']
-    : ['Uploading photo…', "Zao is examining your plant…", 'Checking for pests and disease signs…', 'Almost done…'];
+  var steps = crop
+    ? (sw ? ['Inapakia picha…', 'Zao anachunguza mmea wako…', 'Anaangalia dalili za wadudu na magonjwa…', 'Karibu kumaliza…']
+          : ['Uploading photo…', "Zao is examining your plant…", 'Checking for pests and disease signs…', 'Almost done…'])
+    : (sw ? ['Inapakia picha…', 'Zao anatambua mmea wako…', 'Anaangalia afya yake…', 'Karibu kumaliza…']
+          : ['Uploading photo…', "Zao is identifying your plant…", 'Checking its health…', 'Almost done…']);
 
   // Climbs to 90% and holds — the real vision call decides when this
   // actually finishes, so it never claims "done" before Zao has
@@ -1472,8 +1467,12 @@ function startScan(dataUrl, crop) {
 function showResult(crop, dataUrl, aiResult) {
   var sw = (typeof CHAT_LANG !== 'undefined' && CHAT_LANG === 'sw');
   document.getElementById('scanProgress').classList.remove('active');
-  document.getElementById('resultTitle').textContent = crop + ' — Photo Received';
-  document.getElementById('resultSub').textContent   = 'Attached to your listing · Ready to list';
+  document.getElementById('resultTitle').textContent = crop
+    ? (crop + ' — Photo Received')
+    : (sw ? '🔍 Zao Amekitambua' : "🔍 Here's What Zao Found");
+  document.getElementById('resultSub').textContent = crop
+    ? 'Attached to your listing · Ready to list'
+    : (sw ? 'Angalia utambuzi hapa chini' : 'See the identification below');
   var notesEl = document.getElementById('resultNotes');
   if (aiResult) {
     notesEl.innerHTML = '<strong>🔬 ' + (sw ? "Uchunguzi wa Zao:" : "Zao's assessment:") + '</strong><br/>' + escChat(aiResult).replace(/\n/g, '<br/>');
@@ -1486,7 +1485,7 @@ function showResult(crop, dataUrl, aiResult) {
   try {
     sessionStorage.setItem(PENDING_PHOTO_KEY, JSON.stringify({ crop: crop, photo: dataUrl, ts: Date.now() }));
   } catch (e) {}
-  showToast('✅ ' + crop + ' photo saved!');
+  showToast(crop ? ('✅ ' + crop + ' photo saved!') : (sw ? '✅ Picha imehifadhiwa!' : '✅ Photo saved!'));
 }
 
 function resetScan() {

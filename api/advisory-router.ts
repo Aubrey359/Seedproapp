@@ -90,9 +90,13 @@ export const advisoryRouter = createRouter({
   // worked), so it's rate-limited by IP the same way guest chat is.
   // Signed-in farmers additionally get the result saved to their diagnosis
   // history via the existing `diagnoses` collection above.
+  //
+  // cropName is optional — a farmer who already knows what they're growing
+  // gets a targeted health check; one who doesn't gets Claude to identify
+  // the plant first (like a plant-ID app), then check its health too.
   scanPlant: publicQuery
     .input(z.object({
-      cropName: z.string().min(1),
+      cropName: z.string().optional(),
       photoDataUrl: z.string().min(1).max(500_000),
       lang: z.enum(["en", "sw"]).default("en"),
     }))
@@ -102,11 +106,17 @@ export const advisoryRouter = createRouter({
         throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Too many scans — please try again in a bit." });
       }
 
-      const caption = t(
-        input.lang,
-        `This is a photo of my ${input.cropName} plant. Please check it closely for any visible pest damage, disease symptoms, nutrient deficiency signs, or other health issues, and tell me what you see and what I should do about it.`,
-        `Hii ni picha ya mmea wangu wa ${input.cropName}. Tafadhali angalia kwa makini kama kuna dalili za wadudu, ugonjwa, upungufu wa virutubisho, au tatizo lingine la afya, kisha niambie unachokiona na nifanye nini.`,
-      );
+      const caption = input.cropName
+        ? t(
+            input.lang,
+            `This is a photo of my ${input.cropName} plant. Please check it closely for any visible pest damage, disease symptoms, nutrient deficiency signs, or other health issues, and tell me what you see and what I should do about it.`,
+            `Hii ni picha ya mmea wangu wa ${input.cropName}. Tafadhali angalia kwa makini kama kuna dalili za wadudu, ugonjwa, upungufu wa virutubisho, au tatizo lingine la afya, kisha niambie unachokiona na nifanye nini.`,
+          )
+        : t(
+            input.lang,
+            `I don't know what this plant is — please identify it first (the crop/species, and the variety too if you can tell), then check it closely for any visible pest damage, disease symptoms, nutrient deficiency signs, or other health issues, and tell me what you see and what I should do about it.`,
+            `Sijui mmea huu ni upi — tafadhali kwanza unitambulishe (zao/aina, na aina mahususi kama unaweza kujua), kisha uangalie kwa makini kama kuna dalili za wadudu, ugonjwa, upungufu wa virutubisho, au tatizo lingine la afya, kisha niambie unachokiona na nifanye nini.`,
+          );
       const turn: ChatTurn = { role: "user", content: { photoDataUrl: input.photoDataUrl, caption } };
       const aiText = await generateAiResponse([turn], input.lang);
 
@@ -120,7 +130,7 @@ export const advisoryRouter = createRouter({
         await diagnoses.create({
           id: await nextSeq("diagnoses"),
           farmerId: ctx.user.id,
-          cropName: input.cropName,
+          cropName: input.cropName || undefined,
           photoUrl: input.photoDataUrl,
           diagnosis: result,
           status: aiText ? "diagnosed" : "pending",
