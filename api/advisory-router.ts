@@ -111,8 +111,8 @@ export const advisoryRouter = createRouter({
       // end. Told explicitly, since the model doesn't otherwise know that.
       const noReplyNote = t(
         input.lang,
-        ` This is a one-time photo check, not a chat — I won't be able to reply to any follow-up questions you ask, so please give your complete best assessment now rather than asking me anything. If it'd genuinely help to discuss further, say so and suggest I use the separate "Ask Zao" chat for that — but don't end with an open question expecting an answer.`,
-        ` Huu ni ukaguzi wa picha wa mara moja, si mazungumzo — sitaweza kujibu maswali yoyote ya ufuatiliaji, hivyo tafadhali toa tathmini yako kamili zaidi sasa badala ya kuniuliza chochote. Ikiwa itasaidia kweli kuzungumza zaidi, sema hivyo na pendekeza nitumie mazungumzo tofauti ya "Ask Zao" kwa hilo — lakini usimalize kwa swali wazi linalotarajia jibu.`,
+        ` This is a one-time photo check, not a chat — I won't be able to reply to any follow-up questions you ask, so please give your complete best assessment now rather than asking me anything. If it'd genuinely help to discuss further, say so and suggest I use the separate "Uliza Zao" chat for that — but don't end with an open question expecting an answer.`,
+        ` Huu ni ukaguzi wa picha wa mara moja, si mazungumzo — sitaweza kujibu maswali yoyote ya ufuatiliaji, hivyo tafadhali toa tathmini yako kamili zaidi sasa badala ya kuniuliza chochote. Ikiwa itasaidia kweli kuzungumza zaidi, sema hivyo na pendekeza nitumie mazungumzo tofauti ya "Uliza Zao" kwa hilo — lakini usimalize kwa swali wazi linalotarajia jibu.`,
       );
       const caption = (input.cropName
         ? t(
