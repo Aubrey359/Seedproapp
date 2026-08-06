@@ -17,6 +17,7 @@ import {
   cropGuides,
   spraySchedules,
   announcements,
+  farmerPosts,
   nextSeq,
   omitMongo,
 } from "@db/schema";
@@ -407,6 +408,29 @@ admin.post(
   guard(async (c) => {
     const { id } = await c.req.json();
     await announcements.deleteOne({ id: Number(id) });
+    return c.json({ dbConnected: true, ok: true });
+  }),
+);
+
+// Farmer Updates feed — moderation only (view + delete). Posts are
+// farmer-authored, not admin-authored, so there's no save/edit endpoint.
+admin.get(
+  "/farmer-posts",
+  guard(async (c) => {
+    const rows = await farmerPosts.find({}).sort({ createdAt: -1 }).limit(200).lean();
+    const farmerIds = [...new Set(rows.map((r: any) => r.farmerId))];
+    const farmerRows = farmerIds.length ? await users.find({ id: { $in: farmerIds } }).lean() : [];
+    const farmerMap = new Map(farmerRows.map((f: any) => [f.id, f]));
+    const enriched = rows.map((r: any) => ({ ...r, farmerName: farmerMap.get(r.farmerId)?.name ?? "Farmer" }));
+    return c.json({ dbConnected: true, posts: omitMongo(enriched) });
+  }),
+);
+
+admin.post(
+  "/farmer-posts/delete",
+  guard(async (c) => {
+    const { id } = await c.req.json();
+    await farmerPosts.deleteOne({ id: Number(id) });
     return c.json({ dbConnected: true, ok: true });
   }),
 );

@@ -9,6 +9,7 @@ import { paypalRouter } from "./paypal-router";
 import { pesapalRouter } from "./pesapal-router";
 import { plantingRouter } from "./planting-router";
 import { announcementsRouter } from "./announcements-router";
+import { farmerPostsRouter } from "./farmer-posts-router";
 import { createRouter, publicQuery } from "./middleware";
 
 export const appRouter = createRouter({
@@ -24,6 +25,7 @@ export const appRouter = createRouter({
   pesapal:       pesapalRouter,
   planting:      plantingRouter,
   announcements: announcementsRouter,
+  farmerPosts:   farmerPostsRouter,
 });
 
 export type AppRouter = typeof appRouter;

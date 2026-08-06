@@ -341,6 +341,25 @@ const announcementSchema = new Schema(
 );
 export const announcements = model("Announcement", announcementSchema);
 
+// ─── Farmer Posts (public "Farmer Updates" feed on the Farmer Next Door
+// page — any signed-in user can post; optionally linked to one of their own
+// listings, in which case posting also applies the real quantity/status
+// change to that listing rather than just describing it in text) ───
+const farmerPostSchema = new Schema(
+  {
+    id: { type: Number, unique: true, index: true },
+    farmerId: { type: Number, required: true },
+    content: { type: String, required: true },
+    // Snapshotted at post time so the feed still reads sensibly even if the
+    // listing is later deleted or changes further.
+    listingId: Number,
+    cropName: String,
+    updateType: { type: String, enum: ["note", "restocked", "sold_out"], default: "note" },
+  },
+  { timestamps: true, toJSON },
+);
+export const farmerPosts = model("FarmerPost", farmerPostSchema);
+
 // ─── Price Alerts ───
 const priceAlertSchema = new Schema(
   {

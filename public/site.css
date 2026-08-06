@@ -487,6 +487,53 @@ nav {
 }
 .farmer-card-wa:hover { transform: translateY(-1px); }
 
+/* ══ FARMER UPDATES FEED (Farmer Next Door page) ══ */
+.farmer-compose-card {
+  background: var(--white); border-radius: var(--radius-lg); border: 1px solid var(--grey-border);
+  padding: 14px; box-shadow: var(--shadow-xs); margin-bottom: 14px;
+}
+.farmer-compose-tabs { display: flex; gap: 8px; }
+.fc-tab {
+  flex: 1; height: 36px; border-radius: 100px; border: 1.5px solid var(--grey-border); background: var(--grey-bg);
+  color: var(--grey-text); font-size: 12px; font-weight: 800; font-family: 'Nunito', sans-serif; cursor: pointer; transition: all .2s;
+}
+.fc-tab.active { background: var(--g-green); border-color: transparent; color: #fff; box-shadow: var(--shadow-green); }
+.farmer-compose-card textarea, .farmer-compose-card select, .farmer-compose-card input {
+  width: 100%; border: 1.5px solid var(--grey-border); border-radius: var(--radius-sm); background: var(--grey-bg);
+  padding: 10px 12px; font-size: 13px; font-family: inherit; color: var(--text); transition: all .2s;
+}
+.farmer-compose-card textarea { min-height: 64px; resize: vertical; line-height: 1.5; }
+.farmer-compose-card textarea:focus, .farmer-compose-card select:focus, .farmer-compose-card input:focus {
+  outline: none; border-color: var(--green); background: var(--white); box-shadow: 0 0 0 3px var(--green-pale);
+}
+.farmer-compose-signin {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+  background: var(--white); border: 1px solid var(--grey-border); border-radius: var(--radius-lg);
+  padding: 14px; box-shadow: var(--shadow-xs); margin-bottom: 14px;
+}
+.farmer-compose-signin span { font-size: 12.5px; color: var(--grey-text); }
+.farmer-compose-signin .btn-sell { height: 38px; padding: 0 16px; font-size: 12.5px; flex-shrink: 0; }
+
+.farmer-post-card {
+  display: flex; gap: 10px; background: var(--white); border-radius: var(--radius-lg); border: 1px solid var(--grey-border);
+  padding: 12px 14px; box-shadow: var(--shadow-xs); margin-bottom: 10px;
+}
+.fp-av {
+  width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; position: relative; overflow: hidden;
+  background: linear-gradient(135deg, var(--green-pale), #1A3D28); display: flex; align-items: center; justify-content: center; font-size: 17px;
+}
+.fp-av img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.fp-body { flex: 1; min-width: 0; }
+.fp-head { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.fp-name { font-size: 13px; font-weight: 800; color: var(--text); font-family: 'Nunito', sans-serif; }
+.fp-time { font-size: 11px; color: var(--grey-text); }
+.fp-content { font-size: 13px; color: var(--text); line-height: 1.5; margin-top: 3px; white-space: pre-wrap; word-break: break-word; }
+.fp-tag { display: inline-block; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .03em; padding: 3px 9px; border-radius: 100px; margin-top: 7px; }
+.fp-tag.restocked { background: var(--green-pale); color: var(--green-light); }
+.fp-tag.sold_out { background: #301414; color: #F0796B; border: 1px solid rgba(240,121,107,.3); }
+.fp-tag.note { display: none; }
+.fp-feed-empty, .fp-feed-loading { text-align: center; padding: 20px; color: var(--grey-text); font-size: 12.5px; }
+
 /* ── Featured Farmers — premium-tier farmers get a distinct gradient
    carousel above the regular grid, not just a spot in the same list.
    Same idea as Shamba Direct's "Featured Farm Advertisements", built

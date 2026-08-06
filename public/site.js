@@ -293,6 +293,148 @@ function contactFarmer(phone, name) {
   window.open('https://wa.me/' + digits, '_blank', 'noopener');
 }
 
+/* ── FARMER UPDATES FEED (public feed on Farmer Next Door — any signed-in
+   user can post; posting "Restocked"/"Sold Out" against one of their own
+   listings also applies that change to the real listing, not just text) ── */
+var FARMER_FEED_POLL_STARTED = false;
+var MY_LISTINGS_FOR_POST = [];
+var POST_ACTION = 'none';
+
+function initFarmerFeed() {
+  var composeCard = document.getElementById('farmerComposeCard');
+  var signinPrompt = document.getElementById('farmerComposeSignin');
+  if (composeCard && signinPrompt) {
+    if (CURRENT_USER) {
+      composeCard.style.display = '';
+      signinPrompt.style.display = 'none';
+      loadMyListingsForPost();
+    } else {
+      composeCard.style.display = 'none';
+      signinPrompt.style.display = '';
+    }
+  }
+  loadFarmerFeed();
+  // One poll loop for the whole session, gated on the page actually being
+  // visible — avoids stacking a new interval every time a farmer revisits.
+  if (!FARMER_FEED_POLL_STARTED) {
+    FARMER_FEED_POLL_STARTED = true;
+    setInterval(function() {
+      var page = document.getElementById('page-farmers');
+      if (page && page.classList.contains('active')) loadFarmerFeed();
+    }, 20000);
+  }
+}
+
+function timeAgo(d) {
+  var t = new Date(d).getTime();
+  if (isNaN(t)) return '';
+  var secs = Math.max(0, Math.floor((Date.now() - t) / 1000));
+  if (secs < 60) return 'just now';
+  var mins = Math.floor(secs / 60);
+  if (mins < 60) return mins + 'm ago';
+  var hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs + 'h ago';
+  var days = Math.floor(hrs / 24);
+  if (days < 7) return days + 'd ago';
+  return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+}
+
+function farmerPostCardHTML(p) {
+  var avatarInner = p.farmerAvatar ? '<img src="' + p.farmerAvatar + '" alt="" loading="lazy" onerror="this.remove()">' : '🧑‍🌾';
+  var tagHTML = p.updateType === 'restocked'
+    ? '<span class="fp-tag restocked">📦 Restocked' + (p.listing ? ' — ' + p.listing.quantity + p.listing.quantityUnit + ' available' : '') + '</span>'
+    : p.updateType === 'sold_out'
+      ? '<span class="fp-tag sold_out">🚫 Sold Out' + (p.cropName ? ' — ' + escChat(p.cropName) : '') + '</span>'
+      : '';
+  return '<div class="farmer-post-card">' +
+    '<div class="fp-av">' + avatarInner + '</div>' +
+    '<div class="fp-body">' +
+      '<div class="fp-head"><span class="fp-name">' + escChat(p.farmerName) + '</span><span class="fp-time">' + timeAgo(p.createdAt) + '</span></div>' +
+      '<div class="fp-content">' + escChat(p.content) + '</div>' +
+      tagHTML +
+    '</div>' +
+  '</div>';
+}
+
+function loadFarmerFeed() {
+  fetch('/api/trpc/farmerPosts.list')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var posts = (data && data.result && data.result.data && data.result.data.json) || [];
+      var el = document.getElementById('farmerFeedList');
+      if (!el) return;
+      el.innerHTML = posts.length
+        ? posts.map(farmerPostCardHTML).join('')
+        : '<p class="fp-feed-empty">No updates yet — be the first to share what you have available.</p>';
+    })
+    .catch(function() {
+      var el = document.getElementById('farmerFeedList');
+      if (el) el.innerHTML = '<p class="fp-feed-empty">Couldn\'t load updates right now.</p>';
+    });
+}
+
+function loadMyListingsForPost() {
+  fetch('/api/trpc/market.myListings')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var rows = (data && data.result && data.result.data && data.result.data.json) || [];
+      MY_LISTINGS_FOR_POST = rows.filter(function(l) { return l.status === 'active'; });
+      var sel = document.getElementById('postListingSelect');
+      if (!sel) return;
+      sel.innerHTML = MY_LISTINGS_FOR_POST.length
+        ? MY_LISTINGS_FOR_POST.map(function(l) { return '<option value="' + l.id + '">' + escChat(l.cropName) + ' — ' + l.quantity + l.quantityUnit + '</option>'; }).join('')
+        : '<option value="">You have no active listings</option>';
+    })
+    .catch(function() { MY_LISTINGS_FOR_POST = []; });
+}
+
+function setPostAction(el) {
+  POST_ACTION = el.getAttribute('data-action');
+  document.querySelectorAll('.fc-tab').forEach(function(b) { b.classList.toggle('active', b === el); });
+  var listingGroup = document.getElementById('postListingGroup');
+  var qtyGroup = document.getElementById('postQuantityGroup');
+  var needsListing = POST_ACTION === 'restocked' || POST_ACTION === 'sold_out';
+  if (listingGroup) listingGroup.style.display = needsListing ? '' : 'none';
+  if (qtyGroup) qtyGroup.style.display = POST_ACTION === 'restocked' ? '' : 'none';
+}
+
+function submitFarmerPost() {
+  var contentInput = document.getElementById('postContentInput');
+  var content = (contentInput.value || '').trim();
+  if (!content) { showToast('⚠️ Write an update first'); return; }
+
+  var body = { content: content, action: POST_ACTION };
+  if (POST_ACTION === 'restocked' || POST_ACTION === 'sold_out') {
+    var listingId = document.getElementById('postListingSelect').value;
+    if (!listingId) { showToast('⚠️ Pick which listing this update is for'); return; }
+    body.listingId = Number(listingId);
+    if (POST_ACTION === 'restocked') {
+      var qty = parseFloat(document.getElementById('postQuantityInput').value);
+      if (!qty || qty <= 0) { showToast('⚠️ Enter the new quantity available'); return; }
+      body.newQuantity = qty;
+    }
+  }
+
+  fetch('/api/trpc/farmerPosts.create', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ json: body })
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.error) throw new Error(data.error.message || 'Could not post update');
+      contentInput.value = '';
+      var qtyInput = document.getElementById('postQuantityInput');
+      if (qtyInput) qtyInput.value = '';
+      showToast('✅ Update posted');
+      loadFarmerFeed();
+      if (POST_ACTION !== 'none') loadMyListingsForPost();
+    })
+    .catch(function(err) {
+      showToast('❌ ' + (err.message || 'Could not post update'));
+    });
+}
+
 /* ── FARMER SHOP (a farmer's own storefront — their profile + everything
    they currently have listed) ── */
 function renderFarmerShopHeader(f) {
@@ -935,6 +1077,8 @@ function refreshActivePageForAuth() {
   if (farmPage && farmPage.classList.contains('active') && typeof renderFarmPage === 'function') renderFarmPage();
   var accountPage = document.getElementById('page-account');
   if (accountPage && accountPage.classList.contains('active') && typeof renderAccountPage === 'function') renderAccountPage();
+  var farmersPage = document.getElementById('page-farmers');
+  if (farmersPage && farmersPage.classList.contains('active') && typeof initFarmerFeed === 'function') initFarmerFeed();
 }
 
 function checkAuthState() {

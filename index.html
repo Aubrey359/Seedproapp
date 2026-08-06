@@ -489,6 +489,39 @@
     <button onclick="setBuyerLocation('')">✕ Clear</button>
   </div>
 
+  <!-- FARMER UPDATES — a live feed farmers post to (availability, restocks,
+       sold-out notices); every visitor can read it, only signed-in users
+       can post. -->
+  <div class="farmer-feed-wrap" style="padding:16px 16px 4px">
+    <div class="section-head">
+      <div class="section-title">🗣️ Farmer Updates</div>
+    </div>
+
+    <div class="farmer-compose-card" id="farmerComposeCard" style="display:none">
+      <div class="farmer-compose-tabs">
+        <button type="button" class="fc-tab active" data-action="none" onclick="setPostAction(this)">💬 Update</button>
+        <button type="button" class="fc-tab" data-action="restocked" onclick="setPostAction(this)">📦 Restocked</button>
+        <button type="button" class="fc-tab" data-action="sold_out" onclick="setPostAction(this)">🚫 Sold Out</button>
+      </div>
+      <div class="form-group" id="postListingGroup" style="display:none;margin:10px 0 0">
+        <label>Which listing?</label>
+        <select id="postListingSelect"></select>
+      </div>
+      <div class="form-group" id="postQuantityGroup" style="display:none;margin:10px 0 0">
+        <label>New quantity available</label>
+        <input type="number" min="0.1" step="0.1" id="postQuantityInput" placeholder="e.g. 80">
+      </div>
+      <textarea id="postContentInput" maxlength="500" placeholder="Share an update with buyers…" style="margin-top:10px"></textarea>
+      <button class="btn-sell" onclick="submitFarmerPost()" style="margin-top:10px;width:100%">📣 Post Update</button>
+    </div>
+    <div class="farmer-compose-signin" id="farmerComposeSignin" style="display:none">
+      <span>Sign in to post an update for buyers to see.</span>
+      <button class="btn-sell" onclick="enterApp()">📱 Sign In</button>
+    </div>
+
+    <div class="farmer-feed-list" id="farmerFeedList"><p style="text-align:center;padding:20px;color:var(--grey-text);font-size:12.5px">Loading updates…</p></div>
+  </div>
+
   <!-- FEATURED FARMERS — premium-tier verified farmers only, hidden entirely
        when none exist rather than showing an empty section. -->
   <div id="featuredFarmersWrap" style="padding:16px 0 4px;display:none">
@@ -1290,6 +1323,7 @@ function showPage(name) {
   // Lazy render shop grid
   if (name === 'shop') { renderShopGrid(); }
   if (name === 'farmers' && typeof renderFarmersPage === 'function') { renderFarmersPage(); }
+  if (name === 'farmers' && typeof initFarmerFeed === 'function') { initFarmerFeed(); }
   // Reflect any pending scan photo into the Sell form
   if (name === 'sell' && typeof renderScanAttach === 'function') { renderScanAttach(); }
   // Load chat history (or show the sign-in gate) each time the chat page opens

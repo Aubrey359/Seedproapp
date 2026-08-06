@@ -123,6 +123,7 @@
       <button class="nav-item" data-sec="prices" onclick="nav('prices')"><span class="nav-ico">📈</span> Market Prices</button>
       <button class="nav-item" data-sec="cropguides" onclick="nav('cropguides')"><span class="nav-ico">🌱</span> Crop Guides</button>
       <button class="nav-item" data-sec="announcements" onclick="nav('announcements')"><span class="nav-ico">📢</span> Ads &amp; Events</button>
+      <button class="nav-item" data-sec="farmerposts" onclick="nav('farmerposts')"><span class="nav-ico">🗣️</span> Farmer Updates</button>
       <button class="nav-item" data-sec="whatsapp" onclick="nav('whatsapp')"><span class="nav-ico">💬</span> WhatsApp Bot</button>
       <button class="nav-item" data-sec="disputes" onclick="nav('disputes')"><span class="nav-ico">🚩</span> Disputes</button>
       <button class="nav-item" data-sec="content" onclick="nav('content')"><span class="nav-ico">📝</span> Site Content</button>
@@ -145,7 +146,7 @@
   <script>
     var KEY = localStorage.getItem('ss_admin_key') || '';
     var SECTION = 'overview';
-    var TITLES = { overview:'Overview', listings:'Listings', farmers:'Farmers & Users', orders:'Orders', payments:'Payments', prices:'Market Prices', cropguides:'Crop Guides', announcements:'Ads & Events', whatsapp:'WhatsApp Bot', disputes:'Disputes', content:'Site Content' };
+    var TITLES = { overview:'Overview', listings:'Listings', farmers:'Farmers & Users', orders:'Orders', payments:'Payments', prices:'Market Prices', cropguides:'Crop Guides', announcements:'Ads & Events', farmerposts:'Farmer Updates', whatsapp:'WhatsApp Bot', disputes:'Disputes', content:'Site Content' };
 
     function api(path, opts){
       opts = opts || {};
@@ -196,7 +197,7 @@
     function refresh(){
       var v = document.getElementById('view');
       v.innerHTML = '<div class="loading">Loading…</div>';
-      var fn = { overview:renderOverview, listings:renderListings, farmers:renderFarmers, orders:renderOrders, payments:renderPayments, prices:renderPrices, cropguides:renderCropGuides, announcements:renderAnnouncements, whatsapp:renderWhatsapp, disputes:renderDisputes, content:renderContent }[SECTION];
+      var fn = { overview:renderOverview, listings:renderListings, farmers:renderFarmers, orders:renderOrders, payments:renderPayments, prices:renderPrices, cropguides:renderCropGuides, announcements:renderAnnouncements, farmerposts:renderFarmerPosts, whatsapp:renderWhatsapp, disputes:renderDisputes, content:renderContent }[SECTION];
       fn().catch(function(e){
         if (e && e.unauth) return logout();
         v.innerHTML = '<div class="banner">Error loading data: '+esc(e&&e.message||e)+'</div>';
@@ -597,6 +598,23 @@
     function deleteAnnouncement(id){
       api('/announcements/delete',{method:'POST',body:JSON.stringify({id:id})})
         .then(function(){ toast('✓ Deleted'); renderAnnouncements(); })
+        .catch(function(){ toast('Delete failed', true); });
+    }
+    var UPDATE_TYPE_TAG = { note:'t-blue', restocked:'t-green', sold_out:'t-red' };
+    function renderFarmerPosts(){
+      return api('/farmer-posts').then(function(d){
+        setDbPill(d.dbConnected);
+        if (!d.dbConnected) return setView(dbBanner());
+        var rows = (d.posts||[]).map(function(p){
+          return '<tr><td>#'+p.id+'</td><td><b>'+esc(p.farmerName)+'</b></td><td style="max-width:320px">'+esc(p.content)+'</td><td>'+(p.cropName?esc(p.cropName):'—')+'</td><td><span class="tag '+(UPDATE_TYPE_TAG[p.updateType]||'t-grey')+'">'+esc(p.updateType)+'</span></td><td>'+when(p.createdAt)+'</td><td><button class="act line" onclick="deleteFarmerPost('+p.id+')">Delete</button></td></tr>';
+        }).join('');
+        setView(panel('Farmer Updates ('+(d.posts||[]).length+')',
+          table(['ID','Farmer','Message','Crop','Type','Posted','' ], rows, 7)));
+      });
+    }
+    function deleteFarmerPost(id){
+      api('/farmer-posts/delete',{method:'POST',body:JSON.stringify({id:id})})
+        .then(function(){ toast('✓ Deleted'); renderFarmerPosts(); })
         .catch(function(){ toast('Delete failed', true); });
     }
     function renderWhatsapp(){
