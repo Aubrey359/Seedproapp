@@ -1271,6 +1271,12 @@
   <button class="mob-nav-btn" id="mn-chat" onclick="showPage('chat')"><span class="mn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l1.6 5.4L19 9l-5.4 1.6L12 16l-1.6-5.4L5 9l5.4-1.6L12 2z"/><circle cx="18.5" cy="17" r="1.3" fill="currentColor" stroke="none"/></svg></span>Ask AI</button>
 </div>
 
+<!-- FARMER UPDATES FLOATING ICON — persistent quick access to the public
+     farmer feed from any page, since (unlike Ask AI) it has no nav slot. -->
+<button class="chat-fab" id="farmerFeedFab" onclick="openFarmerFeedFab()" aria-label="Farmer Updates" title="Farmer Updates">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+</button>
+
 <!-- CART DRAWER -->
 <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
 <div class="cart-drawer" id="cartDrawer">
@@ -1336,6 +1342,16 @@ function showPage(name) {
   if (name === 'account' && typeof renderAccountPage === 'function') { renderAccountPage(); }
   // Load fertilizer ads + upcoming events each time Blog opens
   if (name === 'blog' && typeof renderBlogPage === 'function') { renderBlogPage(); }
+  updateFarmerFeedFab(name === 'shop');
+}
+
+// Hidden on pages with a dense product grid (Shop, and a farmer's own shop
+// below) — their per-card "message farmer" buttons sit in the same corner
+// and a fixed FAB on top of them would block taps on whichever card happens
+// to scroll underneath it.
+function updateFarmerFeedFab(hide) {
+  var fab = document.getElementById('farmerFeedFab');
+  if (fab) fab.style.display = hide ? 'none' : '';
 }
 
 function pageFromHash() {
@@ -1361,6 +1377,7 @@ function showFarmerShop(farmerId, opts) {
     try { history.pushState(null, '', hash); } catch (e) { location.hash = hash; }
   }
   if (typeof renderFarmerShop === 'function') renderFarmerShop(farmerId);
+  updateFarmerFeedFab(true);
 }
 
 function goBackFromShop() { history.back(); }
@@ -1380,6 +1397,14 @@ function shopCat(cat) {
   setTimeout(function() {
     var btn = document.getElementById('sc-' + cat);
     if (btn) setCat(cat, btn);
+  }, 50);
+}
+
+function openFarmerFeedFab() {
+  showPage('farmers');
+  setTimeout(function() {
+    var el = document.querySelector('.farmer-feed-wrap');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, 50);
 }
 

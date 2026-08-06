@@ -1286,6 +1286,22 @@ footer::before { content: ''; position: absolute; right: -60px; top: -60px; widt
 .mob-nav-btn.active .mn-icon { filter:drop-shadow(0 2px 6px rgba(34,229,132,.3)); }
 body { padding-bottom: 62px; }
 
+/* Floating quick-access icon for the Farmer Updates feed — sits just above
+   the bottom nav bar (62px) so it never overlaps it. Bottom-RIGHT specifically:
+   bottom-left collides with the hero badge (top-left-aligned "Free for
+   Farmers" pill) on short pages like Ask AI, which hides real text — worse
+   than the transient, icon-only overlap bottom-right has with the Shop
+   grid's per-product WhatsApp button while scrolling. */
+.chat-fab {
+  position: fixed; right: 16px; bottom: 78px; z-index: 260;
+  width: 52px; height: 52px; border-radius: 50%; border: none; cursor: pointer;
+  background: var(--g-green); color: #fff; box-shadow: var(--shadow-green);
+  display: flex; align-items: center; justify-content: center; transition: transform .2s;
+}
+.chat-fab svg { width: 24px; height: 24px; }
+.chat-fab:hover { transform: scale(1.06); }
+.chat-fab:active { transform: scale(.96); }
+
 /* ── Page-specific accent colour on scan hero ── */
 .scan-hero-badge, .chat-hero-badge {
   display:inline-flex; align-items:center; gap:6px;
