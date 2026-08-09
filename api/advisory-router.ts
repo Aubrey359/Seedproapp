@@ -1,9 +1,12 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { createRouter, publicQuery, authedQuery } from "./middleware";
-import { crops, cropGuides, spraySchedules, diagnoses, advisoryMessages, nextSeq, omitMongo } from "@db/schema";
+import { crops, cropGuides, spraySchedules, diagnoses, advisoryMessages, plantings, users, nextSeq, omitMongo } from "@db/schema";
 import { generateAiResponse, type ChatTurn } from "./lib/claude";
 import { checkRateLimit } from "./lib/rate-limit";
+import { isPremiumActive } from "./lib/premium";
+
+const RECOMMENDATION_REFRESH_COOLDOWN_MS = 60 * 60 * 1000;
 
 // Public guest chat has no sign-in to deter abuse, and every message here can
 // now trigger a real, billed Claude API call — cap it so a script can't quietly
@@ -242,6 +245,58 @@ export const advisoryRouter = createRouter({
       return input.messageType === "image"
         ? photoAcknowledgmentResponse(input.lang)
         : generateAdvisoryResponse(input.content, input.lang);
+    }),
+
+  // Premium-only "AI Recommendations" — a standalone generated insight
+  // based on the farmer's real data (location, farm size, current
+  // plantings), deliberately separate from the free Uliza Zao chat so that
+  // feature's "Free for Farmers" branding stays true. Cached per-farmer and
+  // refreshed at most hourly to bound Claude API cost.
+  getRecommendation: authedQuery
+    .input(z.object({ lang: z.enum(["en", "sw"]).default("en"), refresh: z.boolean().default(false) }))
+    .query(async ({ ctx, input }) => {
+      if (!isPremiumActive(ctx.user)) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "AI Recommendations is a Premium feature" });
+      }
+
+      const user: any = await users.findOne({ id: ctx.user.id }).lean();
+      const ageMs = user?.lastRecommendationAt ? Date.now() - new Date(user.lastRecommendationAt).getTime() : Infinity;
+
+      if (user?.lastRecommendation && !input.refresh) {
+        return { text: user.lastRecommendation, cropsContext: user.lastRecommendationCropName ?? null, generatedAt: user.lastRecommendationAt };
+      }
+      if (user?.lastRecommendation && input.refresh && ageMs < RECOMMENDATION_REFRESH_COOLDOWN_MS) {
+        throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "You can refresh this once an hour — your last one is still fresh." });
+      }
+
+      const activePlantings = await plantings.find({ farmerId: ctx.user.id, status: "active" }).lean();
+      const cropNames = [...new Set(activePlantings.map((p: any) => p.cropName))];
+      const placeText = [user?.ward, user?.location].filter(Boolean).join(", ") || (input.lang === "sw" ? "Kenya" : "Kenya");
+
+      const prompt = t(
+        input.lang,
+        `Give this farmer one focused, genuinely useful recommendation for right now. Their farm: location ${placeText}; farm size ${user?.farmSizeAcres ?? "not set"} acres; currently growing: ${cropNames.length ? cropNames.join(", ") : "nothing logged yet in the app"}. Cover whichever is most useful given this — a timely crop-care action for what they're already growing, an input/fertilizer tip, or (if nothing is logged) a suggestion for what to plant given their location and the current season in Kenya. 3-5 sentences, concrete and specific, no generic filler or disclaimers.`,
+        `Mpe mkulima huyu pendekezo moja linalofaa kwa sasa. Shamba lake: eneo ${placeText}; ukubwa wa shamba ekari ${user?.farmSizeAcres ?? "haijawekwa"}; anavyolima sasa: ${cropNames.length ? cropNames.join(", ") : "hakuna kilichowekwa kwenye app bado"}. Shughulikia lolote linalofaa zaidi kwa hali hii — hatua ya wakati muafaka ya utunzaji wa mazao anayolima, ushauri wa mbolea, au (kama hakuna kilichowekwa) pendekezo la nini apande kulingana na eneo lake na msimu wa sasa Kenya. Sentensi 3-5, mahususi na dhahiri, bila maneno ya jumla.`,
+      );
+
+      const aiText = await generateAiResponse([{ role: "user", content: prompt }], input.lang);
+      const text = aiText ?? t(
+        input.lang,
+        "We couldn't generate a fresh recommendation right now — please try again shortly.",
+        "Hatukuweza kutoa pendekezo jipya sasa hivi — tafadhali jaribu tena hivi karibuni.",
+      );
+      // The full list of what they're growing, for display context — not
+      // which single crop the advice happens to focus on, since Claude
+      // picks whichever is most timely and that isn't always the first one.
+      const cropsContext = cropNames.length ? cropNames.join(", ") : null;
+      const generatedAt = new Date();
+
+      await users.updateOne(
+        { id: ctx.user.id },
+        { $set: { lastRecommendation: text, lastRecommendationCropName: cropsContext, lastRecommendationAt: generatedAt } },
+      );
+
+      return { text, cropsContext, generatedAt };
     }),
 });
 

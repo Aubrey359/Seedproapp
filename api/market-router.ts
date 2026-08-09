@@ -1,9 +1,11 @@
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { createRouter, publicQuery, authedQuery } from "./middleware";
 import { listings, orders, crops, users, nextSeq, omitMongo } from "@db/schema";
 import { CURRENCY } from "@contracts/kenya";
 import { findOrCreateFarmerByPhone } from "./lib/identity";
 import { alertBuyersOfListing } from "./whatsapp/notify";
+import { isPremiumActive } from "./lib/premium";
 
 // Farmers earn the green verified-seller badge automatically once they've
 // proven themselves with real completed sales — not just a signup checkbox.
@@ -396,4 +398,50 @@ export const marketRouter = createRouter({
 
       return { success: true };
     }),
+
+  // ─── Farm Analytics (Premium) ───
+  // Built entirely from a farmer's own existing listings/orders — no new
+  // tracking needed. Server-enforced (not just hidden in the UI) so a
+  // non-premium farmer can't reach it by calling the endpoint directly.
+  myAnalytics: authedQuery.query(async ({ ctx }) => {
+    if (!isPremiumActive(ctx.user)) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Farm Analytics is a Premium feature" });
+    }
+
+    const farmerId = ctx.user.id;
+    const [allListings, farmerOrders] = await Promise.all([
+      listings.find({ farmerId }).lean(),
+      orders.find({ farmerId }).lean(),
+    ]);
+
+    const deliveredOrders = (farmerOrders as any[]).filter((o) => o.status === "delivered");
+    const totalRevenue = deliveredOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+
+    const statusCounts: Record<string, number> = {};
+    for (const o of farmerOrders as any[]) statusCounts[o.status] = (statusCounts[o.status] || 0) + 1;
+
+    // Last 6 calendar months of delivered-order revenue, oldest first, so
+    // the frontend can render a simple bar trend with no charting library.
+    const now = new Date();
+    const monthlyRevenue = Array.from({ length: 6 }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+      const revenue = deliveredOrders
+        .filter((o) => {
+          const od = new Date(o.createdAt);
+          return od.getFullYear() === d.getFullYear() && od.getMonth() === d.getMonth();
+        })
+        .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+      return { label: d.toLocaleDateString("en-GB", { month: "short" }), revenue };
+    });
+
+    return {
+      totalListings: allListings.length,
+      activeListings: (allListings as any[]).filter((l) => l.status === "active").length,
+      soldListings: (allListings as any[]).filter((l) => l.status === "sold").length,
+      totalOrders: farmerOrders.length,
+      totalRevenue,
+      statusCounts,
+      monthlyRevenue,
+    };
+  }),
 });

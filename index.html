@@ -11,6 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Lato:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <link rel="stylesheet" href="/site.css" />
   <link rel="stylesheet" href="public/site.css" />
   <style>
@@ -694,12 +695,32 @@
 
     <div class="farm-log-card">
       <div class="farm-log-title">🌾 Farm Size</div>
+      <div id="farmBoundarySummary" style="display:none"></div>
       <div class="form-group">
         <label>Total Farm Size in Acres</label>
         <input type="number" id="acctFarmSize" min="0.1" step="0.1" placeholder="e.g. 2.5" />
         <div class="farm-field-hint">Used to work out exactly how much fertilizer to buy, and to prefill My Farm so you don't retype it for every crop.</div>
       </div>
-      <button class="btn-primary" style="width:100%;height:46px;justify-content:center" onclick="saveAccountFarmSize()">💾 Save Farm Size</button>
+      <button class="btn-primary" style="width:100%;height:46px;justify-content:center;margin-bottom:8px" onclick="saveAccountFarmSize()">💾 Save Farm Size</button>
+      <button class="btn-outline-green" style="width:100%;height:44px;justify-content:center" onclick="openAddFarmModal()">🗺️ Map My Farm Boundary</button>
+    </div>
+
+    <div class="premium-card" id="premiumCard">
+      <div class="premium-card-head">
+        <div class="premium-card-title">⭐ Shamba Premium</div>
+        <span class="premium-status-pill" id="premiumStatusPill">Free Plan</span>
+      </div>
+      <p class="premium-card-sub" id="premiumCardSub">Unlock featured placement, farm analytics, and personalized AI recommendations.</p>
+      <div class="premium-perks">
+        <div class="premium-perk"><span class="premium-perk-ico">🏅</span><div><b>Featured Placement</b><span>Show up first on Farmer Next Door with a gold badge</span></div></div>
+        <div class="premium-perk"><span class="premium-perk-ico">📊</span><div><b>Farm Analytics</b><span>Track your sales, orders and listing performance over time</span></div></div>
+        <div class="premium-perk"><span class="premium-perk-ico">✨</span><div><b>AI Recommendations</b><span>Personalized crop and input suggestions based on your farm</span></div></div>
+      </div>
+      <button class="btn-premium" id="premiumCtaBtn" onclick="openPremiumModal()">⭐ Go Premium</button>
+      <div class="premium-active-actions" id="premiumActiveActions" style="display:none">
+        <button class="btn-outline-green" style="width:100%;height:44px;margin-top:10px" onclick="showPage('analytics')">📊 View Farm Analytics</button>
+        <button class="btn-outline-green" style="width:100%;height:44px;margin-top:10px" onclick="showPage('recommendations')">✨ AI Recommendations</button>
+      </div>
     </div>
 
     <button class="btn-retry" style="width:100%;height:46px;justify-content:center;display:flex;align-items:center;gap:6px" onclick="doLogout()">🚪 Sign Out</button>
@@ -719,6 +740,86 @@
         <a class="social-btn x" href="https://x.com/ShambaSokoni" target="_blank" rel="noopener" aria-label="X @ShambaSokoni" title="X @ShambaSokoni"><svg viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932L18.901 1.153zm-1.161 19.494h2.039L6.486 3.24H4.298L17.74 20.647z"/></svg></a>
       </div>
     </div>
+  </footer>
+</div>
+
+<!-- ═══════════════════ FARM ANALYTICS (Premium) ═══════════════════ -->
+<div id="page-analytics" class="page">
+  <div class="shop-hero">
+    <h1>📊 Farm Analytics</h1>
+    <p>Track your sales, orders and listing performance over time.</p>
+  </div>
+
+  <div class="chat-signin-gate" id="analyticsSignInGate" style="display:none">
+    <div class="chat-gate-icon">🔒</div>
+    <h3>Sign in to view your analytics</h3>
+    <p>Sign in with your phone number — it's free.</p>
+    <button class="btn-sell" onclick="enterApp()">📱 Sign In</button>
+  </div>
+
+  <div class="chat-signin-gate" id="analyticsPremiumGate" style="display:none">
+    <div class="chat-gate-icon">⭐</div>
+    <h3>Farm Analytics is a Premium feature</h3>
+    <p>Upgrade to Shamba Premium to track your sales, orders and listing performance over time.</p>
+    <button class="btn-sell" onclick="showPage('account')">⭐ Go Premium</button>
+  </div>
+
+  <div id="analyticsWrap" style="display:none;padding:16px;max-width:640px;margin:0 auto">
+    <div class="analytics-stats-grid">
+      <div class="analytics-stat"><div class="analytics-stat-val" id="anStatActive">—</div><div class="analytics-stat-label">Active Listings</div></div>
+      <div class="analytics-stat"><div class="analytics-stat-val" id="anStatSold">—</div><div class="analytics-stat-label">Sold</div></div>
+      <div class="analytics-stat"><div class="analytics-stat-val" id="anStatOrders">—</div><div class="analytics-stat-label">Total Orders</div></div>
+      <div class="analytics-stat"><div class="analytics-stat-val" id="anStatRevenue">—</div><div class="analytics-stat-label">Revenue (Delivered)</div></div>
+    </div>
+
+    <div class="farm-log-card">
+      <div class="farm-log-title">Revenue — Last 6 Months</div>
+      <div class="analytics-bars" id="anMonthlyBars"></div>
+    </div>
+
+    <div class="farm-log-card">
+      <div class="farm-log-title">Orders by Status</div>
+      <div id="anStatusBreakdown"></div>
+    </div>
+  </div>
+
+  <footer class="footer-min">
+    <div class="footer-logo-row"><div class="footer-logo-icon"><img src="/icon.svg" alt="" /></div><div class="footer-logo-name">Shamba Sokoni</div></div>
+    <div class="footer-copy">© 2026 Shamba Sokoni</div>
+  </footer>
+</div>
+
+<!-- ═══════════════════ AI RECOMMENDATIONS (Premium) ═══════════════════ -->
+<div id="page-recommendations" class="page">
+  <div class="shop-hero">
+    <h1>✨ AI Recommendations</h1>
+    <p>Personalized crop and input suggestions based on your farm.</p>
+  </div>
+
+  <div class="chat-signin-gate" id="recsSignInGate" style="display:none">
+    <div class="chat-gate-icon">🔒</div>
+    <h3>Sign in for personalized recommendations</h3>
+    <p>Sign in with your phone number — it's free.</p>
+    <button class="btn-sell" onclick="enterApp()">📱 Sign In</button>
+  </div>
+
+  <div class="chat-signin-gate" id="recsPremiumGate" style="display:none">
+    <div class="chat-gate-icon">⭐</div>
+    <h3>AI Recommendations is a Premium feature</h3>
+    <p>Upgrade to Shamba Premium for personalized crop and input suggestions based on your real farm data.</p>
+    <button class="btn-sell" onclick="showPage('account')">⭐ Go Premium</button>
+  </div>
+
+  <div id="recsWrap" style="display:none;padding:16px;max-width:640px;margin:0 auto">
+    <div class="farm-log-card" id="recsContent">
+      <p style="text-align:center;padding:20px;color:var(--grey-text)">Loading your personalized recommendation…</p>
+    </div>
+    <button class="btn-primary" id="recsRefreshBtn" style="width:100%;height:46px;justify-content:center" onclick="loadRecommendation(true)">🔄 Refresh Recommendation</button>
+  </div>
+
+  <footer class="footer-min">
+    <div class="footer-logo-row"><div class="footer-logo-icon"><img src="/icon.svg" alt="" /></div><div class="footer-logo-name">Shamba Sokoni</div></div>
+    <div class="footer-copy">© 2026 Shamba Sokoni</div>
   </footer>
 </div>
 
@@ -1277,6 +1378,75 @@
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
 </button>
 
+<!-- ADD YOUR FARM (boundary mapping — tap-corners or GPS walk) -->
+<div class="afm-overlay" id="addFarmOverlay" onclick="closeAddFarmModal()"></div>
+<div class="afm-modal" id="addFarmModal">
+
+  <!-- Step 1: intro -->
+  <div class="afm-step afm-intro active" id="afmStepIntro">
+    <button class="afm-x" onclick="closeAddFarmModal()">✕</button>
+    <div class="afm-intro-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20l6-11 4 7 3-5 5 9H3z"/></svg></div>
+    <h2>Add Your Farm</h2>
+    <p>Get personalized recommendations and track your farm performance by tracing your farm's real boundary.</p>
+    <hr class="afm-hr" />
+    <div class="afm-benefits">
+      <div class="afm-benefit"><span>✨</span><div><b>AI Recommendations</b><small>Get personalized crop and input recommendations</small></div></div>
+      <div class="afm-benefit"><span>📊</span><div><b>Farm Analytics</b><small>Track and analyze your farm performance</small></div></div>
+    </div>
+    <button class="afm-btn-primary" onclick="afmGoToChoice()">Get Started</button>
+    <button class="afm-btn-text" onclick="closeAddFarmModal()">Maybe Later</button>
+  </div>
+
+  <!-- Step 2: choice -->
+  <div class="afm-step afm-choice" id="afmStepChoice">
+    <div class="afm-step-head">
+      <button class="afm-back" onclick="afmGoToIntro()">←</button>
+      <h3>How do you want to do it?</h3>
+      <button class="afm-x" onclick="closeAddFarmModal()">✕</button>
+    </div>
+    <button class="afm-choice-card" onclick="afmStartMapTap()">
+      <span class="afm-choice-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3L3 6v15l6-3 6 3 6-3V3l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/></svg></span>
+      <span class="afm-choice-text"><b>Outline your farm on the map</b><small>Tap the corners of your farm on the map as we trace it out for you</small></span>
+    </button>
+    <button class="afm-choice-card" onclick="afmStartWalk()">
+      <span class="afm-choice-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"/><path d="M11 22l1-7-3-2 1-6 4 1 3 4-2 2 3 8"/><path d="M8 10l-3 2"/></svg></span>
+      <span class="afm-choice-text"><b>Walk around your farm</b><small>Walk around your farm and we'll automatically map it out for you</small></span>
+    </button>
+  </div>
+
+  <!-- Step 3a: tap-corners map -->
+  <div class="afm-step afm-map" id="afmStepMap">
+    <div class="afm-step-head">
+      <button class="afm-back" onclick="afmGoToChoice()">←</button>
+      <h3>Tap each corner of your farm</h3>
+      <button class="afm-x" onclick="closeAddFarmModal()">✕</button>
+    </div>
+    <div id="afmMapEl"></div>
+    <div class="afm-map-info"><span id="afmPointCount">0 points</span><span id="afmAcreagePreview"></span></div>
+    <div class="afm-map-actions">
+      <button class="afm-btn-ghost" onclick="afmUndoPoint()">↩ Undo Last Point</button>
+      <button class="afm-btn-primary" id="afmFinishMapBtn" onclick="afmFinishBoundary()" disabled>✓ Finish</button>
+    </div>
+  </div>
+
+  <!-- Step 3b: GPS walk -->
+  <div class="afm-step afm-walk" id="afmStepWalk">
+    <div class="afm-step-head">
+      <button class="afm-back" onclick="afmGoToChoice()">←</button>
+      <h3>Walk the edge of your farm</h3>
+      <button class="afm-x" onclick="closeAddFarmModal()">✕</button>
+    </div>
+    <div class="afm-walk-status" id="afmWalkStatus">
+      <div class="afm-walk-icon">🚶</div>
+      <p>Walk slowly along the edge of your farm — we'll trace it as you go. Keep this screen open the whole time.</p>
+    </div>
+    <div class="afm-map-info"><span id="afmWalkPointCount">0 points recorded</span><span id="afmWalkAcreagePreview"></span></div>
+    <button class="afm-btn-primary" id="afmWalkToggleBtn" onclick="afmToggleWalk()">▶ Start Walking</button>
+    <button class="afm-btn-primary" id="afmFinishWalkBtn" onclick="afmFinishBoundary()" style="display:none">✓ Finish</button>
+  </div>
+
+</div>
+
 <!-- CART DRAWER -->
 <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
 <div class="cart-drawer" id="cartDrawer">
@@ -1294,6 +1464,7 @@
 <div class="toast" id="toast"></div>
 <div id="root"></div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script src="/site.js" onerror="var s=document.createElement('script');s.src='public/site.js';document.head.appendChild(s)"></script>
 <script>
 // @ts-nocheck — browser glue. Shared helpers (renderHomeGrid, renderShopGrid, setCat,
@@ -1307,7 +1478,7 @@ function setMktTab(btn) {
   btn.classList.add('active');
 }
 
-var VALID_PAGES = ['home','shop','farmers','blog','prices','scan','sell','chat','orders','farm','account'];
+var VALID_PAGES = ['home','shop','farmers','blog','prices','scan','sell','chat','orders','farm','account','analytics','recommendations'];
 
 function showPage(name) {
   if (VALID_PAGES.indexOf(name) < 0) name = 'home';
@@ -1342,6 +1513,9 @@ function showPage(name) {
   if (name === 'account' && typeof renderAccountPage === 'function') { renderAccountPage(); }
   // Load fertilizer ads + upcoming events each time Blog opens
   if (name === 'blog' && typeof renderBlogPage === 'function') { renderBlogPage(); }
+  // Load Premium-gated Farm Analytics / AI Recommendations each time they open
+  if (name === 'analytics' && typeof renderAnalyticsPage === 'function') { renderAnalyticsPage(); }
+  if (name === 'recommendations' && typeof renderRecommendationsPage === 'function') { renderRecommendationsPage(); }
   updateFarmerFeedFab(name === 'shop');
 }
 

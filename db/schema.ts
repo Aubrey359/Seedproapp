@@ -68,12 +68,31 @@ const userSchema = new Schema(
     bio: String,
     verified: { type: Boolean, default: false },
     premium: { type: Boolean, default: false },
+    // Set on a successful premium payment (+30 days); checked alongside
+    // `premium` so a lapsed subscription doesn't keep perks forever without
+    // needing a cron job to flip the flag back — reads just check both.
+    premiumExpiresAt: Date,
     rating: { type: Number, default: 0 },
     reviewCount: { type: Number, default: 0 },
     lastSignInAt: { type: Date, default: Date.now },
     // A farmer's overall plot size, set once in their account rather than
     // retyped per crop — My Farm prefills a new planting's size from this.
+    // Auto-computed from farmBoundary when one exists; still editable by
+    // hand for farmers who skip mapping.
     farmSizeAcres: Number,
+    // Polygon traced either by tapping corners on a map or walking the
+    // perimeter with GPS — ordered so the points can be redrawn as a
+    // closed shape. Null/absent until a farmer completes farm setup.
+    farmBoundary: [{ lat: Number, lng: Number, _id: false }],
+    // Cached Premium "AI Recommendations" output (distinct from the free
+    // Uliza Zao chat) — one slot per farmer, not a history, refreshed at
+    // most hourly to bound Claude API cost.
+    lastRecommendation: String,
+    // Comma-joined list of what they were growing when this was generated
+    // (display context) — not necessarily the one crop the advice focuses
+    // on, since that's whatever Claude judged most timely.
+    lastRecommendationCropName: String,
+    lastRecommendationAt: Date,
   },
   { timestamps: true, toJSON },
 );
@@ -112,6 +131,10 @@ const siteSettingsSchema = new Schema(
     facebookUrl: String,
     footerTagline: String,
     footerAddress: String,
+    // Unset (null/0) means Premium isn't for sale yet — the frontend shows
+    // "coming soon" instead of a buy button rather than charging a
+    // fabricated price. Set here once the real price is decided.
+    premiumMonthlyPriceKes: Number,
   },
   { timestamps: true },
 );
@@ -387,6 +410,11 @@ const mpesaPaymentSchema = new Schema(
     phone: { type: String, required: true },
     amount: { type: Number, required: true },
     accountRef: String,
+    // Distinguishes a produce-order checkout from a premium-subscription
+    // charge — the M-Pesa callback needs this to know whether to confirm
+    // orders or activate premium on success.
+    purpose: { type: String, enum: ["order", "premium"], default: "order" },
+    farmerId: Number, // set only for purpose:"premium"
     status: { type: String, enum: ["pending", "completed", "failed", "cancelled"], default: "pending" },
     mpesaReceiptNumber: String,
     transactionDate: String,
@@ -474,10 +502,16 @@ export interface User {
   ward?: string | null;
   bio?: string | null;
   verified?: boolean;
+  premium?: boolean;
+  premiumExpiresAt?: Date | null;
   rating?: number;
   reviewCount?: number;
   lastSignInAt?: Date;
   farmSizeAcres?: number | null;
+  farmBoundary?: { lat: number; lng: number }[] | null;
+  lastRecommendation?: string | null;
+  lastRecommendationCropName?: string | null;
+  lastRecommendationAt?: Date | null;
 }
 
 export interface InsertUser {

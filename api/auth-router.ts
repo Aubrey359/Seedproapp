@@ -5,10 +5,12 @@ import { TRPCError } from "@trpc/server";
 import { Session } from "@contracts/constants";
 import { getSessionCookieOptions } from "./lib/cookies";
 import { createRouter, authedQuery, publicQuery } from "./middleware";
-import { otpCodes, users } from "@db/schema";
+import { otpCodes, users, mpesaPayments, siteSettings, nextSeq } from "@db/schema";
 import { findOrCreateFarmerByPhone } from "./lib/identity";
 import { sendWhatsApp, sendSms } from "./whatsapp/send";
 import { signSessionToken } from "./kimi/session";
+import { stkPush, normalizePhone as normalizeMpesaPhone } from "./lib/mpesa";
+import { polygonAcres } from "./lib/geo";
 
 const OTP_TTL_MS = 5 * 60 * 1000;
 const OTP_RESEND_COOLDOWN_MS = 45 * 1000;
@@ -106,5 +108,60 @@ export const authRouter = createRouter({
     .mutation(async ({ ctx, input }) => {
       await users.updateOne({ id: ctx.user.id }, { $set: { farmSizeAcres: input.farmSizeAcres } });
       return { success: true };
+    }),
+
+  // Saves a farm boundary traced either by tapping corners on a map or
+  // walking the perimeter with GPS, and derives acreage from it — replaces
+  // whatever farmSizeAcres was set manually, same as a real survey would.
+  updateFarmBoundary: authedQuery
+    .input(z.object({
+      points: z.array(z.object({ lat: z.number(), lng: z.number() })).min(3),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const acres = polygonAcres(input.points);
+      if (acres <= 0 || acres > 10_000) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "That shape doesn't look like a valid farm boundary — please try tracing it again." });
+      }
+      await users.updateOne(
+        { id: ctx.user.id },
+        { $set: { farmBoundary: input.points, farmSizeAcres: acres } },
+      );
+      return { success: true, acres };
+    }),
+
+  // Starts an M-Pesa STK push for a Premium subscription. The price is
+  // never trusted from the client — it's read from the admin-configured
+  // setting, and checkout is refused outright if that hasn't been set yet
+  // rather than falling back to a made-up number.
+  startPremiumCheckout: authedQuery
+    .input(z.object({ phone: z.string().min(9) }))
+    .mutation(async ({ ctx, input }) => {
+      const settings: any = await siteSettings.findOne({ key: "main" }).lean();
+      const price = settings?.premiumMonthlyPriceKes;
+      if (!price || price <= 0) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Premium isn't available for purchase yet — check back soon." });
+      }
+
+      const result = await stkPush({
+        phone: input.phone,
+        amount: price,
+        accountRef: "ShambaPremium",
+        description: "Shamba Premium",
+      });
+
+      const paymentId = await nextSeq("mpesa_payments");
+      await mpesaPayments.create({
+        id: paymentId,
+        checkoutRequestId: result.checkoutRequestId,
+        merchantRequestId: result.merchantRequestId,
+        phone: normalizeMpesaPhone(input.phone),
+        amount: price,
+        accountRef: "ShambaPremium",
+        purpose: "premium",
+        farmerId: ctx.user.id,
+        status: "pending",
+      });
+
+      return { checkoutRequestId: result.checkoutRequestId, customerMessage: result.customerMessage };
     }),
 });

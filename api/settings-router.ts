@@ -16,6 +16,7 @@ export const settingsRouter = createRouter({
       facebookUrl: s.facebookUrl ?? null,
       footerTagline: s.footerTagline ?? null,
       footerAddress: s.footerAddress ?? null,
+      premiumMonthlyPriceKes: s.premiumMonthlyPriceKes ?? null,
     };
   }),
 });

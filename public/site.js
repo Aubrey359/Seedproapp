@@ -1667,6 +1667,465 @@ function renderAccountPage() {
 
   var sizeInput = document.getElementById('acctFarmSize');
   if (sizeInput) sizeInput.value = CURRENT_USER.farmSizeAcres || '';
+
+  var boundarySummary = document.getElementById('farmBoundarySummary');
+  if (boundarySummary) {
+    if (CURRENT_USER.farmBoundary && CURRENT_USER.farmBoundary.length >= 3) {
+      boundarySummary.style.display = '';
+      boundarySummary.innerHTML = '<div class="farm-boundary-tag">🗺️ Mapped — ' + CURRENT_USER.farmSizeAcres + ' acres traced</div>';
+    } else {
+      boundarySummary.style.display = 'none';
+    }
+  }
+
+  renderPremiumCard();
+}
+
+/* ── PREMIUM ── */
+var PREMIUM_PRICE_KES = null;
+
+function isPremiumActive(user) {
+  if (!user || !user.premium) return false;
+  if (!user.premiumExpiresAt) return true;
+  return new Date(user.premiumExpiresAt).getTime() > Date.now();
+}
+
+function renderPremiumCard() {
+  var pill = document.getElementById('premiumStatusPill');
+  var sub = document.getElementById('premiumCardSub');
+  var btn = document.getElementById('premiumCtaBtn');
+  if (!pill || !btn) return;
+
+  var active = isPremiumActive(CURRENT_USER);
+  var activeActions = document.getElementById('premiumActiveActions');
+  if (active) {
+    pill.textContent = '⭐ Premium';
+    pill.className = 'premium-status-pill active';
+    sub.textContent = CURRENT_USER.premiumExpiresAt
+      ? 'Active until ' + new Date(CURRENT_USER.premiumExpiresAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) + '.'
+      : 'Active — granted by Shamba Sokoni.';
+    btn.textContent = '✓ Premium Active';
+    btn.disabled = true;
+    btn.style.display = 'none';
+    if (activeActions) activeActions.style.display = '';
+    return;
+  }
+
+  pill.textContent = 'Free Plan';
+  pill.className = 'premium-status-pill';
+  btn.disabled = false;
+  btn.style.display = '';
+  if (activeActions) activeActions.style.display = 'none';
+
+  fetch('/api/trpc/settings.get').then(function(r){ return r.json(); }).then(function(data) {
+    var s = data && data.result && data.result.data && data.result.data.json;
+    PREMIUM_PRICE_KES = (s && s.premiumMonthlyPriceKes) || null;
+    if (PREMIUM_PRICE_KES) {
+      sub.textContent = 'Unlock featured placement, farm analytics, and personalized AI recommendations.';
+      btn.textContent = '⭐ Go Premium — KSh ' + PREMIUM_PRICE_KES.toLocaleString() + '/month';
+    } else {
+      sub.textContent = 'Premium is coming soon — check back for pricing.';
+      btn.textContent = '⭐ Go Premium (Coming Soon)';
+      btn.disabled = true;
+    }
+  }).catch(function() {});
+}
+
+function openPremiumModal() {
+  if (!PREMIUM_PRICE_KES) return;
+  var existing = document.getElementById('premiumModal');
+  if (existing) existing.remove();
+
+  var knownPhone = (CURRENT_USER && CURRENT_USER.phone) ? CURRENT_USER.phone : '';
+  var modal = document.createElement('div');
+  modal.id = 'premiumModal';
+  modal.innerHTML = [
+    '<div class="mpesa-overlay" onclick="closePremiumModal()"></div>',
+    '<div class="mpesa-sheet">',
+      '<button class="auth-close" onclick="closePremiumModal()">✕</button>',
+      '<h2 class="auth-title">⭐ Go Premium</h2>',
+      '<div class="mpesa-amount">KSh <strong>' + PREMIUM_PRICE_KES.toLocaleString() + '</strong><span style="font-size:12px;font-weight:600;color:var(--grey-text)"> /month</span></div>',
+      '<div class="auth-field" style="margin-top:4px"><label>M-Pesa Phone Number</label>',
+        '<input type="tel" id="premiumPhone" placeholder="e.g. 0712 345 678" value="' + knownPhone + '" />',
+      '</div>',
+      '<button class="auth-submit premium-pay-btn" onclick="initiatePremiumMpesa()">📲 Send M-Pesa Request</button>',
+      '<div id="premiumStatus" class="mpesa-status" style="display:none"></div>',
+      '<p style="text-align:center;font-size:11px;color:var(--grey-text);margin-top:10px">Powered by Safaricom Daraja · Secure · Instant</p>',
+    '</div>'
+  ].join('');
+  document.body.appendChild(modal);
+  requestAnimationFrame(function(){ modal.classList.add('open'); });
+}
+
+function closePremiumModal() {
+  var m = document.getElementById('premiumModal');
+  if (m) m.remove();
+}
+
+function initiatePremiumMpesa() {
+  var phone = (document.getElementById('premiumPhone')||{}).value||'';
+  if (!phone.trim()) { showToast('⚠️ Please enter your M-Pesa phone number'); return; }
+
+  var btn = document.querySelector('.premium-pay-btn');
+  btn.textContent = '⏳ Sending request…';
+  btn.disabled = true;
+
+  var statusEl = document.getElementById('premiumStatus');
+  statusEl.style.display = 'block';
+  statusEl.className = 'mpesa-status pending';
+  statusEl.innerHTML = '📲 <strong>Check your phone</strong><br>Enter your M-Pesa PIN when prompted.';
+
+  fetch('/api/trpc/auth.startPremiumCheckout', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ json: { phone: phone } })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data) {
+    if (data.error) throw new Error(data.error.message || 'STK Push failed');
+    var result = data.result.data.json;
+    showToast('📲 M-Pesa prompt sent! Check your phone.');
+    pollPremiumStatus(result.checkoutRequestId, 0);
+  })
+  .catch(function(err) {
+    btn.textContent = '📲 Send M-Pesa Request';
+    btn.disabled = false;
+    statusEl.className = 'mpesa-status failed';
+    statusEl.innerHTML = '❌ <strong>Request failed:</strong> ' + (err.message || 'Please try again.');
+  });
+}
+
+function pollPremiumStatus(checkoutId, attempts) {
+  if (attempts > 12) {
+    var statusEl = document.getElementById('premiumStatus');
+    if (statusEl) {
+      statusEl.className = 'mpesa-status failed';
+      statusEl.innerHTML = '⏱ <strong>Timed out.</strong> Check your phone and try again.';
+    }
+    return;
+  }
+  setTimeout(function() {
+    fetch('/api/trpc/mpesa.checkStatus?batch=1&input=' + encodeURIComponent(JSON.stringify({0:{json:{checkoutRequestId:checkoutId}}})))
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      var result = Array.isArray(data) ? data[0] : data;
+      var status = result && result.result && result.result.data ? result.result.data.status : 'pending';
+      var statusEl = document.getElementById('premiumStatus');
+      if (!statusEl) return;
+
+      if (status === 'completed') {
+        statusEl.className = 'mpesa-status completed';
+        statusEl.innerHTML = '✅ <strong>Payment confirmed!</strong><br>Welcome to Shamba Premium.';
+        showToast('⭐ You\'re now a Premium farmer!');
+        setTimeout(function() {
+          closePremiumModal();
+          checkAuthState();
+        }, 2500);
+      } else if (status === 'failed') {
+        statusEl.className = 'mpesa-status failed';
+        statusEl.innerHTML = '❌ <strong>Payment failed.</strong> Please try again.';
+        var btn = document.querySelector('.premium-pay-btn');
+        if (btn) { btn.textContent = '📲 Send M-Pesa Request'; btn.disabled = false; }
+      } else if (status === 'cancelled') {
+        statusEl.className = 'mpesa-status failed';
+        statusEl.innerHTML = '🚫 <strong>Cancelled.</strong> You cancelled the M-Pesa prompt.';
+        var btn = document.querySelector('.premium-pay-btn');
+        if (btn) { btn.textContent = '📲 Send M-Pesa Request'; btn.disabled = false; }
+      } else {
+        pollPremiumStatus(checkoutId, attempts + 1);
+      }
+    })
+    .catch(function(){ pollPremiumStatus(checkoutId, attempts + 1); });
+  }, 5000);
+}
+
+/* ── FARM ANALYTICS (Premium) ── */
+function renderAnalyticsPage() {
+  var signinGate = document.getElementById('analyticsSignInGate');
+  var premiumGate = document.getElementById('analyticsPremiumGate');
+  var wrap = document.getElementById('analyticsWrap');
+
+  if (!CURRENT_USER) {
+    signinGate.style.display = ''; premiumGate.style.display = 'none'; wrap.style.display = 'none';
+    return;
+  }
+  if (!isPremiumActive(CURRENT_USER)) {
+    signinGate.style.display = 'none'; premiumGate.style.display = ''; wrap.style.display = 'none';
+    return;
+  }
+  signinGate.style.display = 'none'; premiumGate.style.display = 'none'; wrap.style.display = '';
+
+  fetch('/api/trpc/market.myAnalytics')
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      if (data.error) throw new Error(data.error.message || 'Could not load analytics');
+      var a = data.result.data.json;
+
+      document.getElementById('anStatActive').textContent = a.activeListings;
+      document.getElementById('anStatSold').textContent = a.soldListings;
+      document.getElementById('anStatOrders').textContent = a.totalOrders;
+      document.getElementById('anStatRevenue').textContent = 'KSh ' + a.totalRevenue.toLocaleString();
+
+      var maxRevenue = Math.max.apply(null, a.monthlyRevenue.map(function(m){ return m.revenue; }).concat([1]));
+      document.getElementById('anMonthlyBars').innerHTML = a.monthlyRevenue.map(function(m) {
+        var pct = Math.max(3, Math.round((m.revenue / maxRevenue) * 100));
+        return '<div class="analytics-bar-col"><div class="analytics-bar" style="height:' + pct + '%" title="KSh ' + m.revenue.toLocaleString() + '"></div><div class="analytics-bar-label">' + m.label + '</div></div>';
+      }).join('');
+
+      var statusEntries = Object.keys(a.statusCounts);
+      document.getElementById('anStatusBreakdown').innerHTML = statusEntries.length
+        ? statusEntries.map(function(s) { return '<div class="analytics-status-row"><span>' + s + '</span><span>' + a.statusCounts[s] + '</span></div>'; }).join('')
+        : '<p style="text-align:center;padding:16px;color:var(--grey-text);font-size:12.5px">No orders yet.</p>';
+    })
+    .catch(function(err) {
+      wrap.innerHTML = '<p style="text-align:center;padding:24px;color:var(--grey-text)">' + (err.message || 'Could not load analytics') + '</p>';
+    });
+}
+
+/* ── AI RECOMMENDATIONS (Premium, distinct from Uliza Zao chat) ── */
+function renderRecommendationsPage() {
+  var signinGate = document.getElementById('recsSignInGate');
+  var premiumGate = document.getElementById('recsPremiumGate');
+  var wrap = document.getElementById('recsWrap');
+
+  if (!CURRENT_USER) {
+    signinGate.style.display = ''; premiumGate.style.display = 'none'; wrap.style.display = 'none';
+    return;
+  }
+  if (!isPremiumActive(CURRENT_USER)) {
+    signinGate.style.display = 'none'; premiumGate.style.display = ''; wrap.style.display = 'none';
+    return;
+  }
+  signinGate.style.display = 'none'; premiumGate.style.display = 'none'; wrap.style.display = '';
+  loadRecommendation(false);
+}
+
+function loadRecommendation(forceRefresh) {
+  var content = document.getElementById('recsContent');
+  var btn = document.getElementById('recsRefreshBtn');
+  content.innerHTML = '<p style="text-align:center;padding:20px;color:var(--grey-text)">✨ Thinking about your farm…</p>';
+  if (btn) btn.disabled = true;
+
+  fetch('/api/trpc/advisory.getRecommendation?input=' + encodeURIComponent(JSON.stringify({ json: { lang: CHAT_LANG || 'en', refresh: !!forceRefresh } })))
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      if (data.error) throw new Error(data.error.message || 'Could not load your recommendation');
+      var r = data.result.data.json;
+      content.innerHTML =
+        (r.cropsContext ? '<span class="rec-crop-tag">🌾 Based on: ' + escChat(r.cropsContext) + '</span>' : '') +
+        '<div class="rec-text">' + escChat(r.text) + '</div>' +
+        '<div class="rec-meta">Generated ' + new Date(r.generatedAt).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + '</div>';
+    })
+    .catch(function(err) {
+      content.innerHTML = '<p style="text-align:center;padding:20px;color:var(--grey-text)">❌ ' + (err.message || 'Could not load your recommendation') + '</p>';
+    })
+    .finally(function() {
+      if (btn) btn.disabled = false;
+    });
+}
+
+/* ── ADD YOUR FARM (boundary mapping — tap-corners map or GPS walk) ── */
+var AFM_POINTS = [];
+var AFM_LEAFLET_MAP = null;
+var AFM_LEAFLET_MARKERS = [];
+var AFM_LEAFLET_POLY = null;
+var AFM_WALK_WATCH_ID = null;
+var AFM_WALKING = false;
+
+// Same shoelace-on-a-flat-projection approach as api/lib/geo.ts's
+// polygonAcres — this copy is just for a live preview while tracing; the
+// server recomputes the authoritative value on save.
+function afmEstimateAcres(points) {
+  if (points.length < 3) return 0;
+  var lat0 = (points.reduce(function(s,p){ return s + p.lat; }, 0) / points.length) * (Math.PI / 180);
+  var R = 6371000;
+  var xy = points.map(function(p) {
+    return { x: p.lng * (Math.PI / 180) * R * Math.cos(lat0), y: p.lat * (Math.PI / 180) * R };
+  });
+  var area2 = 0;
+  for (var i = 0; i < xy.length; i++) {
+    var a = xy[i], b = xy[(i + 1) % xy.length];
+    area2 += a.x * b.y - b.x * a.y;
+  }
+  return Math.round((Math.abs(area2) / 2 / 4046.8564224) * 100) / 100;
+}
+
+function afmDistanceMeters(a, b) {
+  var R = 6371000;
+  var dLat = (b.lat - a.lat) * Math.PI / 180;
+  var dLng = (b.lng - a.lng) * Math.PI / 180;
+  var s = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
+  return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1 - s));
+}
+
+function openAddFarmModal() {
+  if (!CURRENT_USER) { showToast('👤 Please sign in first'); return; }
+  document.getElementById('addFarmOverlay').classList.add('open');
+  document.getElementById('addFarmModal').classList.add('open');
+  afmGoToIntro();
+}
+
+function closeAddFarmModal() {
+  document.getElementById('addFarmOverlay').classList.remove('open');
+  document.getElementById('addFarmModal').classList.remove('open');
+  afmStopWalkWatch();
+}
+
+function afmShowStep(id) {
+  document.querySelectorAll('.afm-step').forEach(function(s){ s.classList.remove('active'); });
+  var el = document.getElementById(id);
+  if (el) el.classList.add('active');
+}
+
+function afmGoToIntro() { afmShowStep('afmStepIntro'); }
+function afmGoToChoice() { afmStopWalkWatch(); afmShowStep('afmStepChoice'); }
+
+function afmStartMapTap() {
+  AFM_POINTS = [];
+  afmShowStep('afmStepMap');
+  afmUpdateMapInfo();
+  // Leaflet needs the container to have real, visible dimensions before
+  // init — the step's display:none→flex swap above needs a frame to settle.
+  setTimeout(function() {
+    if (!AFM_LEAFLET_MAP) {
+      AFM_LEAFLET_MAP = L.map('afmMapEl');
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 20,
+        attribution: '&copy; OpenStreetMap contributors',
+      }).addTo(AFM_LEAFLET_MAP);
+      AFM_LEAFLET_MAP.on('click', function(e) {
+        AFM_POINTS.push({ lat: e.latlng.lat, lng: e.latlng.lng });
+        afmRedrawMapPoints();
+      });
+    } else {
+      AFM_LEAFLET_MAP.invalidateSize();
+    }
+    afmRedrawMapPoints();
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(function(pos) {
+        AFM_LEAFLET_MAP.setView([pos.coords.latitude, pos.coords.longitude], 18);
+      }, function() {
+        AFM_LEAFLET_MAP.setView([-0.7, 37.15], 13);
+      }, { timeout: 8000 });
+    } else {
+      AFM_LEAFLET_MAP.setView([-0.7, 37.15], 13);
+    }
+  }, 60);
+}
+
+function afmRedrawMapPoints() {
+  AFM_LEAFLET_MARKERS.forEach(function(m){ AFM_LEAFLET_MAP.removeLayer(m); });
+  AFM_LEAFLET_MARKERS = [];
+  if (AFM_LEAFLET_POLY) { AFM_LEAFLET_MAP.removeLayer(AFM_LEAFLET_POLY); AFM_LEAFLET_POLY = null; }
+
+  AFM_POINTS.forEach(function(p) {
+    AFM_LEAFLET_MARKERS.push(
+      L.circleMarker([p.lat, p.lng], { radius: 6, color: '#16A863', fillColor: '#22E584', fillOpacity: 1, weight: 2 }).addTo(AFM_LEAFLET_MAP)
+    );
+  });
+  if (AFM_POINTS.length >= 2) {
+    AFM_LEAFLET_POLY = L.polygon(AFM_POINTS.map(function(p){ return [p.lat, p.lng]; }), { color: '#16A863', fillOpacity: .2 }).addTo(AFM_LEAFLET_MAP);
+  }
+  afmUpdateMapInfo();
+}
+
+function afmUndoPoint() {
+  AFM_POINTS.pop();
+  afmRedrawMapPoints();
+}
+
+function afmUpdateMapInfo() {
+  var countEl = document.getElementById('afmPointCount');
+  var acreageEl = document.getElementById('afmAcreagePreview');
+  var finishBtn = document.getElementById('afmFinishMapBtn');
+  if (countEl) countEl.textContent = AFM_POINTS.length + ' point' + (AFM_POINTS.length === 1 ? '' : 's');
+  if (finishBtn) finishBtn.disabled = AFM_POINTS.length < 3;
+  if (acreageEl) {
+    acreageEl.textContent = AFM_POINTS.length >= 3 ? '~' + afmEstimateAcres(AFM_POINTS) + ' acres' : '';
+    acreageEl.className = 'acreage';
+  }
+}
+
+function afmStartWalk() {
+  AFM_POINTS = [];
+  AFM_WALKING = false;
+  afmShowStep('afmStepWalk');
+  document.getElementById('afmWalkToggleBtn').style.display = '';
+  document.getElementById('afmWalkToggleBtn').textContent = '▶ Start Walking';
+  document.getElementById('afmWalkToggleBtn').disabled = false;
+  document.getElementById('afmFinishWalkBtn').style.display = 'none';
+  afmUpdateWalkInfo();
+}
+
+function afmToggleWalk() {
+  if (AFM_WALKING) {
+    afmStopWalkWatch();
+    document.getElementById('afmWalkToggleBtn').textContent = '▶ Resume Walking';
+    if (AFM_POINTS.length >= 3) document.getElementById('afmFinishWalkBtn').style.display = '';
+    return;
+  }
+  if (!navigator.geolocation) { showToast('⚠️ GPS is not available on this device'); return; }
+  AFM_WALKING = true;
+  document.getElementById('afmWalkToggleBtn').textContent = '⏸ Pause Walking';
+  AFM_WALK_WATCH_ID = navigator.geolocation.watchPosition(
+    function(pos) {
+      var next = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      var last = AFM_POINTS[AFM_POINTS.length - 1];
+      // Skip near-duplicate points (standing still) so the polygon doesn't
+      // fill up with GPS jitter noise.
+      if (!last || afmDistanceMeters(last, next) > 3) {
+        AFM_POINTS.push(next);
+        afmUpdateWalkInfo();
+      }
+    },
+    function() {
+      showToast('⚠️ Could not get your location — check GPS/location permissions');
+      afmStopWalkWatch();
+      document.getElementById('afmWalkToggleBtn').textContent = '▶ Start Walking';
+    },
+    { enableHighAccuracy: true, maximumAge: 2000, timeout: 15000 },
+  );
+}
+
+function afmStopWalkWatch() {
+  if (AFM_WALK_WATCH_ID != null && navigator.geolocation) {
+    navigator.geolocation.clearWatch(AFM_WALK_WATCH_ID);
+  }
+  AFM_WALK_WATCH_ID = null;
+  AFM_WALKING = false;
+}
+
+function afmUpdateWalkInfo() {
+  var countEl = document.getElementById('afmWalkPointCount');
+  var acreageEl = document.getElementById('afmWalkAcreagePreview');
+  if (countEl) countEl.textContent = AFM_POINTS.length + ' points recorded';
+  if (acreageEl) {
+    acreageEl.textContent = AFM_POINTS.length >= 3 ? '~' + afmEstimateAcres(AFM_POINTS) + ' acres' : '';
+    acreageEl.className = 'acreage';
+  }
+  if (AFM_POINTS.length >= 3 && !AFM_WALKING) document.getElementById('afmFinishWalkBtn').style.display = '';
+}
+
+function afmFinishBoundary() {
+  if (AFM_POINTS.length < 3) { showToast('⚠️ Need at least 3 points to trace a boundary'); return; }
+  afmStopWalkWatch();
+  fetch('/api/trpc/auth.updateFarmBoundary', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ json: { points: AFM_POINTS } })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data) {
+    if (data.error) throw new Error(data.error.message || 'Could not save your farm boundary');
+    var result = data.result.data.json;
+    if (CURRENT_USER) { CURRENT_USER.farmBoundary = AFM_POINTS.slice(); CURRENT_USER.farmSizeAcres = result.acres; }
+    showToast('🗺️ Farm mapped — ' + result.acres + ' acres');
+    closeAddFarmModal();
+    if (typeof renderAccountPage === 'function') renderAccountPage();
+  })
+  .catch(function(err) {
+    showToast('❌ ' + (err.message || 'Could not save your farm boundary'));
+  });
 }
 
 function saveAccountFarmSize() {

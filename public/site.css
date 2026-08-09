@@ -648,6 +648,136 @@ nav {
 .account-info-row span { color: var(--grey-text); }
 .account-info-row strong { color: var(--text); font-weight: 700; }
 
+.btn-outline-green {
+  background: none; border: 1.5px solid var(--green); color: var(--green); border-radius: 100px;
+  font-size: 13px; font-weight: 800; font-family: 'Nunito', sans-serif; cursor: pointer; transition: all .2s;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.btn-outline-green:hover { background: var(--green-pale); }
+
+.farm-boundary-tag {
+  font-size: 11.5px; font-weight: 700; color: var(--green-light); background: var(--green-pale);
+  padding: 6px 12px; border-radius: var(--radius-sm); margin-bottom: 12px; display: inline-block;
+}
+
+/* ══ PREMIUM ══ */
+.premium-card {
+  background: linear-gradient(135deg, #1A3D28, #12301F); border-radius: var(--radius-lg);
+  border: 1px solid rgba(245,185,66,.3); padding: 18px; margin-bottom: 20px; box-shadow: var(--shadow-xs);
+}
+.premium-card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+.premium-card-title { font-size: 15px; font-weight: 900; color: #fff; font-family: 'Nunito', sans-serif; }
+.premium-status-pill { font-size: 10.5px; font-weight: 800; padding: 4px 10px; border-radius: 100px; background: var(--grey-bg); color: var(--grey-text); white-space: nowrap; }
+.premium-status-pill.active { background: rgba(245,185,66,.18); color: #F5B942; }
+.premium-card-sub { font-size: 12px; color: rgba(255,255,255,.75); line-height: 1.5; margin-bottom: 14px; }
+.premium-perks { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+.premium-perk { display: flex; gap: 10px; align-items: flex-start; }
+.premium-perk-ico { font-size: 18px; flex-shrink: 0; }
+.premium-perk b { display: block; font-size: 12.5px; color: #fff; font-family: 'Nunito', sans-serif; }
+.premium-perk span { font-size: 11px; color: rgba(255,255,255,.6); line-height: 1.4; }
+.btn-premium {
+  width: 100%; height: 46px; border-radius: 100px; border: none; cursor: pointer;
+  background: linear-gradient(135deg, #F5B942, #E0972E); color: #1A1400; font-size: 13.5px; font-weight: 900;
+  font-family: 'Nunito', sans-serif; box-shadow: 0 4px 14px rgba(245,185,66,.3); transition: transform .2s;
+}
+.btn-premium:hover:not(:disabled) { transform: translateY(-2px); }
+.btn-premium:disabled { opacity: .6; cursor: not-allowed; }
+
+/* ══ ADD YOUR FARM (boundary mapping modal) ══ */
+.afm-overlay { display:none; position:fixed; inset:0; z-index:900; background:rgba(0,0,0,.55); backdrop-filter:blur(4px); }
+.afm-overlay.open { display:block; }
+.afm-modal {
+  display:none; position:fixed; inset:0; z-index:901; background:var(--white);
+  flex-direction:column; overflow-y:auto;
+}
+.afm-modal.open { display:flex; }
+.afm-step { display:none; flex:1; flex-direction:column; padding:20px; }
+.afm-step.active { display:flex; }
+
+.afm-intro {
+  background:var(--g-green);
+  align-items:center; text-align:center; justify-content:center; gap:6px; padding:60px 28px 32px; position:relative;
+}
+.afm-intro-icon { width:64px; height:64px; color:#fff; margin-bottom:18px; }
+.afm-intro-icon svg { width:100%; height:100%; }
+.afm-intro h2 { font-size:24px; font-weight:900; color:#fff; font-family:'Nunito',sans-serif; margin-bottom:12px; }
+.afm-intro p { font-size:14px; color:rgba(255,255,255,.9); line-height:1.6; max-width:340px; margin-bottom:24px; }
+.afm-hr { width:100%; max-width:340px; border:none; border-top:1px solid rgba(255,255,255,.25); margin-bottom:22px; }
+.afm-benefits { display:flex; flex-direction:column; gap:14px; width:100%; max-width:340px; margin-bottom:32px; text-align:left; }
+.afm-benefit { display:flex; gap:12px; align-items:flex-start; }
+.afm-benefit span { font-size:20px; flex-shrink:0; }
+.afm-benefit b { display:block; font-size:13.5px; color:#fff; font-family:'Nunito',sans-serif; }
+.afm-benefit small { font-size:12px; color:rgba(255,255,255,.8); line-height:1.4; }
+.afm-btn-primary {
+  width:100%; max-width:340px; height:50px; border-radius:100px; border:none; cursor:pointer;
+  background:var(--dark); color:#fff; font-size:14.5px; font-weight:800; font-family:'Nunito',sans-serif;
+  transition:transform .2s; margin-bottom:10px;
+}
+.afm-intro .afm-btn-primary { background:rgba(0,0,0,.35); }
+.afm-btn-primary:hover:not(:disabled) { transform:translateY(-2px); }
+.afm-btn-primary:disabled { opacity:.5; cursor:not-allowed; }
+.afm-btn-text { background:none; border:none; color:rgba(255,255,255,.85); font-size:13px; font-weight:700; cursor:pointer; font-family:'Nunito',sans-serif; }
+.afm-x {
+  position:absolute; top:16px; right:16px; width:36px; height:36px; border-radius:50%; border:none; cursor:pointer;
+  background:rgba(255,255,255,.15); color:#fff; font-size:15px; display:flex; align-items:center; justify-content:center;
+}
+.afm-choice .afm-x, .afm-map .afm-x, .afm-walk .afm-x { position:static; background:var(--grey-bg); color:var(--text); }
+
+.afm-step-head { display:flex; align-items:center; gap:10px; margin-bottom:22px; }
+.afm-step-head h3 { flex:1; font-size:15.5px; font-weight:800; color:var(--text); font-family:'Nunito',sans-serif; }
+.afm-back { width:34px; height:34px; border-radius:50%; border:none; cursor:pointer; background:var(--grey-bg); color:var(--text); font-size:16px; flex-shrink:0; }
+
+.afm-choice-card {
+  display:flex; gap:14px; align-items:flex-start; text-align:left; width:100%;
+  background:var(--grey-bg); border:1.5px solid var(--grey-border); border-radius:var(--radius-lg);
+  padding:18px; margin-bottom:14px; cursor:pointer; transition:all .2s;
+}
+.afm-choice-card:hover { border-color:var(--green); background:var(--green-pale); }
+.afm-choice-ico { width:26px; height:26px; color:var(--green); flex-shrink:0; }
+.afm-choice-ico svg { width:100%; height:100%; }
+.afm-choice-text b { display:block; font-size:14px; color:var(--text); font-family:'Nunito',sans-serif; margin-bottom:3px; }
+.afm-choice-text small { font-size:12px; color:var(--grey-text); line-height:1.5; }
+
+#afmMapEl { flex:1; min-height:280px; border-radius:var(--radius-lg); overflow:hidden; margin-bottom:14px; border:1px solid var(--grey-border); }
+.afm-map-info { display:flex; justify-content:space-between; font-size:12px; color:var(--grey-text); font-weight:700; margin-bottom:14px; font-family:'Nunito',sans-serif; }
+.afm-map-info span.acreage { color:var(--green); }
+.afm-map-actions { display:flex; gap:10px; }
+.afm-btn-ghost {
+  flex:1; height:46px; border-radius:100px; border:1.5px solid var(--grey-border); background:none; color:var(--grey-text);
+  font-size:12.5px; font-weight:800; font-family:'Nunito',sans-serif; cursor:pointer;
+}
+.afm-map-actions .afm-btn-primary { flex:1; max-width:none; margin-bottom:0; background:var(--g-green); }
+
+.afm-walk-status { text-align:center; padding:24px 10px; }
+.afm-walk-icon { font-size:44px; margin-bottom:14px; }
+.afm-walk-status p { font-size:13px; color:var(--grey-text); line-height:1.6; max-width:320px; margin:0 auto; }
+.afm-walk .afm-btn-primary { max-width:none; background:var(--g-green); margin-top:auto; }
+.afm-walk .afm-map-info { justify-content:center; gap:20px; }
+
+.footer-min { padding: 30px 20px; text-align: center; }
+.footer-min .footer-logo-row { justify-content: center; }
+
+/* ══ FARM ANALYTICS (Premium) ══ */
+.analytics-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.analytics-stat { background: var(--white); border: 1px solid var(--grey-border); border-radius: var(--radius-lg); padding: 14px; text-align: center; box-shadow: var(--shadow-xs); }
+.analytics-stat-val { font-size: 20px; font-weight: 900; color: var(--green); font-family: 'Nunito', sans-serif; }
+.analytics-stat-label { font-size: 11px; color: var(--grey-text); margin-top: 2px; }
+
+.analytics-bars { display: flex; align-items: flex-end; gap: 8px; height: 120px; padding-top: 10px; }
+.analytics-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; height: 100%; }
+.analytics-bar { width: 100%; max-width: 28px; background: var(--g-green); border-radius: 4px 4px 0 0; min-height: 3px; }
+.analytics-bar-label { font-size: 9.5px; color: var(--grey-text); font-weight: 700; }
+
+.analytics-status-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--grey-border); font-size: 12.5px; }
+.analytics-status-row:last-child { border-bottom: none; }
+.analytics-status-row span:first-child { color: var(--text); text-transform: capitalize; }
+.analytics-status-row span:last-child { color: var(--green); font-weight: 800; }
+
+/* ══ AI RECOMMENDATIONS (Premium) ══ */
+.rec-crop-tag { display: inline-block; font-size: 11px; font-weight: 800; color: var(--green-light); background: var(--green-pale); padding: 4px 10px; border-radius: 100px; margin-bottom: 12px; }
+.rec-text { font-size: 13.5px; color: var(--text); line-height: 1.7; white-space: pre-wrap; }
+.rec-meta { font-size: 11px; color: var(--grey-text); margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--grey-border); }
+
 .farm-planting-card {
   background: var(--white); border-radius: var(--radius-lg); border: 1px solid var(--grey-border);
   padding: 16px; box-shadow: var(--shadow-xs); margin-bottom: 14px;

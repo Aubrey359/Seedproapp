@@ -333,7 +333,8 @@
       { key:'xUrl',           label:'X (Twitter) URL',            hint:'',                                                          type:'text' },
       { key:'facebookUrl',    label:'Facebook URL',               hint:'',                                                          type:'text' },
       { key:'footerTagline',  label:'Footer tagline',             hint:'Shown under the logo in every page footer',                type:'text' },
-      { key:'footerAddress',  label:'Footer address line',        hint:'Shown in the copyright line of every page footer',         type:'text' }
+      { key:'footerAddress',  label:'Footer address line',        hint:'Shown in the copyright line of every page footer',         type:'text' },
+      { key:'premiumMonthlyPriceKes', label:'Premium price (KSh/month)', hint:'Leave blank to keep Premium hidden as "coming soon" — the Go Premium button only appears once this is set', type:'text' }
     ];
     function renderContent(){
       return api('/settings').then(function(d){

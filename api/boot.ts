@@ -7,7 +7,7 @@ import { createContext } from "./context";
 import { env } from "./lib/env";
 import { createOAuthCallbackHandler } from "./kimi/auth";
 import { Paths } from "@contracts/constants";
-import { mpesaPayments, paypalPayments, pesapalPayments, orders } from "@db/schema";
+import { mpesaPayments, paypalPayments, pesapalPayments, orders, users } from "@db/schema";
 import { connectDb } from "./lib/db";
 import adminRouter from "./admin-router";
 import whatsappRouter from "./whatsapp-router";
@@ -64,6 +64,17 @@ app.post("/api/mpesa/callback", async (c) => {
       // Mark associated orders as confirmed
       if (payment?.orderIds?.length) {
         await orders.updateMany({ id: { $in: payment.orderIds } }, { $set: { status: "confirmed" } });
+      }
+
+      // Activate Premium — 30 days from now, regardless of any time left on
+      // a prior subscription, since Daraja doesn't tell us this was a
+      // renewal vs a fresh purchase and stacking is more surprising than
+      // simply resetting the clock on payment.
+      if (payment?.purpose === "premium" && payment?.farmerId) {
+        await users.updateOne(
+          { id: payment.farmerId },
+          { $set: { premium: true, premiumExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) } },
+        );
       }
 
       if (payment?.phone) {

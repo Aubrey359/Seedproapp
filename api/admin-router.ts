@@ -25,7 +25,7 @@ import {
 const SETTINGS_FIELDS = [
   "heroHeadline", "heroSubtext", "whatsappNumber",
   "instagramUrl", "xUrl", "facebookUrl",
-  "footerTagline", "footerAddress",
+  "footerTagline", "footerAddress", "premiumMonthlyPriceKes",
 ] as const;
 
 const admin = new Hono();
