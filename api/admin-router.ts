@@ -53,6 +53,24 @@ function guard(handler: (c: any) => Promise<Response>) {
   };
 }
 
+// ── Integration status (no secrets — just shape/presence, so it's safe to
+// check whether a given server actually has real credentials loaded rather
+// than silently defaulting to sandbox/simulator mode). Auth is already
+// handled by the admin.use("*", ...) middleware above. ───────────────────
+admin.get("/integrations-status", (c) => {
+  const at = env.africastalking;
+  return c.json({
+    africastalking: {
+      env: at.env,
+      isProduction: at.env === "production",
+      usernameSet: !!at.username,
+      apiKeySet: !!at.apiKey,
+      apiKeyLength: at.apiKey ? at.apiKey.length : 0,
+      senderId: at.senderId || null,
+    },
+  });
+});
+
 // ── Overview stats ───────────────────────────────────────────
 admin.get(
   "/overview",
