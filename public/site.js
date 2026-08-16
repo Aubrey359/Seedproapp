@@ -53,6 +53,23 @@ function cropMeta(name) {
 }
 
 /* Map a live listing (from market.list) into the shape cardHTML expects. */
+// One freshness signal per card (never more — a wall of badges stops
+// meaning anything). Today beats Farm Fresh since it's the more specific,
+// more recent claim. Both come straight from real listing timestamps —
+// never shown without real data behind them.
+function freshnessBadge(l) {
+  var now = Date.now();
+  if (l.createdAt) {
+    var listedAgeMs = now - new Date(l.createdAt).getTime();
+    if (listedAgeMs >= 0 && listedAgeMs < 24 * 60 * 60 * 1000) return 'Today';
+  }
+  if (l.harvestDate) {
+    var harvestAgeMs = now - new Date(l.harvestDate).getTime();
+    if (harvestAgeMs >= 0 && harvestAgeMs < 3 * 24 * 60 * 60 * 1000) return 'Farm Fresh';
+  }
+  return null;
+}
+
 function mapListing(l) {
   var meta = cropMeta(l.cropName);
   var realPhoto = (l.images && l.images.length) ? l.images[0] : null;
@@ -73,6 +90,7 @@ function mapListing(l) {
     ok: !!l.farmerVerified,
     premium: !!l.farmerPremium,
     disc: null,
+    fresh: freshnessBadge(l),
   };
 }
 
@@ -538,6 +556,7 @@ function cardHTML(p) {
       (p.disc ? '<div class="prod-discount">' + p.disc + '</div>' : '') +
       (p.ok   ? '<div class="prod-check">' + VERIFIED_BADGE_SVG + '</div>' : '') +
       (p.hasPhoto ? '<div class="prod-photo-badge" title="Real photo from farmer">📸 Verified</div>' : '') +
+      (p.fresh ? '<div class="prod-fresh-badge">' + (p.fresh === 'Today' ? '🌱' : '🌾') + ' ' + p.fresh + '</div>' : '') +
       '<button class="prod-fav" onclick="event.stopPropagation();showToast(\'❤️ Saved!\')">♡</button>' +
     '</div>' +
     '<div class="prod-body">' +
@@ -949,6 +968,11 @@ function pollMpesaStatus(checkoutId, attempts) {
    WhatsApp bot and Sell form already use, no separate password to manage) ── */
 var CURRENT_USER = null;
 var _authPhone = '';
+var _authChannel = 'sms';
+var _resendTimer = null;
+var _resendSecondsLeft = 0;
+// Matches the server's OTP_RESEND_COOLDOWN_MS (auth-router.ts) — keep in sync.
+var RESEND_COOLDOWN_SECONDS = 25;
 
 /* Shared 3D-style icon markup for the auth buttons — kept as constants so
    requestOtpCode()/verifyOtpCode() can restore the icon (not just plain
@@ -990,6 +1014,7 @@ function enterApp() {
         '<div class="auth-field"><label>Your Name <span style="font-weight:400">(first time only)</span></label><input type="text" id="authName" placeholder="e.g. James Mwangi" /></div>',
         '<div class="auth-field"><label>6-Digit Code</label><input type="text" inputmode="numeric" maxlength="6" id="authCode" placeholder="123456" /></div>',
         '<button class="auth-submit" id="authVerifyBtn" onclick="verifyOtpCode()">' + VERIFY_BTN_HTML + '</button>',
+        '<div class="auth-resend" id="authResendRow"></div>',
         '<div class="auth-forgot" onclick="backToPhoneStep()">↩ Use a different number</div>',
       '</div>',
     '</div>'
@@ -1001,11 +1026,43 @@ function enterApp() {
 function closeAuth() {
   var m = document.getElementById('authModal');
   if (m) m.classList.remove('open');
+  stopResendCountdown();
 }
 
 function backToPhoneStep() {
   document.getElementById('auth-step-code').style.display = 'none';
   document.getElementById('auth-step-phone').style.display = '';
+  stopResendCountdown();
+}
+
+function stopResendCountdown() {
+  if (_resendTimer) { clearInterval(_resendTimer); _resendTimer = null; }
+}
+
+function startResendCountdown() {
+  stopResendCountdown();
+  _resendSecondsLeft = RESEND_COOLDOWN_SECONDS;
+  renderResendRow();
+  _resendTimer = setInterval(function() {
+    _resendSecondsLeft--;
+    if (_resendSecondsLeft <= 0) { stopResendCountdown(); }
+    renderResendRow();
+  }, 1000);
+}
+
+function renderResendRow() {
+  var row = document.getElementById('authResendRow');
+  if (!row) return;
+  row.innerHTML = _resendSecondsLeft > 0
+    ? 'Resend code in ' + _resendSecondsLeft + 's'
+    : '<span class="auth-resend-link" onclick="resendOtpCode()">↻ Resend Code</span>';
+}
+
+function resendOtpCode() {
+  if (_resendSecondsLeft > 0) return;
+  var row = document.getElementById('authResendRow');
+  if (row) row.innerHTML = 'Sending…';
+  requestOtpCode(_authChannel);
 }
 
 function requestOtpCode(channel) {
@@ -1028,14 +1085,17 @@ function requestOtpCode(channel) {
     if (smsLink) smsLink.style.pointerEvents = '';
     if (data.error) throw new Error(data.error.message || 'Could not send code');
     _authPhone = phone;
+    _authChannel = channel;
     document.getElementById('auth-step-phone').style.display = 'none';
     document.getElementById('auth-step-code').style.display = '';
     document.getElementById('authCodeSentTo').textContent = 'Code sent to ' + phone + (channel === 'whatsapp' ? ' via WhatsApp' : ' via SMS');
     showToast(channel === 'whatsapp' ? '📲 Check WhatsApp for your code' : '💬 Check your SMS inbox for your code');
+    startResendCountdown();
   })
   .catch(function(err) {
     btn.innerHTML = SMS_BTN_HTML; btn.disabled = false;
     if (smsLink) smsLink.style.pointerEvents = '';
+    renderResendRow(); // undo the "Sending…" state a resend attempt shows, so retry is possible
     showToast('❌ ' + (err.message || 'Could not send code'));
   });
 }

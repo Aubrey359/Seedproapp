@@ -410,6 +410,12 @@ nav {
   background: rgba(0,0,0,.55); color: #fff; font-size: 10px;
   padding: 2px 6px; border-radius: 100px; line-height: 1.4;
 }
+.prod-fresh-badge {
+  position: absolute; bottom: 6px; left: 6px; z-index: 2;
+  background: rgba(34,229,132,.92); color: #0A2016; font-size: 10px; font-weight: 800;
+  padding: 2px 7px; border-radius: 100px; line-height: 1.4; font-family:'Nunito',sans-serif;
+  box-shadow: 0 2px 6px rgba(0,0,0,.25);
+}
 .prod-fav {
   position: absolute; bottom: 8px; right: 8px;
   width: 28px; height: 28px; background: var(--white); color: var(--text);
@@ -1113,6 +1119,8 @@ footer::before { content: ''; position: absolute; right: -60px; top: -60px; widt
 .auth-mpesa { width:100%; height:46px; background:var(--white); color:var(--text); border:1.5px solid var(--grey-border); border-radius:100px; font-size:14px; font-weight:800; cursor:pointer; font-family:'Nunito',sans-serif; transition:all .2s; }
 .auth-mpesa:hover { border-color:var(--green); background:var(--green-pale); }
 .auth-forgot { text-align:center; font-size:12px; color:var(--green); font-weight:700; font-family:'Nunito',sans-serif; margin-top:14px; cursor:pointer; }
+.auth-resend { text-align:center; font-size:12px; color:var(--grey-text); font-family:'Nunito',sans-serif; margin-top:12px; }
+.auth-resend-link { color:var(--green); font-weight:700; cursor:pointer; }
 .auth-role-row { display:flex; gap:8px; }
 .role-btn { flex:1; height:44px; border-radius:var(--radius); border:2px solid var(--grey-border); background:var(--white); font-size:13px; font-weight:800; cursor:pointer; font-family:'Nunito',sans-serif; transition:all .2s; }
 .role-btn.active { border-color:var(--green); background:var(--green-pale); color:var(--green-dark); }
@@ -1262,7 +1270,12 @@ footer::before { content: ''; position: absolute; right: -60px; top: -60px; widt
 
 /* ── Richer footer ── */
 .footer-rich {
-  background: linear-gradient(160deg, #1B241A 0%, #2F4632 50%, #202B1E 100%);
+  /* Subtle produce silhouettes (leaf, berry, grain) tiled at low opacity,
+     one CSS rule so every footer instance across the app picks it up —
+     same restraint as the existing corner-circle decoration below. */
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M20 15c-6 0-10 5-10 12a10 8 0 0020 0c0-7-4-12-10-12z'/%3E%3Ccircle cx='65' cy='55' r='7'/%3E%3Cpath d='M53 72l3-9 3 9-3 2z'/%3E%3C/g%3E%3C/svg%3E") repeat,
+    linear-gradient(160deg, #1B241A 0%, #2F4632 50%, #202B1E 100%);
   color: rgba(255,255,255,.8); padding: 36px 20px 28px;
   position: relative; overflow: hidden;
 }

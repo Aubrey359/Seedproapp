@@ -13,7 +13,8 @@ import { stkPush, normalizePhone as normalizeMpesaPhone } from "./lib/mpesa";
 import { polygonAcres } from "./lib/geo";
 
 const OTP_TTL_MS = 5 * 60 * 1000;
-const OTP_RESEND_COOLDOWN_MS = 45 * 1000;
+// Matches the resend countdown shown in the sign-in UI — keep these in sync.
+const OTP_RESEND_COOLDOWN_MS = 25 * 1000;
 const OTP_MAX_ATTEMPTS = 5;
 
 function hashCode(code: string): string {
