@@ -71,6 +71,42 @@ admin.get("/integrations-status", (c) => {
   });
 });
 
+// Actually sends, but returns Africa's Talking's real response instead of
+// swallowing it like sendSms() does in production — lets us see the exact
+// rejection reason without server log access. Never echoes the API key.
+admin.post("/test-sms", async (c) => {
+  const { phone, message } = await c.req.json();
+  if (!phone) return c.json({ error: "phone is required" }, 400);
+
+  const at = env.africastalking;
+  if (!at.username || !at.apiKey) {
+    return c.json({ error: "Africa's Talking is not configured (missing username/apiKey)" }, 400);
+  }
+
+  const digits = String(phone).replace(/[^\d+]/g, "");
+  const to = digits.startsWith("+254") ? digits
+    : digits.startsWith("254") ? "+" + digits
+    : digits.startsWith("0") ? "+254" + digits.slice(1)
+    : digits.startsWith("+") ? digits : "+" + digits;
+
+  const base = at.env === "production" ? "https://api.africastalking.com" : "https://api.sandbox.africastalking.com";
+  const form = new URLSearchParams({ username: at.username, to, message: message || "Shamba Sokoni test message" });
+  if (at.senderId) form.set("from", at.senderId);
+
+  const res = await fetch(`${base}/version1/messaging`, {
+    method: "POST",
+    headers: { apiKey: at.apiKey, Accept: "application/json", "Content-Type": "application/x-www-form-urlencoded" },
+    body: form.toString(),
+  });
+  const responseBody = await res.text();
+
+  return c.json({
+    request: { base, username: at.username, to, senderId: at.senderId || null },
+    httpStatus: res.status,
+    responseBody,
+  });
+});
+
 // ── Overview stats ───────────────────────────────────────────
 admin.get(
   "/overview",
