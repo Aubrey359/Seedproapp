@@ -240,16 +240,15 @@ function farmerCardHTML(f) {
   var rating = f.rating || 0;
   var fullStars = Math.round(rating);
   var stars = '★'.repeat(fullStars) + '☆'.repeat(Math.max(0, 5 - fullStars));
-  var nameEsc = (f.name || 'Farmer').replace(/'/g, "\\'");
-  var placeText = f.ward ? (f.ward + ', ' + (f.location || 'Kenya')) : (f.location || 'Kenya');
+  var placeText = escChat(f.ward ? (f.ward + ', ' + (f.location || 'Kenya')) : (f.location || 'Kenya'));
   return '<div class="farmer-card" onclick="showFarmerShop(' + f.id + ')">' +
-    '<div class="farmer-av">' + (f.avatar ? '<img class="farmer-photo" src="' + f.avatar + '" alt="" loading="lazy" onerror="this.remove()">' : '<span class="fa-emoji">🧑‍🌾</span>') + '</div>' +
-    '<div class="farmer-name">' + (f.name || 'Farmer') + '<span class="verified-badge-inline" title="Verified Seller">' + VERIFIED_BADGE_SVG + '</span></div>' +
+    '<div class="farmer-av">' + (f.avatar ? '<img class="farmer-photo" src="' + escChat(f.avatar) + '" alt="" loading="lazy" onerror="this.remove()">' : '<span class="fa-emoji">🧑‍🌾</span>') + '</div>' +
+    '<div class="farmer-name">' + escChat(f.name || 'Farmer') + '<span class="verified-badge-inline" title="Verified Seller">' + VERIFIED_BADGE_SVG + '</span></div>' +
     (wardMatch ? '<div class="near-me-tag" style="display:inline-block;margin:2px 0 3px">Same ward</div>' : countyMatch ? '<div class="near-me-tag" style="display:inline-block;margin:2px 0 3px">Near you</div>' : '') +
     '<div class="farmer-loc">📍 ' + placeText + '</div>' +
     '<div class="farmer-stars">' + stars + ' ' + rating.toFixed(1) + '</div>' +
     '<div class="farmer-count">' + f.listingCount + ' Listing' + (f.listingCount === 1 ? '' : 's') + '</div>' +
-    '<button class="farmer-card-wa" onclick="event.stopPropagation();contactFarmer(\'' + (f.phone || '') + '\',\'' + nameEsc + '\')">💬 Message</button>' +
+    '<button class="farmer-card-wa" data-farmer-phone="' + escChat(f.phone || '') + '" data-farmer-name="' + escChat(f.name || 'Farmer') + '" onclick="event.stopPropagation();contactFarmer(this.dataset.farmerPhone,this.dataset.farmerName)">💬 Message</button>' +
   '</div>';
 }
 
@@ -267,10 +266,10 @@ function renderNearbyFarmers() {
    gradient carousel, echoing Shamba Direct's "Featured Farm
    Advertisements" reserved for farmers who'd hit the 5-sale milestone. */
 function featuredFarmerCardHTML(f) {
-  var placeText = f.ward ? (f.ward + ', ' + (f.location || 'Kenya')) : (f.location || 'Kenya');
+  var placeText = escChat(f.ward ? (f.ward + ', ' + (f.location || 'Kenya')) : (f.location || 'Kenya'));
   return '<div class="featured-farmer-card" onclick="showFarmerShop(' + f.id + ')">' +
     '<div class="ff-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526"/><circle cx="12" cy="8" r="6"/></svg>Featured Farm</div>' +
-    '<div class="ff-name">' + (f.name || 'Farmer') + '<span class="verified-badge-inline" title="Verified Seller">' + VERIFIED_BADGE_SVG + '</span></div>' +
+    '<div class="ff-name">' + escChat(f.name || 'Farmer') + '<span class="verified-badge-inline" title="Verified Seller">' + VERIFIED_BADGE_SVG + '</span></div>' +
     '<div class="ff-loc">📍 ' + placeText + '</div>' +
     '<div class="ff-stats">' +
       '<div class="ff-stat"><b>' + f.listingCount + '</b>Listings</div>' +
@@ -358,9 +357,9 @@ function timeAgo(d) {
 }
 
 function farmerPostCardHTML(p) {
-  var avatarInner = p.farmerAvatar ? '<img src="' + p.farmerAvatar + '" alt="" loading="lazy" onerror="this.remove()">' : '🧑‍🌾';
+  var avatarInner = p.farmerAvatar ? '<img src="' + escChat(p.farmerAvatar) + '" alt="" loading="lazy" onerror="this.remove()">' : '🧑‍🌾';
   var tagHTML = p.updateType === 'restocked'
-    ? '<span class="fp-tag restocked">📦 Restocked' + (p.listing ? ' — ' + p.listing.quantity + p.listing.quantityUnit + ' available' : '') + '</span>'
+    ? '<span class="fp-tag restocked">📦 Restocked' + (p.listing ? ' — ' + p.listing.quantity + escChat(p.listing.quantityUnit) + ' available' : '') + '</span>'
     : p.updateType === 'sold_out'
       ? '<span class="fp-tag sold_out">🚫 Sold Out' + (p.cropName ? ' — ' + escChat(p.cropName) : '') + '</span>'
       : '';
@@ -458,7 +457,7 @@ function submitFarmerPost() {
 function renderFarmerShopHeader(f) {
   var avatarEl = document.getElementById('fsAvatar');
   if (avatarEl) avatarEl.innerHTML = f.avatar
-    ? '<img class="farmer-photo" src="' + f.avatar + '" alt="" loading="lazy" onerror="this.remove()">'
+    ? '<img class="farmer-photo" src="' + escChat(f.avatar) + '" alt="" loading="lazy" onerror="this.remove()">'
     : '<span class="fa-emoji">🧑‍🌾</span>';
 
   var nameEl = document.getElementById('fsName');
@@ -474,7 +473,7 @@ function renderFarmerShopHeader(f) {
 
   var metaEl = document.getElementById('fsMeta');
   if (metaEl) {
-    var placeText = f.ward ? (f.ward + ', ' + (f.location || 'Kenya')) : (f.location || 'Kenya');
+    var placeText = escChat(f.ward ? (f.ward + ', ' + (f.location || 'Kenya')) : (f.location || 'Kenya'));
     var rating = f.rating || 0;
     metaEl.innerHTML =
       '<span>📍 ' + placeText + '</span>' +
@@ -552,7 +551,7 @@ function cardHTML(p) {
   return '<div class="prod-card">' +
     '<div class="prod-img">' +
       '<span class="prod-emoji">' + p.emoji + '</span>' +
-      (p.img ? '<img class="prod-photo" src="' + p.img + '" alt="' + p.name + '" loading="lazy" onerror="this.remove()">' : '') +
+      (p.img ? '<img class="prod-photo" src="' + escChat(p.img) + '" alt="' + escChat(p.name) + '" loading="lazy" onerror="this.remove()">' : '') +
       (p.disc ? '<div class="prod-discount">' + p.disc + '</div>' : '') +
       (p.ok   ? '<div class="prod-check">' + VERIFIED_BADGE_SVG + '</div>' : '') +
       (p.hasPhoto ? '<div class="prod-photo-badge" title="Real photo from farmer">📸 Verified</div>' : '') +
@@ -560,9 +559,9 @@ function cardHTML(p) {
       '<button class="prod-fav" onclick="event.stopPropagation();showToast(\'❤️ Saved!\')">♡</button>' +
     '</div>' +
     '<div class="prod-body">' +
-      '<div class="prod-name">' + p.name + (p.premium ? ' <span class="prod-premium-badge" title="Premium seller">⭐</span>' : '') + '</div>' +
-      (p.farmerId ? '<div class="prod-farmer" onclick="event.stopPropagation();showFarmerShop(' + p.farmerId + ')">🧑‍🌾 ' + p.farmer + '</div>' : '') +
-      '<div class="prod-meta">📍 ' + p.county +
+      '<div class="prod-name">' + escChat(p.name) + (p.premium ? ' <span class="prod-premium-badge" title="Premium seller">⭐</span>' : '') + '</div>' +
+      (p.farmerId ? '<div class="prod-farmer" onclick="event.stopPropagation();showFarmerShop(' + p.farmerId + ')">🧑‍🌾 ' + escChat(p.farmer) + '</div>' : '') +
+      '<div class="prod-meta">📍 ' + escChat(p.county) +
         (BUYER_LOCATION && (p.county||'').toLowerCase() === BUYER_LOCATION.toLowerCase() ? ' <span class="near-me-tag">Near you</span>' : '') +
         ' · <span class="prod-rating">★ ' + p.rating + '</span></div>' +
       '<div class="prod-price-row">' +
@@ -574,7 +573,7 @@ function cardHTML(p) {
         '<button class="prod-add' + (inCart ? ' added' : '') + '" onclick="addToCart(event,' + p.id + ')">' +
           (inCart ? '✓ Added' : '+ Cart') +
         '</button>' +
-        '<button class="prod-wa" onclick="event.stopPropagation();openWA(\'' + p.name + '\')">💬</button>' +
+        '<button class="prod-wa" data-crop-name="' + escChat(p.name) + '" onclick="event.stopPropagation();openWA(this.dataset.cropName)">💬</button>' +
       '</div>' +
     '</div>' +
   '</div>';
@@ -650,7 +649,7 @@ function updateCart() {
     return '<div class="cart-item">' +
       '<div class="cart-item-img">' + c.emoji + '</div>' +
       '<div class="cart-item-info">' +
-        '<div class="cart-item-name">' + c.name + '</div>' +
+        '<div class="cart-item-name">' + escChat(c.name) + '</div>' +
         '<div class="cart-item-price">KSh ' + (c.price*c.qty).toLocaleString() + '</div>' +
         '<div class="qty-row">' +
           '<button class="qty-btn" onclick="changeQty(' + c.id + ',-1)">−</button>' +
@@ -750,7 +749,7 @@ function openPaymentModal() {
       '<button class="auth-close" onclick="closeMpesa()">✕</button>',
       '<h2 class="auth-title">Choose Payment Method</h2>',
       '<div class="mpesa-amount">KSh <strong>' + PAY_TOTAL.toLocaleString() + '</strong></div>',
-      '<div class="mpesa-items">' + cart.map(function(c){ return '<span>' + c.emoji + ' ' + c.name + ' ×' + c.qty + '</span>'; }).join('') + '</div>',
+      '<div class="mpesa-items">' + cart.map(function(c){ return '<span>' + c.emoji + ' ' + escChat(c.name) + ' ×' + c.qty + '</span>'; }).join('') + '</div>',
       '<div id="payMethods">',
         '<button class="pay-method-btn" onclick="selectPayMethod(\'mpesa\')"><img class="mpesa-icon" src="/images/mpesa-logo.png" alt="M-Pesa"><span>M-Pesa</span></button>',
         '<button class="pay-method-btn" onclick="selectPayMethod(\'paypal\')"><img class="pay-logo-icon" src="/images/paypal-logo.png" alt="PayPal"><span>PayPal</span></button>',
@@ -782,7 +781,7 @@ function selectPayMethod(method) {
   if (method === 'mpesa') {
     detail.innerHTML = [
       '<div class="auth-field" style="margin-top:4px"><label>M-Pesa Phone Number</label>',
-        '<input type="tel" id="mpesaPhone" placeholder="e.g. 0712 345 678" value="' + knownPhone + '" />',
+        '<input type="tel" id="mpesaPhone" placeholder="e.g. 0712 345 678" value="' + escChat(knownPhone) + '" />',
       '</div>',
       '<button class="auth-submit mpesa-pay-btn" onclick="initiateMpesa(' + PAY_TOTAL + ')">📲 Send M-Pesa Request</button>',
       '<p class="pay-back-link" onclick="backToMethods()">↩ Choose a different method</p>',
@@ -797,7 +796,7 @@ function selectPayMethod(method) {
     ].join('');
   } else if (method === 'pesapal') {
     detail.innerHTML = [
-      '<div class="auth-field" style="margin-top:4px"><label>Phone Number</label><input type="tel" id="pesapalPhone" placeholder="e.g. 0712 345 678" value="' + knownPhone + '" /></div>',
+      '<div class="auth-field" style="margin-top:4px"><label>Phone Number</label><input type="tel" id="pesapalPhone" placeholder="e.g. 0712 345 678" value="' + escChat(knownPhone) + '" /></div>',
       '<div class="auth-field"><label>Email (optional)</label><input type="email" id="pesapalEmail" placeholder="you@example.com" /></div>',
       '<button class="auth-submit" id="pesapalBtn" onclick="initiatePesapal()">Continue to Pesapal →</button>',
       '<p class="pay-back-link" onclick="backToMethods()">↩ Choose a different method</p>',
@@ -1265,11 +1264,11 @@ function renderChatMessage(m) {
   var quickReplies = (!isOut && m.metadata && m.metadata.quickReplies) ? m.metadata.quickReplies : null;
   var chipsHTML = quickReplies
     ? '<div class="chat-quick-replies">' + quickReplies.map(function(q) {
-        return '<button class="chat-quick-reply-btn" onclick="quickChatSend(\'' + String(q).replace(/'/g, "\\'") + '\')">' + escChat(q) + '</button>';
+        return '<button class="chat-quick-reply-btn" data-quick-reply="' + escChat(q) + '" onclick="quickChatSend(this.dataset.quickReply)">' + escChat(q) + '</button>';
       }).join('') + '</div>'
     : '';
   var isPhoto = m.messageType === 'image';
-  var bubbleInner = isPhoto ? '<img class="chat-photo" src="' + m.content + '" alt="Shared photo" />' : escChat(m.content);
+  var bubbleInner = isPhoto ? '<img class="chat-photo" src="' + escChat(m.content) + '" alt="Shared photo" />' : escChat(m.content);
   return '<div class="chat-msg ' + (isOut ? 'out' : 'in') + '">' +
     (!isOut ? '<div class="chat-avatar">' + ZAO_AVATAR_HTML + '</div>' : '') +
     '<div class="chat-msg-content">' +
@@ -1479,8 +1478,8 @@ function orderCardHTML(o) {
   return '<div class="order-card">' +
     '<div class="order-card-top">' +
       '<div class="order-crop"><span class="order-crop-emoji">' + meta.emoji + '</span>' +
-        '<div><div class="order-crop-name">' + o.cropName + ' · ' + o.quantity + o.quantityUnit + '</div>' +
-        '<div class="order-crop-sub">' + counterpartyLabel + ': ' + o.counterpartyName + ' · ' + dateStr + '</div></div>' +
+        '<div><div class="order-crop-name">' + escChat(o.cropName) + ' · ' + o.quantity + escChat(o.quantityUnit) + '</div>' +
+        '<div class="order-crop-sub">' + counterpartyLabel + ': ' + escChat(o.counterpartyName) + ' · ' + dateStr + '</div></div>' +
       '</div>' +
       roleTag +
     '</div>' +
@@ -1569,7 +1568,7 @@ function plantingCardHTML(p) {
   var sizeText = p.farmSizeAcres ? (' · ' + p.farmSizeAcres + ' acre' + (p.farmSizeAcres === 1 ? '' : 's')) : '';
   var body;
   if (!p.hasGuideContent) {
-    body = '<div class="farm-no-guide">📋 Detailed day-by-day guidance for ' + p.cropName + ' is coming soon. In the meantime, try Ask AI for general advice.</div>';
+    body = '<div class="farm-no-guide">📋 Detailed day-by-day guidance for ' + escChat(p.cropName) + ' is coming soon. In the meantime, try Ask AI for general advice.</div>';
   } else {
     var allTasks = p.currentTasks.concat(p.upcomingTasks);
     var canCalculate = allTasks.some(function(t){ return t.hasRate; });
@@ -1593,8 +1592,8 @@ function plantingCardHTML(p) {
   return '<div class="farm-planting-card">' +
     '<div class="farm-planting-top">' +
       '<div class="farm-planting-crop"><span class="farm-crop-emoji">' + meta.emoji + '</span>' +
-        '<div><div class="farm-crop-name">' + p.cropName + '</div>' +
-        '<div class="farm-crop-sub">Planted ' + dateStr + ' · Day ' + p.daysSincePlanting + (p.location ? ' · ' + p.location : '') + sizeText + '</div></div>' +
+        '<div><div class="farm-crop-name">' + escChat(p.cropName) + '</div>' +
+        '<div class="farm-crop-sub">Planted ' + dateStr + ' · Day ' + p.daysSincePlanting + (p.location ? ' · ' + escChat(p.location) : '') + sizeText + '</div></div>' +
       '</div>' +
     '</div>' +
     body +
@@ -1806,7 +1805,7 @@ function openPremiumModal() {
       '<h2 class="auth-title">⭐ Go Premium</h2>',
       '<div class="mpesa-amount">KSh <strong>' + PREMIUM_PRICE_KES.toLocaleString() + '</strong><span style="font-size:12px;font-weight:600;color:var(--grey-text)"> /month</span></div>',
       '<div class="auth-field" style="margin-top:4px"><label>M-Pesa Phone Number</label>',
-        '<input type="tel" id="premiumPhone" placeholder="e.g. 0712 345 678" value="' + knownPhone + '" />',
+        '<input type="tel" id="premiumPhone" placeholder="e.g. 0712 345 678" value="' + escChat(knownPhone) + '" />',
       '</div>',
       '<button class="auth-submit premium-pay-btn" onclick="initiatePremiumMpesa()">📲 Send M-Pesa Request</button>',
       '<div id="premiumStatus" class="mpesa-status" style="display:none"></div>',
