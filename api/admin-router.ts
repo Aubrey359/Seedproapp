@@ -21,6 +21,7 @@ import {
   nextSeq,
   omitMongo,
 } from "@db/schema";
+import { checkAndFirePriceAlerts } from "./prices-router";
 
 const SETTINGS_FIELDS = [
   "heroHeadline", "heroSubtext", "whatsappNumber",
@@ -321,7 +322,12 @@ admin.post(
     if (retailPrice != null) set.retailPrice = Number(retailPrice);
     if (trend != null) set.trend = trend;
     if (trendPercent != null) set.trendPercent = Number(trendPercent);
-    await marketPrices.updateOne({ id: Number(id) }, { $set: set });
+    const updated: any = await marketPrices.findOneAndUpdate({ id: Number(id) }, { $set: set }, { new: true }).lean();
+    if (updated) {
+      // Fire-and-forget, same convention as other notification sends —
+      // a slow/failed SMS shouldn't hold up the admin's save.
+      checkAndFirePriceAlerts(updated.cropName, updated.wholesalePrice, updated.retailPrice).catch(() => {});
+    }
     return c.json({ dbConnected: true, ok: true });
   }),
 );

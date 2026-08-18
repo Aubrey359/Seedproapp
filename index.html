@@ -921,7 +921,7 @@
     <p>Wholesale &amp; retail prices from major Kenyan markets</p>
     <div class="prices-updated">
       <div class="live-dot"></div>
-      <span>Last updated: Today, 6:00 AM · Nairobi Wakulima Market</span>
+      <span id="priceUpdatedText">Loading…</span>
     </div>
     <div class="page-hero-floats">
       <div class="phf-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></div>
@@ -933,26 +933,17 @@
   <!-- MARKET SELECTOR -->
   <div class="market-select">
     <label>📍 Market:</label>
-    <select onchange="showToast('📈 Loading prices for ' + this.options[this.selectedIndex].text + '…')">
-      <option>Nairobi – Wakulima</option>
-      <option>Nairobi – City Market</option>
-      <option>Mombasa – Kongowea</option>
-      <option>Kisumu – Kibuye</option>
-      <option>Nakuru – Marikiti</option>
-      <option>Eldoret – Moi's Bridge</option>
-      <option>Meru – Town Market</option>
-      <option>Thika – Municipality</option>
-    </select>
+    <select id="priceTownSelect" onchange="onPriceTownChange(this.value)"><option>Loading…</option></select>
   </div>
 
   <!-- CATEGORY TABS -->
   <div class="market-tabs">
-    <button class="mkt-tab active" onclick="setMktTab(this)">All</button>
-    <button class="mkt-tab" onclick="setMktTab(this)">🍅 Vegetables</button>
-    <button class="mkt-tab" onclick="setMktTab(this)">🌽 Grains</button>
-    <button class="mkt-tab" onclick="setMktTab(this)">🥑 Fruits</button>
-    <button class="mkt-tab" onclick="setMktTab(this)">☕ Cash Crops</button>
-    <button class="mkt-tab" onclick="setMktTab(this)">🫘 Legumes</button>
+    <button class="mkt-tab active" onclick="setMktTab(this,'all')">All</button>
+    <button class="mkt-tab" onclick="setMktTab(this,'vegetables')">🍅 Vegetables</button>
+    <button class="mkt-tab" onclick="setMktTab(this,'grains')">🌽 Grains</button>
+    <button class="mkt-tab" onclick="setMktTab(this,'fruits')">🥑 Fruits</button>
+    <button class="mkt-tab" onclick="setMktTab(this,'cash')">☕ Cash Crops</button>
+    <button class="mkt-tab" onclick="setMktTab(this,'legumes')">🫘 Legumes</button>
   </div>
 
   <!-- PRICE TABLE -->
@@ -962,43 +953,29 @@
       <div class="price-card-head">
         <span>Crop</span><span>Wholesale</span><span>Retail</span><span>Trend</span>
       </div>
-      <div class="price-row"><div class="price-crop-name">🍅 Tomato</div>      <div class="price-wholesale">95</div>  <div class="price-retail">130</div> <div class="price-trend-up">▲ 12%</div></div>
-      <div class="price-row"><div class="price-crop-name">🧅 Onion</div>       <div class="price-wholesale">110</div> <div class="price-retail">145</div> <div class="price-trend-up">▲ 15%</div></div>
-      <div class="price-row"><div class="price-crop-name">🥬 Sukuma Wiki</div>  <div class="price-wholesale">30</div>  <div class="price-retail">45</div>  <div class="price-trend-up">▲ 3%</div></div>
-      <div class="price-row"><div class="price-crop-name">🫛 French Beans</div><div class="price-wholesale">145</div> <div class="price-retail">190</div> <div class="price-trend-up">▲ 8%</div></div>
-      <div class="price-row"><div class="price-crop-name">🍠 Sweet Potato</div><div class="price-wholesale">55</div>  <div class="price-retail">75</div>  <div class="price-trend-up">▲ 6%</div></div>
-      <div class="price-row"><div class="price-crop-name">🥬 Cabbage</div>      <div class="price-wholesale">35</div>  <div class="price-retail">50</div>  <div class="price-trend-down">▼ 2%</div></div>
-    </div>
-
-    <div class="price-card" style="margin-top:14px">
-      <div class="price-card-head">
-        <span>Crop</span><span>Wholesale</span><span>Retail</span><span>Trend</span>
-      </div>
-      <div class="price-row"><div class="price-crop-name">🌽 Maize</div>        <div class="price-wholesale">42</div>  <div class="price-retail">60</div>  <div class="price-trend-down">▼ 3%</div></div>
-      <div class="price-row"><div class="price-crop-name">🍚 Pishori Rice</div> <div class="price-wholesale">185</div> <div class="price-retail">240</div> <div class="price-trend-flat">→ 0%</div></div>
-      <div class="price-row"><div class="price-crop-name">🥔 Potato</div>       <div class="price-wholesale">58</div>  <div class="price-retail">80</div>  <div class="price-trend-up">▲ 5%</div></div>
-      <div class="price-row"><div class="price-crop-name">🫘 Beans</div>         <div class="price-wholesale">135</div> <div class="price-retail">170</div> <div class="price-trend-down">▼ 4%</div></div>
-      <div class="price-row"><div class="price-crop-name">🥑 Avocado</div>      <div class="price-wholesale">85</div>  <div class="price-retail">110</div> <div class="price-trend-up">▲ 9%</div></div>
-      <div class="price-row"><div class="price-crop-name">🍌 Banana</div>       <div class="price-wholesale">48</div>  <div class="price-retail">65</div>  <div class="price-trend-up">▲ 7%</div></div>
-      <div class="price-row"><div class="price-crop-name">🍋 Mango</div>        <div class="price-wholesale">65</div>  <div class="price-retail">90</div>  <div class="price-trend-down">▼ 5%</div></div>
-      <div class="price-row"><div class="price-crop-name">☕ Coffee AA</div>    <div class="price-wholesale">320</div> <div class="price-retail">420</div> <div class="price-trend-up">▲ 8%</div></div>
-      <div class="price-row"><div class="price-crop-name">🍵 Tea BOP</div>      <div class="price-wholesale">280</div> <div class="price-retail">350</div> <div class="price-trend-up">▲ 4%</div></div>
+      <div id="priceRows"><div class="price-row"><div class="price-crop-name">Loading prices…</div></div></div>
     </div>
   </div>
 
   <!-- TIP -->
-  <div class="tip-strip">
-    <strong>💡 Market Tip:</strong> Tomato prices are up 12% this week due to drought in Kirinyaga. If you have tomatoes ready to harvest, <a onclick="showPage('sell')" href="#" style="color:var(--green);font-weight:700">list them now</a> to catch the price peak.
+  <div class="tip-strip" id="priceTipStrip" style="display:none">
+    <strong>💡 Market Tip:</strong> <span id="priceTipText"></span>
   </div>
 
   <!-- PRICE ALERT -->
   <div class="alert-box">
     <h3>🔔 Set a Price Alert</h3>
-    <p>Get notified on WhatsApp or SMS when your crop hits your target price. Free for all farmers.</p>
-    <div class="alert-form">
-      <input type="tel" placeholder="Your phone e.g. 0712 345 678" id="alertPhone" />
-      <button onclick="showToast('✅ Alert set! We\'ll notify you on 0712…')">Set Alert</button>
+    <p>Get a free SMS when a crop's price crosses your target. Sign in to set one.</p>
+    <div class="alert-form-grid" id="alertFormRow">
+      <select id="alertCrop" class="alert-select"></select>
+      <select id="alertCondition" class="alert-select">
+        <option value="above">Goes above</option>
+        <option value="below">Drops below</option>
+      </select>
+      <input type="number" min="1" step="1" placeholder="KSh per kg" id="alertPrice" class="alert-input" />
+      <button class="alert-submit-btn" onclick="submitPriceAlert()">🔔 Set Alert</button>
     </div>
+    <div id="myAlertsList" class="my-alerts-list"></div>
   </div>
 
   <!-- CTA -->
@@ -1473,9 +1450,10 @@
 // file in isolation and can't see that external file, so without this it falsely reports
 // "Cannot find name 'X'". They exist at runtime — verified working.
 /* global renderHomeGrid, renderShopGrid, setCat, showToast, updateCart, checkout, enterApp, filterProds, handleSearch, openWA, quickAdd, setBlogTab, sortProds, toggleCart */
-function setMktTab(btn) {
+function setMktTab(btn, cat) {
   document.querySelectorAll('.mkt-tab').forEach(function(t){ t.classList.remove('active'); });
   btn.classList.add('active');
+  if (typeof setPricesCategory === 'function') setPricesCategory(cat || 'all');
 }
 
 var VALID_PAGES = ['home','shop','farmers','blog','prices','scan','sell','chat','orders','farm','account','analytics','recommendations'];
@@ -1513,6 +1491,8 @@ function showPage(name) {
   if (name === 'account' && typeof renderAccountPage === 'function') { renderAccountPage(); }
   // Load fertilizer ads + upcoming events each time Blog opens
   if (name === 'blog' && typeof renderBlogPage === 'function') { renderBlogPage(); }
+  // Load real market prices + this user's alerts each time Live Prices opens
+  if (name === 'prices' && typeof renderPricesPage === 'function') { renderPricesPage(); }
   // Load Premium-gated Farm Analytics / AI Recommendations each time they open
   if (name === 'analytics' && typeof renderAnalyticsPage === 'function') { renderAnalyticsPage(); }
   if (name === 'recommendations' && typeof renderRecommendationsPage === 'function') { renderRecommendationsPage(); }

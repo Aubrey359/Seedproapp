@@ -1729,6 +1729,14 @@ body { padding-bottom: 62px; }
 .alert-form input { flex:1; height:46px; padding:0 14px; border:1.5px solid var(--grey-border); border-radius:100px; font-size:13px; font-family:'Lato',sans-serif; outline:none; }
 .alert-form input:focus { border-color:var(--green); }
 .alert-form button { height:46px; padding:0 20px; background:var(--g-green); color:white; border:none; border-radius:100px; font-size:13px; font-weight:800; font-family:'Nunito',sans-serif; cursor:pointer; white-space:nowrap; }
+.alert-form-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; text-align:left; }
+.alert-select, .alert-input { height:44px; padding:0 12px; border:1.5px solid var(--grey-border); border-radius:100px; font-size:13px; font-family:'Lato',sans-serif; outline:none; background:var(--white); color:var(--text); width:100%; box-sizing:border-box; }
+.alert-select:focus, .alert-input:focus { border-color:var(--green); }
+.alert-submit-btn { grid-column:1/-1; height:46px; background:var(--g-green); color:#fff; border:none; border-radius:100px; font-size:13px; font-weight:800; font-family:'Nunito',sans-serif; cursor:pointer; }
+.my-alerts-list { margin-top:14px; text-align:left; }
+.my-alert-row { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:9px 14px; background:var(--white); border:1px solid var(--grey-border); border-radius:12px; margin-bottom:6px; font-size:12.5px; }
+.my-alert-row .maa-del { background:none; border:none; color:var(--grey-text); cursor:pointer; font-size:15px; padding:2px 6px; line-height:1; }
+.my-alert-row .maa-del:hover { color:#F0796B; }
 
 /* ════════════════════════════════════════════
    SELL PRODUCE — full page styling

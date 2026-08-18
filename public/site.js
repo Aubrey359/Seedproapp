@@ -1370,6 +1370,17 @@ function appendGuestChatHistory(message) {
   } catch (e) {} // storage full/unavailable — conversation still works, just won't survive a reload
 }
 
+// The last few turns of this device's local history, in the shape the
+// server expects — sent back with every guest message so follow-ups have
+// context (guests have no account for the server to remember it for them).
+// Called BEFORE the new outgoing message is appended, so it's prior turns
+// only; the new message is already sent separately as `content`.
+function recentGuestHistoryForApi() {
+  return loadGuestChatHistory().slice(-8).map(function(m) {
+    return { role: m.direction === 'outgoing' ? 'user' : 'assistant', content: String(m.content || '').slice(0, 2000) };
+  });
+}
+
 function loadChatMessages() {
   setChatLang(CHAT_LANG); // reflect the persisted language choice in the UI every time this page opens
   var emptyStateHTML = '<div class="chat-empty">' + escChat(CHAT_UI_STRINGS[CHAT_LANG].emptyState) + '</div>';
@@ -1415,12 +1426,13 @@ function sendChatMessage() {
   el.scrollTop = el.scrollHeight;
 
   var signedIn = !!CURRENT_USER;
+  var guestHistory = signedIn ? undefined : recentGuestHistoryForApi();
   if (!signedIn) appendGuestChatHistory(outgoing);
   var endpoint = signedIn ? 'advisory.sendMessage' : 'advisory.sendGuestMessage';
   fetch('/api/trpc/' + endpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ json: { content: text, lang: CHAT_LANG } })
+    body: JSON.stringify({ json: { content: text, lang: CHAT_LANG, history: guestHistory } })
   })
   .then(function(r){ return r.json(); })
   .then(function(d) {
@@ -1474,12 +1486,13 @@ function sendChatPhoto(dataUrl) {
   el.scrollTop = el.scrollHeight;
 
   var signedIn = !!CURRENT_USER;
+  var guestHistory = signedIn ? undefined : recentGuestHistoryForApi();
   if (!signedIn) appendGuestChatHistory(outgoing);
   var endpoint = signedIn ? 'advisory.sendMessage' : 'advisory.sendGuestMessage';
   fetch('/api/trpc/' + endpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ json: { content: dataUrl, messageType: 'image', lang: CHAT_LANG } })
+    body: JSON.stringify({ json: { content: dataUrl, messageType: 'image', lang: CHAT_LANG, history: guestHistory } })
   })
   .then(function(r){ return r.json(); })
   .then(function(d) {
@@ -2345,6 +2358,179 @@ function renderBlogPage() {
     .catch(function() {
       el.innerHTML = '<p style="text-align:center;padding:40px 20px;color:var(--grey-text)">Couldn\'t load right now. Try again shortly.</p>';
     });
+}
+
+/* ── LIVE PRICES (real marketPrices data — this whole page used to be
+   hardcoded static numbers, including a "Set Price Alert" box that never
+   called any API) + real Price Alerts on top of the existing backend ── */
+var PRICES_DATA = [];
+var PRICES_TOWN = null;
+var PRICES_CAT = 'all';
+
+function renderPricesPage() {
+  fetch('/api/trpc/prices.getTowns')
+    .then(function(r){ return r.json(); })
+    .then(function(d) {
+      var towns = (d.result && d.result.data && d.result.data.json) || [];
+      var sel = document.getElementById('priceTownSelect');
+      if (sel) {
+        sel.innerHTML = towns.length
+          ? towns.map(function(t){ return '<option value="' + escChat(t) + '">' + escChat(t) + '</option>'; }).join('')
+          : '<option value="">No markets yet</option>';
+        if (!PRICES_TOWN || towns.indexOf(PRICES_TOWN) < 0) PRICES_TOWN = towns[0] || null;
+        sel.value = PRICES_TOWN || '';
+      }
+      loadPricesForTown();
+    })
+    .catch(function() {
+      var rowsEl = document.getElementById('priceRows');
+      if (rowsEl) rowsEl.innerHTML = '<div class="price-row"><div class="price-crop-name">Couldn\'t load prices right now.</div></div>';
+    });
+  loadAlertCropOptions();
+  loadMyAlerts();
+}
+
+function onPriceTownChange(town) {
+  PRICES_TOWN = town;
+  loadPricesForTown();
+}
+
+function loadPricesForTown() {
+  var rowsEl = document.getElementById('priceRows');
+  if (!PRICES_TOWN) { if (rowsEl) rowsEl.innerHTML = '<div class="price-row"><div class="price-crop-name">No market data yet.</div></div>'; return; }
+  if (rowsEl) rowsEl.innerHTML = '<div class="price-row"><div class="price-crop-name">Loading prices…</div></div>';
+  fetch('/api/trpc/prices.getByTown?input=' + encodeURIComponent(JSON.stringify({ json: { town: PRICES_TOWN } })))
+    .then(function(r){ return r.json(); })
+    .then(function(d) {
+      PRICES_DATA = (d.result && d.result.data && d.result.data.json) || [];
+      renderPriceRows();
+      renderPriceTip();
+      renderPriceUpdatedText();
+    })
+    .catch(function() {
+      if (rowsEl) rowsEl.innerHTML = '<div class="price-row"><div class="price-crop-name">Couldn\'t load prices right now.</div></div>';
+    });
+}
+
+function setPricesCategory(cat) {
+  PRICES_CAT = cat;
+  renderPriceRows();
+}
+
+function trendHTML(trend, pct) {
+  var cls = trend === 'up' ? 'price-trend-up' : trend === 'down' ? 'price-trend-down' : 'price-trend-flat';
+  var arrow = trend === 'up' ? '▲' : trend === 'down' ? '▼' : '→';
+  return '<div class="' + cls + '">' + arrow + ' ' + Math.abs(pct || 0) + '%</div>';
+}
+
+function renderPriceRows() {
+  var rowsEl = document.getElementById('priceRows');
+  if (!rowsEl) return;
+  var rows = PRICES_CAT === 'all' ? PRICES_DATA : PRICES_DATA.filter(function(p){ return cropMeta(p.cropName).cat === PRICES_CAT; });
+  if (!rows.length) { rowsEl.innerHTML = '<div class="price-row"><div class="price-crop-name">No prices in this category yet.</div></div>'; return; }
+  rowsEl.innerHTML = rows.map(function(p) {
+    var meta = cropMeta(p.cropName);
+    return '<div class="price-row">' +
+      '<div class="price-crop-name">' + meta.emoji + ' ' + escChat(p.cropName) + '</div>' +
+      '<div class="price-wholesale">' + Number(p.wholesalePrice||0) + '</div>' +
+      '<div class="price-retail">' + Number(p.retailPrice||0) + '</div>' +
+      trendHTML(p.trend, p.trendPercent) +
+    '</div>';
+  }).join('');
+}
+
+// Only ever names a real crop from the fetched data with a real trend
+// behind it — never a fabricated cause like "due to drought in X".
+function renderPriceTip() {
+  var strip = document.getElementById('priceTipStrip');
+  var textEl = document.getElementById('priceTipText');
+  if (!strip || !textEl) return;
+  var best = PRICES_DATA.filter(function(p){ return p.trend === 'up' && p.trendPercent; })
+    .sort(function(a,b){ return (b.trendPercent||0)-(a.trendPercent||0); })[0];
+  if (!best) { strip.style.display = 'none'; return; }
+  textEl.textContent = best.cropName + ' prices are up ' + best.trendPercent + '% right now — if you have some ready to harvest, listing it today catches the peak.';
+  strip.style.display = '';
+}
+
+function renderPriceUpdatedText() {
+  var el = document.getElementById('priceUpdatedText');
+  if (!el) return;
+  var latestMs = PRICES_DATA.reduce(function(max, p) {
+    var t = new Date(p.updatedAt || p.createdAt || 0).getTime();
+    return t > max ? t : max;
+  }, 0);
+  el.textContent = latestMs
+    ? 'Last updated: ' + new Date(latestMs).toLocaleDateString('en-KE', { day: 'numeric', month: 'short' }) + ' · ' + (PRICES_TOWN || '')
+    : 'No price data for ' + (PRICES_TOWN || 'this market') + ' yet';
+}
+
+function loadAlertCropOptions() {
+  var sel = document.getElementById('alertCrop');
+  if (!sel) return;
+  fetch('/api/trpc/advisory.listCrops')
+    .then(function(r){ return r.json(); })
+    .then(function(d) {
+      var crops = (d.result && d.result.data && d.result.data.json) || [];
+      sel.innerHTML = crops.length
+        ? crops.map(function(c){ return '<option value="' + escChat(c.name) + '">' + escChat(c.name) + '</option>'; }).join('')
+        : '<option value="">No crops yet</option>';
+    })
+    .catch(function() {});
+}
+
+function submitPriceAlert() {
+  if (!CURRENT_USER) { showToast('👤 Please sign in first'); return; }
+  var cropName = (document.getElementById('alertCrop')||{}).value;
+  var condition = (document.getElementById('alertCondition')||{}).value;
+  var targetPrice = Number((document.getElementById('alertPrice')||{}).value);
+  if (!cropName) { showToast('⚠️ Choose a crop'); return; }
+  if (!targetPrice || targetPrice <= 0) { showToast('⚠️ Enter a target price'); return; }
+  fetch('/api/trpc/prices.createAlert', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ json: { cropName: cropName, condition: condition, targetPrice: targetPrice, notificationMethod: 'sms' } })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d) {
+    if (d.error) throw new Error(d.error.message || 'Could not set alert');
+    document.getElementById('alertPrice').value = '';
+    showToast('🔔 Alert set — we\'ll text you');
+    loadMyAlerts();
+  })
+  .catch(function(err) { showToast('❌ ' + (err.message || 'Could not set alert')); });
+}
+
+function loadMyAlerts() {
+  var el = document.getElementById('myAlertsList');
+  if (!el) return;
+  if (!CURRENT_USER) { el.innerHTML = ''; return; }
+  fetch('/api/trpc/prices.getMyAlerts')
+    .then(function(r){ return r.json(); })
+    .then(function(d) {
+      var rows = (d.result && d.result.data && d.result.data.json) || [];
+      el.innerHTML = rows.map(function(a) {
+        var condText = a.condition === 'above' ? 'goes above' : 'drops below';
+        var statusText = a.triggered ? ' · notified ✓' : '';
+        return '<div class="my-alert-row"><span>' + escChat(a.cropName) + ' ' + condText + ' KSh ' + Number(a.targetPrice||0) + statusText + '</span>' +
+          '<button class="maa-del" data-alert-id="' + a.id + '" onclick="deletePriceAlertBtn(this)">✕</button></div>';
+      }).join('');
+    })
+    .catch(function() {});
+}
+
+function deletePriceAlertBtn(btn) {
+  var id = Number(btn.dataset.alertId);
+  fetch('/api/trpc/prices.deleteAlert', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ json: { id: id } })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d) {
+    if (d.error) throw new Error(d.error.message || 'Could not remove alert');
+    loadMyAlerts();
+  })
+  .catch(function(err) { showToast('❌ ' + (err.message || 'Could not remove alert')); });
 }
 
 function showToast(msg) {

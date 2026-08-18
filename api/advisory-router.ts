@@ -24,6 +24,11 @@ const SCAN_RATE_WINDOW_MS = 60 * 60 * 1000;
 // conversation without letting cost/latency grow unbounded on a long history.
 const AI_HISTORY_TURNS = 12;
 
+// Same idea for guests, but client-supplied (see sendGuestMessage) rather
+// than read from the database — kept smaller since it rides along in every
+// request body instead of being fetched server-side.
+const GUEST_HISTORY_TURNS = 8;
+
 // Most-recent-first Shop search terms kept per user — enough to be a useful
 // "what are they looking for" signal without growing unbounded.
 const RECENT_SEARCHES_MAX = 8;
@@ -261,6 +266,17 @@ export const advisoryRouter = createRouter({
       content: z.string().min(1).max(500_000),
       messageType: z.enum(["text", "image"]).default("text"),
       lang: z.enum(["en", "sw"]).default("en"),
+      // Guests have no server-side history to draw on (nothing is persisted
+      // below), so the client resends its own locally-stored recent turns
+      // for continuity — otherwise every message is answered in isolation
+      // and a natural follow-up ("just a few plants, is that bad?") gets a
+      // reply with no idea what "that" refers to. Text only — the client
+      // already stores photo turns as a short placeholder, not the full
+      // data URL, so this stays small.
+      history: z.array(z.object({
+        role: z.enum(["user", "assistant"]),
+        content: z.string().max(2000),
+      })).max(GUEST_HISTORY_TURNS).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       const ip = ctx.req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
@@ -268,8 +284,9 @@ export const advisoryRouter = createRouter({
         throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Too many messages — please try again in a bit." });
       }
 
+      const priorTurns: ChatTurn[] = (input.history ?? []).map((h) => ({ role: h.role, content: h.content }));
       const turn: ChatTurn = { role: "user", content: input.messageType === "image" ? { photoDataUrl: input.content } : input.content };
-      const aiText = await generateAiResponse([turn], input.lang);
+      const aiText = await generateAiResponse([...priorTurns, turn], input.lang);
       if (aiText) return { content: aiText, messageType: "text" as const };
 
       return input.messageType === "image"
