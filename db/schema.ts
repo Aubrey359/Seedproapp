@@ -93,6 +93,15 @@ const userSchema = new Schema(
     // on, since that's whatever Claude judged most timely.
     lastRecommendationCropName: String,
     lastRecommendationAt: Date,
+    // Listing ids this user has favorited (farmers browsing other farmers'
+    // produce, or buyers) — toggled from the heart icon on a product card.
+    // Feeds AI Recommendations and the Uliza Zao chat with a "what they
+    // like" signal beyond just what they're currently growing.
+    favoriteListingIds: { type: [Number], default: [] },
+    // Most-recent-first Shop search terms, capped and deduped — a
+    // lightweight "what they're currently looking for" signal alongside
+    // favorites, also fed to the AI.
+    recentSearches: { type: [String], default: [] },
   },
   { timestamps: true, toJSON },
 );
@@ -512,6 +521,8 @@ export interface User {
   lastRecommendation?: string | null;
   lastRecommendationCropName?: string | null;
   lastRecommendationAt?: Date | null;
+  favoriteListingIds?: number[];
+  recentSearches?: string[];
 }
 
 export interface InsertUser {

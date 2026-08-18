@@ -52,7 +52,7 @@ export const marketRouter = createRouter({
         })
         .optional(),
     )
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
       const filter: any = { status: "active" };
       if (input?.cropType && input.cropType !== "all") filter.cropName = input.cropType;
       if (input?.location) filter.location = { $regex: input.location, $options: "i" };
@@ -67,7 +67,8 @@ export const marketRouter = createRouter({
       const farmerIds = [...new Set(rows.map((r: any) => r.farmerId))];
       const farmers = await users.find({ id: { $in: farmerIds } }).lean();
       const byId = new Map(farmers.map((f: any) => [f.id, f]));
-      const withFarmers = rows.map((r: any) => withFarmer(r, byId.get(r.farmerId), "card"));
+      const favSet = new Set(ctx.user?.favoriteListingIds ?? []);
+      const withFarmers = rows.map((r: any) => ({ ...withFarmer(r, byId.get(r.farmerId), "card"), isFavorited: favSet.has(r.id) }));
 
       // Premium sellers rank higher in search/browse results. Array.sort is
       // stable, so listings keep their newest-first order within each tier.
@@ -120,7 +121,7 @@ export const marketRouter = createRouter({
   // main Shop grid, so their shop page should be reachable too.
   farmerProfile: publicQuery
     .input(z.object({ farmerId: z.number() }))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
       const farmer: any = await users.findOne({ id: input.farmerId }).lean();
       if (!farmer) return null;
 
@@ -128,6 +129,7 @@ export const marketRouter = createRouter({
         .find({ farmerId: input.farmerId, status: "active" })
         .sort({ createdAt: -1 })
         .lean();
+      const favSet = new Set(ctx.user?.favoriteListingIds ?? []);
 
       return {
         id: farmer.id,
@@ -140,7 +142,7 @@ export const marketRouter = createRouter({
         verified: !!farmer.verified,
         premium: !!farmer.premium,
         phone: farmer.phone ?? null,
-        listings: rows.map((r: any) => withFarmer(r, farmer, "card")),
+        listings: rows.map((r: any) => ({ ...withFarmer(r, farmer, "card"), isFavorited: favSet.has(r.id) })),
       };
     }),
 
@@ -443,5 +445,32 @@ export const marketRouter = createRouter({
       statusCounts,
       monthlyRevenue,
     };
+  }),
+
+  // Toggles a listing in/out of the signed-in user's favorites — works for
+  // both farmers (browsing other farmers' produce) and buyers. Favorites
+  // feed AI Recommendations and the Uliza Zao chat as a "what they like"
+  // signal, separate from what a farmer happens to be growing themselves.
+  toggleFavorite: authedQuery
+    .input(z.object({ listingId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const already = (ctx.user.favoriteListingIds ?? []).includes(input.listingId);
+      await users.updateOne(
+        { id: ctx.user.id },
+        already
+          ? { $pull: { favoriteListingIds: input.listingId } }
+          : { $addToSet: { favoriteListingIds: input.listingId } },
+      );
+      return { favorited: !already };
+    }),
+
+  myFavorites: authedQuery.query(async ({ ctx }) => {
+    const ids = ctx.user.favoriteListingIds ?? [];
+    if (!ids.length) return [];
+    const rows = await listings.find({ id: { $in: ids }, status: "active" }).sort({ createdAt: -1 }).lean();
+    const farmerIds = [...new Set(rows.map((r: any) => r.farmerId))];
+    const farmers = await users.find({ id: { $in: farmerIds } }).lean();
+    const byId = new Map(farmers.map((f: any) => [f.id, f]));
+    return rows.map((r: any) => ({ ...withFarmer(r, byId.get(r.farmerId), "card"), isFavorited: true }));
   }),
 });

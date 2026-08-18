@@ -425,6 +425,7 @@ nav {
   transition: transform .2s;
 }
 .prod-fav:hover { transform: scale(1.2); }
+.prod-fav.favorited { color: #e0245e; }
 .prod-body { padding: 10px 12px 12px; }
 .prod-name { font-size: 13px; font-weight: 800; color: var(--dark); margin-bottom: 3px; line-height: 1.3; font-family:'Nunito',sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .prod-premium-badge { font-size: 11px; filter: drop-shadow(0 0 2px rgba(255,193,7,.6)); }

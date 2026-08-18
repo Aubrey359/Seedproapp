@@ -91,6 +91,7 @@ function mapListing(l) {
     premium: !!l.farmerPremium,
     disc: null,
     fresh: freshnessBadge(l),
+    fav: !!l.isFavorited,
   };
 }
 
@@ -556,7 +557,7 @@ function cardHTML(p) {
       (p.ok   ? '<div class="prod-check">' + VERIFIED_BADGE_SVG + '</div>' : '') +
       (p.hasPhoto ? '<div class="prod-photo-badge" title="Real photo from farmer">📸 Verified</div>' : '') +
       (p.fresh ? '<div class="prod-fresh-badge">' + (p.fresh === 'Today' ? '🌱' : '🌾') + ' ' + p.fresh + '</div>' : '') +
-      '<button class="prod-fav" onclick="event.stopPropagation();showToast(\'❤️ Saved!\')">♡</button>' +
+      '<button class="prod-fav' + (p.fav ? ' favorited' : '') + '" data-listing-id="' + p.id + '" onclick="event.stopPropagation();toggleFavoriteBtn(this)">' + (p.fav ? '♥' : '♡') + '</button>' +
     '</div>' +
     '<div class="prod-body">' +
       '<div class="prod-name">' + escChat(p.name) + (p.premium ? ' <span class="prod-premium-badge" title="Premium seller">⭐</span>' : '') + '</div>' +
@@ -623,6 +624,36 @@ function addToCart(e, id) {
 
 function quickAdd(id) { addToCart({stopPropagation:function(){}}, id); }
 
+// Real favorite toggle (was previously just a toast with nothing saved).
+// Updates the button + in-memory PRODUCTS entry immediately for a snappy
+// feel, then reverts if the server call fails. Favorites feed AI
+// Recommendations and the Uliza Zao chat, not just a "saved" list.
+function toggleFavoriteBtn(btn) {
+  if (!CURRENT_USER) { showToast('👤 Please sign in first'); return; }
+  var id = Number(btn.dataset.listingId);
+  var p = PRODUCTS.find(function(x){return x.id===id;});
+  var next = !(p && p.fav);
+  if (p) p.fav = next;
+  btn.classList.toggle('favorited', next);
+  btn.textContent = next ? '♥' : '♡';
+  fetch('/api/trpc/market.toggleFavorite', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ json: { listingId: id } })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data) {
+    if (data.error) throw new Error(data.error.message || 'Could not update favorites');
+    showToast(next ? '❤️ Saved to favorites' : '💔 Removed from favorites');
+  })
+  .catch(function(err) {
+    if (p) p.fav = !next;
+    btn.classList.toggle('favorited', !next);
+    btn.textContent = !next ? '♥' : '♡';
+    showToast('❌ ' + (err.message || 'Could not update favorites'));
+  });
+}
+
 function changeQty(id, d) {
   var item = cart.find(function(c){return c.id===id;}); if (!item) return;
   item.qty += d;
@@ -673,6 +704,27 @@ function setCat(cat, el) {
 function filterProds() {
   searchQ = (document.getElementById('shopSearch')||{}).value || '';
   renderShopGrid();
+  recordSearchDebounced(searchQ);
+}
+
+// Logs what signed-in users search for so the AI (Uliza Zao chat + AI
+// Recommendations) can factor recent interest into its answers — a guest
+// browsing has no account to persist against, so this is a silent no-op
+// for them rather than a login prompt (search shouldn't feel gated).
+var _searchRecordTimer = null;
+function recordSearchDebounced(q) {
+  clearTimeout(_searchRecordTimer);
+  _searchRecordTimer = setTimeout(function() { recordSearchNow(q); }, 800);
+}
+function recordSearchNow(q) {
+  if (!CURRENT_USER) return;
+  q = (q || '').trim();
+  if (q.length < 2) return;
+  fetch('/api/trpc/advisory.recordSearch', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ json: { query: q } })
+  }).catch(function(){});
 }
 
 function sortProds(v) {
@@ -689,6 +741,7 @@ function shopCat(cat) { activeCat = cat; window.location.href = 'shop.html'; }
 function handleSearch() {
   var q = (document.getElementById('globalSearch')||{}).value||'';
   if (!q.trim()) return;
+  recordSearchNow(q);
   // If already on shop page, filter inline
   var shopInput = document.getElementById('shopSearch');
   if (shopInput) {

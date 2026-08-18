@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { createRouter, publicQuery, authedQuery } from "./middleware";
-import { crops, cropGuides, spraySchedules, diagnoses, advisoryMessages, plantings, users, nextSeq, omitMongo } from "@db/schema";
+import { crops, cropGuides, spraySchedules, diagnoses, advisoryMessages, plantings, listings, users, nextSeq, omitMongo } from "@db/schema";
 import { generateAiResponse, type ChatTurn } from "./lib/claude";
 import { checkRateLimit } from "./lib/rate-limit";
 import { isPremiumActive } from "./lib/premium";
@@ -24,11 +24,40 @@ const SCAN_RATE_WINDOW_MS = 60 * 60 * 1000;
 // conversation without letting cost/latency grow unbounded on a long history.
 const AI_HISTORY_TURNS = 12;
 
+// Most-recent-first Shop search terms kept per user — enough to be a useful
+// "what are they looking for" signal without growing unbounded.
+const RECENT_SEARCHES_MAX = 8;
+
 function toTurn(m: { direction: string; content: string; messageType: string }): ChatTurn {
   return {
     role: m.direction === "outgoing" ? "user" : "assistant",
     content: m.messageType === "image" ? { photoDataUrl: m.content } : m.content,
   };
+}
+
+// Builds a short, plain-language summary of what this farmer/buyer is
+// growing, has favorited, and has searched for recently — given to Claude
+// as background so replies (and AI Recommendations) can draw on real
+// interest signals, not just the current message. Returns undefined when
+// there's nothing worth mentioning, so the system prompt stays unchanged
+// for a brand-new account.
+async function buildProfileContext(user: any): Promise<string | undefined> {
+  const [activePlantings, favoriteListings] = await Promise.all([
+    plantings.find({ farmerId: user.id, status: "active" }).lean(),
+    user.favoriteListingIds?.length
+      ? listings.find({ id: { $in: user.favoriteListingIds } }).lean()
+      : Promise.resolve([]),
+  ]);
+
+  const growing = [...new Set(activePlantings.map((p: any) => p.cropName))];
+  const favorited = [...new Set((favoriteListings as any[]).map((l) => l.cropName))];
+  const searched = (user.recentSearches ?? []).slice(0, 5);
+
+  const bits: string[] = [];
+  if (growing.length) bits.push(`Currently growing: ${growing.join(", ")}.`);
+  if (favorited.length) bits.push(`Has favorited these crops/listings in the marketplace: ${favorited.join(", ")}.`);
+  if (searched.length) bits.push(`Recently searched for in the marketplace: ${searched.join(", ")}.`);
+  return bits.length ? bits.join(" ") : undefined;
 }
 
 export const advisoryRouter = createRouter({
@@ -196,7 +225,8 @@ export const advisoryRouter = createRouter({
         .limit(AI_HISTORY_TURNS)
         .lean();
       const turns = history.reverse().map(toTurn);
-      const aiText = await generateAiResponse(turns, input.lang);
+      const profileContext = await buildProfileContext(ctx.user);
+      const aiText = await generateAiResponse(turns, input.lang, profileContext);
 
       const response = aiText
         ? { content: aiText, messageType: "text" as const, metadata: undefined as Record<string, any> | undefined }
@@ -273,11 +303,26 @@ export const advisoryRouter = createRouter({
       const cropNames = [...new Set(activePlantings.map((p: any) => p.cropName))];
       const placeText = [user?.ward, user?.location].filter(Boolean).join(", ") || (input.lang === "sw" ? "Kenya" : "Kenya");
 
+      // Favorites + recent searches are a "what they're actually interested
+      // in" signal beyond just what's currently planted — e.g. a farmer who
+      // keeps searching avocado but hasn't logged any plantings yet.
+      const favoriteListings = user?.favoriteListingIds?.length
+        ? await listings.find({ id: { $in: user.favoriteListingIds } }).lean()
+        : [];
+      const favoriteCrops = [...new Set((favoriteListings as any[]).map((l: any) => l.cropName))];
+      const recentSearches = (user?.recentSearches ?? []).slice(0, 5);
+      const interestBits: string[] = [];
+      if (favoriteCrops.length) interestBits.push(t(input.lang, `favorited ${favoriteCrops.join(", ")}`, `amependekeza ${favoriteCrops.join(", ")}`));
+      if (recentSearches.length) interestBits.push(t(input.lang, `recently searched for ${recentSearches.join(", ")}`, `hivi karibuni alitafuta ${recentSearches.join(", ")}`));
+      const interestText = interestBits.length
+        ? t(input.lang, ` They have also ${interestBits.join(" and ")} in the marketplace — factor this in if it points to something more worth covering than the default.`, ` Pia ${interestBits.join(" na ")} kwenye soko — zingatia hili ikiwa linaonyesha jambo linalofaa zaidi kushughulikia.`)
+        : "";
+
       const prompt = t(
         input.lang,
         `Give this farmer one focused, genuinely useful recommendation for right now. Their farm: location ${placeText}; farm size ${user?.farmSizeAcres ?? "not set"} acres; currently growing: ${cropNames.length ? cropNames.join(", ") : "nothing logged yet in the app"}. Cover whichever is most useful given this — a timely crop-care action for what they're already growing, an input/fertilizer tip, or (if nothing is logged) a suggestion for what to plant given their location and the current season in Kenya. 3-5 sentences, concrete and specific, no generic filler or disclaimers.`,
         `Mpe mkulima huyu pendekezo moja linalofaa kwa sasa. Shamba lake: eneo ${placeText}; ukubwa wa shamba ekari ${user?.farmSizeAcres ?? "haijawekwa"}; anavyolima sasa: ${cropNames.length ? cropNames.join(", ") : "hakuna kilichowekwa kwenye app bado"}. Shughulikia lolote linalofaa zaidi kwa hali hii — hatua ya wakati muafaka ya utunzaji wa mazao anayolima, ushauri wa mbolea, au (kama hakuna kilichowekwa) pendekezo la nini apande kulingana na eneo lake na msimu wa sasa Kenya. Sentensi 3-5, mahususi na dhahiri, bila maneno ya jumla.`,
-      );
+      ) + interestText;
 
       const aiText = await generateAiResponse([{ role: "user", content: prompt }], input.lang);
       const text = aiText ?? t(
@@ -297,6 +342,20 @@ export const advisoryRouter = createRouter({
       );
 
       return { text, cropsContext, generatedAt };
+    }),
+
+  // Logs one Shop search term for the signed-in user — a lightweight
+  // interest signal (alongside favorites and active plantings) fed to
+  // getRecommendation and the Uliza Zao chat. Most-recent-first, deduped
+  // against the immediately-preceding entry so repeated keystrokes on the
+  // same term while a farmer is still typing don't spam the list.
+  recordSearch: authedQuery
+    .input(z.object({ query: z.string().trim().min(2).max(100) }))
+    .mutation(async ({ ctx, input }) => {
+      const existing = (ctx.user.recentSearches ?? []).filter((q) => q.toLowerCase() !== input.query.toLowerCase());
+      const updated = [input.query, ...existing].slice(0, RECENT_SEARCHES_MAX);
+      await users.updateOne({ id: ctx.user.id }, { $set: { recentSearches: updated } });
+      return { success: true };
     }),
 });
 

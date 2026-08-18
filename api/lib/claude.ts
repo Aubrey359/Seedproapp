@@ -13,7 +13,7 @@ function getClient(): Anthropic | null {
   return client;
 }
 
-function systemPrompt(lang: "en" | "sw"): string {
+function systemPrompt(lang: "en" | "sw", profileContext?: string): string {
   const langInstruction = lang === "sw"
     ? "Reply in natural, conversational Kiswahili (the everyday register Kenyan farmers use), unless the farmer clearly writes in English — then switch to English instead."
     : "Reply in natural, conversational English, unless the farmer clearly writes in Kiswahili — then switch to Kiswahili instead.";
@@ -30,7 +30,10 @@ Ground rules:
 - For precise fertilizer rates or chemical dosages: give a sensible general range if you're confident, but say plainly when it really depends on a soil test, the specific product label, or local extension advice — never invent a specific number you aren't sure of.
 - If a farmer describes or shows a plant problem that could be serious, give your best-effort read but recommend they also confirm with their local agricultural extension officer or agrovet — present it as your best assessment, not a certain diagnosis.
 - When it's a natural fit, you can mention relevant Shamba Sokoni features (like listing their harvest for sale, or the Scan Plant photo tool), but don't force it into every reply.
-- Never claim to have taken an action you haven't (e.g. don't say you've placed an order or contacted anyone on the farmer's behalf).`;
+- Never claim to have taken an action you haven't (e.g. don't say you've placed an order or contacted anyone on the farmer's behalf).${profileContext ? `
+
+Background on who you're talking to (use naturally only where it's actually relevant — don't force it in or recite it back):
+${profileContext}` : ""}`;
 }
 
 export type ChatTurnContent = string | { photoDataUrl: string; caption?: string };
@@ -60,7 +63,7 @@ function toApiMessage(turn: ChatTurn, lang: "en" | "sw") {
 // Returns null (never throws) on any failure — including no API key configured
 // — so callers can fall back to the local rule-based responses instead of
 // erroring out or leaving a farmer stuck with a blank chat.
-export async function generateAiResponse(turns: ChatTurn[], lang: "en" | "sw"): Promise<string | null> {
+export async function generateAiResponse(turns: ChatTurn[], lang: "en" | "sw", profileContext?: string): Promise<string | null> {
   const anthropic = getClient();
   if (!anthropic || turns.length === 0) return null;
 
@@ -68,7 +71,7 @@ export async function generateAiResponse(turns: ChatTurn[], lang: "en" | "sw"): 
     const response = await anthropic.messages.create({
       model: MODEL,
       max_tokens: MAX_TOKENS,
-      system: systemPrompt(lang),
+      system: systemPrompt(lang, profileContext),
       messages: turns.map((turn) => toApiMessage(turn, lang)) as any,
     });
     const textBlock = response.content.find((b) => b.type === "text");
