@@ -31,6 +31,7 @@ export const farmerPostsRouter = createRouter({
       return {
         id: r.id,
         content: r.content,
+        imageUrl: r.imageUrl ?? null,
         updateType: r.updateType,
         createdAt: r.createdAt,
         farmerId: r.farmerId,
@@ -58,6 +59,7 @@ export const farmerPostsRouter = createRouter({
     .input(
       z.object({
         content: z.string().min(1).max(500),
+        imageUrl: z.string().max(500_000).optional(),
         listingId: z.number().optional(),
         action: z.enum(["none", "restocked", "sold_out"]).default("none"),
         newQuantity: z.number().positive().optional(),
@@ -99,6 +101,7 @@ export const farmerPostsRouter = createRouter({
         id,
         farmerId: ctx.user.id,
         content: input.content,
+        imageUrl: input.imageUrl ?? null,
         listingId: input.listingId ?? null,
         cropName: cropName ?? null,
         updateType: input.action === "none" ? "note" : input.action,

@@ -332,13 +332,13 @@ function initFarmerFeed() {
     }
   }
   loadFarmerFeed();
-  // One poll loop for the whole session, gated on the page actually being
-  // visible — avoids stacking a new interval every time a farmer revisits.
+  // One poll loop for the whole session, gated on the panel actually being
+  // open — avoids stacking a new interval every time it's reopened.
   if (!FARMER_FEED_POLL_STARTED) {
     FARMER_FEED_POLL_STARTED = true;
     setInterval(function() {
-      var page = document.getElementById('page-farmers');
-      if (page && page.classList.contains('active')) loadFarmerFeed();
+      var panel = document.getElementById('farmerFeedPanel');
+      if (panel && panel.classList.contains('open')) loadFarmerFeed();
     }, 20000);
   }
 }
@@ -364,11 +364,13 @@ function farmerPostCardHTML(p) {
     : p.updateType === 'sold_out'
       ? '<span class="fp-tag sold_out">🚫 Sold Out' + (p.cropName ? ' — ' + escChat(p.cropName) : '') + '</span>'
       : '';
+  var imageHTML = p.imageUrl ? '<img class="fp-photo" src="' + escChat(p.imageUrl) + '" alt="" loading="lazy" onerror="this.remove()">' : '';
   return '<div class="farmer-post-card">' +
     '<div class="fp-av">' + avatarInner + '</div>' +
     '<div class="fp-body">' +
       '<div class="fp-head"><span class="fp-name">' + escChat(p.farmerName) + '</span><span class="fp-time">' + timeAgo(p.createdAt) + '</span></div>' +
       '<div class="fp-content">' + escChat(p.content) + '</div>' +
+      imageHTML +
       tagHTML +
     '</div>' +
   '</div>';
@@ -416,12 +418,41 @@ function setPostAction(el) {
   if (qtyGroup) qtyGroup.style.display = POST_ACTION === 'restocked' ? '' : 'none';
 }
 
+// Attaching a photo reuses compressImage() (defined in index.html, same
+// one Scan Plant and chat photos use) so a multi-MB phone photo becomes a
+// small JPEG safe to post and store.
+var POST_PHOTO_DATA_URL = null;
+
+function handlePostPhoto(input) {
+  var file = input.files && input.files[0];
+  input.value = ''; // allow re-selecting the same file later
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    compressImage(ev.target.result, 900, 0.65).then(function(compressed) {
+      POST_PHOTO_DATA_URL = compressed;
+      var img = document.getElementById('postPhotoPreviewImg');
+      if (img) img.src = compressed;
+      var preview = document.getElementById('postPhotoPreview');
+      if (preview) preview.style.display = '';
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+function removePostPhoto() {
+  POST_PHOTO_DATA_URL = null;
+  var preview = document.getElementById('postPhotoPreview');
+  if (preview) preview.style.display = 'none';
+}
+
 function submitFarmerPost() {
   var contentInput = document.getElementById('postContentInput');
   var content = (contentInput.value || '').trim();
-  if (!content) { showToast('⚠️ Write an update first'); return; }
+  if (!content && !POST_PHOTO_DATA_URL) { showToast('⚠️ Write something or add a photo first'); return; }
 
-  var body = { content: content, action: POST_ACTION };
+  var body = { content: content || '📷 Photo', action: POST_ACTION };
+  if (POST_PHOTO_DATA_URL) body.imageUrl = POST_PHOTO_DATA_URL;
   if (POST_ACTION === 'restocked' || POST_ACTION === 'sold_out') {
     var listingId = document.getElementById('postListingSelect').value;
     if (!listingId) { showToast('⚠️ Pick which listing this update is for'); return; }
@@ -444,7 +475,8 @@ function submitFarmerPost() {
       contentInput.value = '';
       var qtyInput = document.getElementById('postQuantityInput');
       if (qtyInput) qtyInput.value = '';
-      showToast('✅ Update posted');
+      removePostPhoto();
+      showToast('✅ Posted');
       loadFarmerFeed();
       if (POST_ACTION !== 'none') loadMyListingsForPost();
     })

@@ -382,6 +382,9 @@ const farmerPostSchema = new Schema(
     id: { type: Number, unique: true, index: true },
     farmerId: { type: Number, required: true },
     content: { type: String, required: true },
+    // A compressed photo attached to the update (data URL), same pattern
+    // as chat photos — optional, so plain-text posts are unaffected.
+    imageUrl: String,
     // Snapshotted at post time so the feed still reads sensibly even if the
     // listing is later deleted or changes further.
     listingId: Number,
