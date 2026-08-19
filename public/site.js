@@ -1026,14 +1026,14 @@ var _resendSecondsLeft = 0;
 // Matches the server's OTP_RESEND_COOLDOWN_MS (auth-router.ts) — keep in sync.
 var RESEND_COOLDOWN_SECONDS = 25;
 
-/* Shared 3D-style icon markup for the auth buttons — kept as constants so
+/* Shared 3D-style icon markup for the auth buttons — kept as a constant so
    requestOtpCode()/verifyOtpCode() can restore the icon (not just plain
    text) when they reset button content after a request finishes. */
-var WHATSAPP_BTN_HTML = '<svg class="auth-submit-icon" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6 2 11c0 2 .8 3.8 2.1 5.3L3 21l5-1.3C9.2 20.2 10.6 20.5 12 20.5c5.5 0 10-4 10-9.5S17.5 2 12 2z" fill="rgba(255,255,255,.95)"/></svg>Send Code via WhatsApp';
 // SMS (Africa's Talking) is the only channel with a real provider configured
 // right now — WhatsApp has no Business API connected, so requestOtp "sends"
-// it but nothing is ever delivered. SMS is the primary/default button until
-// a real WhatsApp provider is connected; WhatsApp stays as a secondary link.
+// it but nothing is ever delivered. Only SMS is offered until a real
+// WhatsApp provider is connected (the backend still accepts a "whatsapp"
+// channel unchanged, so re-adding a link for it later is a frontend-only change).
 var SMS_BTN_HTML = '<svg class="auth-submit-icon" viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 012 2v9a2 2 0 01-2 2H9l-5 4v-4H4a2 2 0 01-2-2V6a2 2 0 012-2z" fill="rgba(255,255,255,.95)"/></svg>Send Code via SMS';
 var VERIFY_BTN_HTML = '<svg class="auth-submit-icon" viewBox="0 0 24 24"><path d="M12 2l7 3v6c0 5-3 8.5-7 11-4-2.5-7-6-7-11V5l7-3z" fill="rgba(255,255,255,.95)"/><path d="M8.5 12.5l2.3 2.3 4.7-5" stroke="#4A6B4D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>Verify &amp; Continue';
 
@@ -1058,7 +1058,6 @@ function enterApp() {
       '<div id="auth-step-phone">',
         '<div class="auth-field"><label>Phone Number</label><input type="tel" id="authPhone" placeholder="e.g. 0712 345 678" /></div>',
         '<button class="auth-submit" id="authSendBtn" onclick="requestOtpCode(\'sms\')">' + SMS_BTN_HTML + '</button>',
-        '<div class="auth-forgot" id="authSmsLink" onclick="requestOtpCode(\'whatsapp\')">Prefer WhatsApp? <u>Send code via WhatsApp instead</u></div>',
       '</div>',
       /* STEP 2: code */
       '<div id="auth-step-code" style="display:none">',
@@ -2540,20 +2539,6 @@ function showToast(msg) {
   setTimeout(function(){t.classList.remove('show');}, 2600);
 }
 
-/* ── COUNTDOWN (shared timer for flash deals & deal of the day) ── */
-(function(){
-  var end = Date.now() + 4*3600000 + 27*60000;
-  function tick(){
-    var d = Math.max(0, end - Date.now());
-    var h = String(Math.floor(d/3600000)).padStart(2,'0');
-    var m = String(Math.floor((d%3600000)/60000)).padStart(2,'0');
-    var s = String(Math.floor((d%60000)/1000)).padStart(2,'0');
-    ['dh','fh'].forEach(function(id){var e=document.getElementById(id);if(e)e.textContent=h;});
-    ['dm','fm'].forEach(function(id){var e=document.getElementById(id);if(e)e.textContent=m;});
-    ['ds','fs'].forEach(function(id){var e=document.getElementById(id);if(e)e.textContent=s;});
-  }
-  tick(); setInterval(tick, 1000);
-})();
 
 /* ── INIT ── */
 updateCart();

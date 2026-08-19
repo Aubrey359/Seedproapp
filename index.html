@@ -80,7 +80,6 @@
     <button class="nav-link" id="nl-farm" onclick="showPage('farm')"><svg class="nav-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V4"/><path d="M12 6l-3-2M12 6l3-2M12 10l-3-2M12 10l3-2M12 14l-3-2M12 14l3-2"/></svg>My Farm</button>
     <button class="nav-link" id="nl-orders" onclick="showPage('orders')"><svg class="nav-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>My Orders</button>
     <button class="nav-link" id="nl-chat" onclick="showPage('chat')"><svg class="nav-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l1.6 5.4L19 9l-5.4 1.6L12 16l-1.6-5.4L5 9l5.4-1.6L12 2z"/><circle cx="18.5" cy="17" r="1.3" fill="currentColor" stroke="none"/></svg>Ask AI</button>
-    <button class="nav-link hot" onclick="showPage('shop')">🔥 Today's Deals</button>
   </div>
 </nav>
 
@@ -144,12 +143,6 @@
       <button class="promo-btn">Try Free →</button>
       <span class="bg-emoji">📸</span>
     </div>
-    <div class="promo-card promo-orange" onclick="showPage('shop')">
-      <h3>Flash Sale 🔥</h3>
-      <p>Up to 30% off fresh produce today only</p>
-      <button class="promo-btn">Shop Now →</button>
-      <span class="bg-emoji">🛒</span>
-    </div>
   </div>
 
   <!-- CATEGORIES -->
@@ -184,36 +177,6 @@
     <button class="cat-card" onclick="shopCat('grains')">
       <div class="cat-icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16a8 8 0 01-16 0z"/><path d="M12 12V4"/><path d="M9 9l1.5-3M15 9l-1.5-3"/></svg></div><span>Rice</span>
     </button>
-  </div>
-
-  <!-- DEAL OF THE DAY -->
-  <div class="section">
-    <div class="deal-card">
-      <div class="deal-head">
-        <h3>🔥 Deal of the Day</h3>
-        <div class="deal-countdown">
-          <div class="deal-box"><div class="n" id="dh">04</div><div class="l">HRS</div></div>
-          <div class="deal-box"><div class="n" id="dm">27</div><div class="l">MIN</div></div>
-          <div class="deal-box"><div class="n" id="ds">00</div><div class="l">SEC</div></div>
-        </div>
-      </div>
-      <div class="deal-body">
-        <div class="deal-emoji">🍅</div>
-        <div class="deal-info">
-          <h4>Premium Tomatoes</h4>
-          <div class="deal-county">📍 Kirinyaga · James Mwangi Farm</div>
-          <div class="deal-prices">
-            <div class="deal-now">KSh 65<span style="font-size:12px;font-weight:400;color:var(--grey-text)">/kg</span></div>
-            <div class="deal-was">KSh 95</div>
-            <div class="deal-pct">-32%</div>
-          </div>
-          <div class="deal-btns">
-            <button class="btn-primary" onclick="quickAdd(1)">🛒 Add to Cart</button>
-            <button class="btn-whatsapp" onclick="openWA('Tomatoes')">💬 WhatsApp</button>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- FRESH TODAY -->
@@ -353,18 +316,6 @@
       <div class="phf-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8c-4 0-6 3-6 7a6 6 0 0012 0c0-4-2-7-6-7z"/><path d="M12 8V4"/><path d="M10 5c1-1.3 3-1.3 4 0"/></svg></div>
       <div class="phf-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8c-3.5 0-6 2.8-6 6.5S9 21 12 21s6-2.8 6-6.5S15.5 8 12 8z"/><path d="M12 8c0-2 1-3.5 2.5-4"/><path d="M12 5.5c-.8-1-2-1-3-.5"/></svg></div>
       <div class="phf-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V4"/><path d="M12 6l-3-2M12 6l3-2M12 10l-3-2M12 10l3-2M12 14l-3-2M12 14l3-2"/></svg></div>
-    </div>
-  </div>
-
-  <!-- FLASH DEAL STRIP -->
-  <div class="flash-strip">
-    <div class="flash-strip-txt">🔥 Flash Deal <span>Up to 30% off verified produce</span></div>
-    <div class="flash-timer">
-      <div class="flash-box" id="fh">04</div>
-      <span style="color:white;font-weight:900;align-self:center">:</span>
-      <div class="flash-box" id="fm">27</div>
-      <span style="color:white;font-weight:900;align-self:center">:</span>
-      <div class="flash-box" id="fs">00</div>
     </div>
   </div>
 
