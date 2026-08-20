@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { createRouter, publicQuery, authedQuery } from "./middleware";
-import { listings, orders, crops, users, nextSeq, omitMongo } from "@db/schema";
+import { listings, orders, crops, users, ratings, nextSeq, omitMongo } from "@db/schema";
 import { CURRENCY } from "@contracts/kenya";
 import { findOrCreateFarmerByPhone } from "./lib/identity";
 import { alertBuyersOfListing } from "./whatsapp/notify";
@@ -338,17 +338,21 @@ export const marketRouter = createRouter({
 
     const listingIds = [...new Set(rows.map((r: any) => r.listingId))];
     const partyIds = [...new Set(rows.flatMap((r: any) => [r.buyerId, r.farmerId]))];
-    const [listingRows, partyRows] = await Promise.all([
+    const orderIds = rows.map((r: any) => r.id);
+    const [listingRows, partyRows, myReviews] = await Promise.all([
       listings.find({ id: { $in: listingIds } }).lean(),
       users.find({ id: { $in: partyIds } }).lean(),
+      ratings.find({ reviewerId: ctx.user.id, orderId: { $in: orderIds } }).lean(),
     ]);
     const listingMap = new Map(listingRows.map((l: any) => [l.id, l]));
     const userMap = new Map(partyRows.map((u: any) => [u.id, u]));
+    const reviewedOrderIds = new Set((myReviews as any[]).map((r) => r.orderId));
 
     return rows.map((r: any) => {
       const listing: any = listingMap.get(r.listingId);
       const isFarmer = r.farmerId === ctx.user.id;
-      const counterparty: any = userMap.get(isFarmer ? r.buyerId : r.farmerId);
+      const counterpartyId = isFarmer ? r.buyerId : r.farmerId;
+      const counterparty: any = userMap.get(counterpartyId);
       return {
         id: r.id,
         role: isFarmer ? "farmer" : "buyer",
@@ -359,8 +363,10 @@ export const marketRouter = createRouter({
         totalAmount: r.totalAmount,
         deliveryMethod: r.deliveryMethod,
         status: r.status,
+        counterpartyId,
         counterpartyName: counterparty?.name ?? "Unknown",
         counterpartyPhone: counterparty?.phone ?? null,
+        hasReviewed: reviewedOrderIds.has(r.id),
         createdAt: r.createdAt,
       };
     });

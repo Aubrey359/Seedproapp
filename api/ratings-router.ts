@@ -1,6 +1,7 @@
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { createRouter, publicQuery, authedQuery } from "./middleware";
-import { ratings, users, nextSeq, omitMongo } from "@db/schema";
+import { ratings, users, orders, nextSeq, omitMongo } from "@db/schema";
 
 function average(rows: any[]): number {
   if (rows.length === 0) return 0;
@@ -31,16 +32,40 @@ export const ratingsRouter = createRouter({
         revieweeId: z.number(),
         orderId: z.number().optional(),
         rating: z.number().min(1).max(5),
-        review: z.string().min(1),
+        review: z.string().min(1).max(1000),
         tags: z.array(z.string()).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       const reviewerId = ctx.user.id;
 
-      // Prevent self-rating
       if (reviewerId === input.revieweeId) {
-        throw new Error("Cannot rate yourself");
+        throw new TRPCError({ code: "BAD_REQUEST", message: "You can't rate yourself" });
+      }
+
+      // Reviews are only meaningful if tied to a real, completed transaction
+      // between these two people — otherwise anyone could rate anyone,
+      // which is exactly the kind of fake trust signal this feature exists
+      // to replace (see the removed homepage testimonials). The frontend
+      // always sends an orderId; this stays optional at the schema level
+      // only so the endpoint isn't hard-broken if that ever changes.
+      if (input.orderId != null) {
+        const order: any = await orders.findOne({ id: input.orderId }).lean();
+        if (!order) throw new TRPCError({ code: "NOT_FOUND", message: "Order not found" });
+        const reviewerIsParty = order.buyerId === reviewerId || order.farmerId === reviewerId;
+        const revieweeIsCounterparty =
+          (order.buyerId === reviewerId && order.farmerId === input.revieweeId) ||
+          (order.farmerId === reviewerId && order.buyerId === input.revieweeId);
+        if (!reviewerIsParty || !revieweeIsCounterparty) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "This order doesn't involve both of you" });
+        }
+        if (order.status !== "delivered") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "You can only review a completed order" });
+        }
+        const existing = await ratings.findOne({ reviewerId, orderId: input.orderId }).lean();
+        if (existing) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "You've already reviewed this order" });
+        }
       }
 
       const id = await nextSeq("ratings");

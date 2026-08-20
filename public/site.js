@@ -524,6 +524,8 @@ function renderFarmerShopHeader(f) {
 function renderFarmerShop(farmerId) {
   var grid = document.getElementById('farmerShopGrid');
   if (grid) grid.innerHTML = loadingHTML();
+  var reviewsEl = document.getElementById('fsReviewsList');
+  if (reviewsEl) reviewsEl.innerHTML = '<p style="text-align:center;padding:20px;color:var(--grey-text)">Loading reviews…</p>';
 
   fetch('/api/trpc/market.farmerProfile?input=' + encodeURIComponent(JSON.stringify({ json: { farmerId: farmerId } })))
     .then(function(r){ return r.json(); })
@@ -535,6 +537,7 @@ function renderFarmerShop(farmerId) {
         document.getElementById('fsBadges').innerHTML = '';
         var waBtn = document.getElementById('fsWaBtn'); if (waBtn) waBtn.style.display = 'none';
         if (grid) grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:24px;color:var(--grey-text)">This farmer couldn\'t be found.</p>';
+        if (reviewsEl) reviewsEl.innerHTML = '';
         return;
       }
       renderFarmerShopHeader(f);
@@ -550,6 +553,29 @@ function renderFarmerShop(farmerId) {
     .catch(function() {
       if (grid) grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:24px;color:var(--grey-text)">Couldn\'t load this shop. Try again shortly.</p>';
     });
+
+  fetch('/api/trpc/ratings.getForUser?input=' + encodeURIComponent(JSON.stringify({ json: { userId: farmerId } })))
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      var d = data && data.result && data.result.data && data.result.data.json;
+      if (!reviewsEl) return;
+      var reviews = (d && d.reviews) || [];
+      reviewsEl.innerHTML = reviews.length
+        ? reviews.map(reviewCardHTML).join('')
+        : '<p style="text-align:center;padding:20px;color:var(--grey-text)">No reviews yet — the first one shows up here once an order is delivered.</p>';
+    })
+    .catch(function() {
+      if (reviewsEl) reviewsEl.innerHTML = '';
+    });
+}
+
+function reviewCardHTML(r) {
+  var stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+  var dateStr = r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+  return '<div class="review-item">' +
+    '<div class="review-item-top"><span class="review-item-stars">' + stars + '</span><span class="review-item-date">' + dateStr + '</span></div>' +
+    '<div class="review-item-text">' + escChat(r.review) + '</div>' +
+  '</div>';
 }
 
 /* ── CART (localStorage-backed) ── */
@@ -1572,6 +1598,14 @@ function orderCardHTML(o) {
   var actionBtn = (o.role === 'farmer' && ORDER_NEXT_STATUS[o.status])
     ? '<button class="order-action-btn" onclick="advanceOrderStatus(' + o.id + ',\'' + ORDER_NEXT_STATUS[o.status] + '\')">' + ORDER_NEXT_LABEL[o.status] + '</button>'
     : '';
+  // A real review, tied to this specific delivered order — replaces the
+  // fabricated "Verified Purchase" testimonials that used to sit on the
+  // homepage with something that's actually backed by a transaction.
+  var rateBtn = o.status === 'delivered'
+    ? (o.hasReviewed
+        ? '<span class="order-reviewed-tag">✓ Reviewed</span>'
+        : '<button class="order-rate-btn" data-order-id="' + o.id + '" data-reviewee-id="' + o.counterpartyId + '" data-reviewee-name="' + escChat(o.counterpartyName) + '" onclick="openRatingModal(this)">⭐ Rate ' + (o.role === 'farmer' ? 'Buyer' : 'Farmer') + '</button>')
+    : '';
   return '<div class="order-card">' +
     '<div class="order-card-top">' +
       '<div class="order-crop"><span class="order-crop-emoji">' + meta.emoji + '</span>' +
@@ -1585,6 +1619,7 @@ function orderCardHTML(o) {
       '<div class="order-total">KSh ' + o.totalAmount.toLocaleString() + '</div>' +
       actionBtn +
     '</div>' +
+    (rateBtn ? '<div class="order-rate-row">' + rateBtn + '</div>' : '') +
   '</div>';
 }
 
@@ -1916,6 +1951,78 @@ function openPremiumModal() {
 function closePremiumModal() {
   var m = document.getElementById('premiumModal');
   if (m) m.remove();
+}
+
+/* ── RATINGS (real reviews tied to a delivered order — replaces the
+   fabricated "Verified Purchase" homepage testimonials) ── */
+var RATE_STARS_VALUE = 0;
+
+function openRatingModal(btn) {
+  var existing = document.getElementById('ratingModal');
+  if (existing) existing.remove();
+
+  var modal = document.createElement('div');
+  modal.id = 'ratingModal';
+  modal.dataset.orderId = btn.dataset.orderId;
+  modal.dataset.revieweeId = btn.dataset.revieweeId;
+  modal.innerHTML = [
+    '<div class="mpesa-overlay" onclick="closeRatingModal()"></div>',
+    '<div class="mpesa-sheet">',
+      '<button class="auth-close" onclick="closeRatingModal()">✕</button>',
+      '<h2 class="auth-title">⭐ Rate ' + escChat(btn.dataset.revieweeName) + '</h2>',
+      '<p class="auth-sub">How was your experience with this order?</p>',
+      '<div class="rate-stars" id="rateStarsRow">' +
+        [1, 2, 3, 4, 5].map(function(n) { return '<span class="rate-star" data-val="' + n + '" onclick="setRateStars(' + n + ')">☆</span>'; }).join('') +
+      '</div>',
+      '<textarea id="rateReviewText" maxlength="1000" placeholder="Tell other farmers and buyers how it went…"></textarea>',
+      '<button class="auth-submit" id="rateSubmitBtn" onclick="submitRating()">Submit Review</button>',
+    '</div>',
+  ].join('');
+  document.body.appendChild(modal);
+  requestAnimationFrame(function(){ modal.classList.add('open'); });
+  RATE_STARS_VALUE = 0;
+}
+
+function closeRatingModal() {
+  var m = document.getElementById('ratingModal');
+  if (m) m.remove();
+}
+
+function setRateStars(n) {
+  RATE_STARS_VALUE = n;
+  document.querySelectorAll('#rateStarsRow .rate-star').forEach(function(el, i) {
+    el.textContent = (i < n) ? '★' : '☆';
+    el.classList.toggle('filled', i < n);
+  });
+}
+
+function submitRating() {
+  var modal = document.getElementById('ratingModal');
+  if (!modal) return;
+  var orderId = Number(modal.dataset.orderId);
+  var revieweeId = Number(modal.dataset.revieweeId);
+  var review = (document.getElementById('rateReviewText') || {}).value || '';
+  if (!RATE_STARS_VALUE) { showToast('⚠️ Pick a star rating'); return; }
+  if (!review.trim()) { showToast('⚠️ Add a short review'); return; }
+
+  var btn = document.getElementById('rateSubmitBtn');
+  btn.textContent = 'Submitting…'; btn.disabled = true;
+  fetch('/api/trpc/ratings.create', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ json: { revieweeId: revieweeId, orderId: orderId, rating: RATE_STARS_VALUE, review: review.trim() } })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d) {
+    if (d.error) throw new Error(d.error.message || 'Could not submit review');
+    closeRatingModal();
+    showToast('✅ Review submitted — thank you!');
+    if (typeof renderOrdersPage === 'function') renderOrdersPage();
+  })
+  .catch(function(err) {
+    btn.textContent = 'Submit Review'; btn.disabled = false;
+    showToast('❌ ' + (err.message || 'Could not submit review'));
+  });
 }
 
 function initiatePremiumMpesa() {
